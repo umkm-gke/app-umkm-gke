@@ -178,7 +178,7 @@ elif menu_selection == "Portal Penjual":
     if not st.session_state.get('logged_in'):
         login_form()
     else:
-        st.sidebar.success(f"Login sebagai: **{st.session_state['vendor_name']}**")
+        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
         logout()
         
         st.header(f"Dashboard: {st.session_state['vendor_name']}")
