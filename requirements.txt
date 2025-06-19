@@ -1,0 +1,6 @@
+streamlit
+gspread
+pandas
+bcrypt
+google-auth-oauthlib
+google-auth-httplib2
