@@ -14,7 +14,7 @@ st.set_page_config(page_title="Marketplace UMKM Warga", layout="wide")
 
 # --- INISIALISASI SESSION STATE ---
 if 'cart' not in st.session_state:
-    st.session_state.cart =
+    st.session_state.cart = []
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 
