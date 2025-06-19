@@ -4,7 +4,7 @@ import pandas as pd
 from google.oauth2.service_account import Credentials
 
 # Menggunakan cache data untuk menghindari pemanggilan API berulang kali
-@st.cache_data(ttl=600) # Cache data selama 10 menit
+@st.cache_data(show_spinner=False)
 def get_data(worksheet_name):
     """Mengambil semua data dari worksheet tertentu dan mengembalikannya sebagai DataFrame."""
     try:
