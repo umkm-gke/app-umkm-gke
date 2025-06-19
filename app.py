@@ -166,7 +166,7 @@ elif menu_selection == "Keranjang Belanja":
                                 st.write(f"**Pembayaran:** (Tambahkan info rekening di sini)")
                                 st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
 
-                            st.session_state.cart =
+                            st.session_state.cart = []
 
 # =================================================================
 # --- HALAMAN PORTAL PENJUAL ---
