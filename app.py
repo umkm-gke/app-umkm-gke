@@ -72,8 +72,11 @@ if menu_selection == "Belanja":
                 col = cols[index % 3]
                 with col:
                     with st.container(border=True):
-                        if pd.notna(product['image_url']):
-                            st.image(product['image_url'], caption=product['product_name'])
+                        image_url = product.get('image_url', '').strip()
+                        if image_url:
+                            st.image(image_url, caption=product['product_name'])
+                        else:
+                            st.image("https://via.placeholder.com/150", caption="Gambar tidak tersedia")
                         st.subheader(product['product_name'])
                         st.write(f"**Rp {product['price']:,}**")
                         st.write(f"Oleh: **{product.get('vendor_name', 'N/A')}**")
