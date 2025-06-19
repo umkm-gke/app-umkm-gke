@@ -12,9 +12,9 @@ from auth import login_form, logout
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Marketplace UMKM Warga", layout="wide")
 
-# --- INISIALISASI SESSION STATE ---
+# --- INISIALISASI SESSION STATE (BAGIAN YANG DIPERBAIKI) ---
 if 'cart' not in st.session_state:
-    st.session_state.cart = []
+    st.session_state.cart = [] # Memberikan nilai daftar kosong
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 
@@ -38,14 +38,13 @@ def add_to_cart(product):
     st.toast(f"{product['product_name']} ditambahkan ke keranjang!", icon="✅")
 
 # --- TAMPILAN UTAMA ---
-st.title("🏡 GKE Marketplace")
-st.write("Temukan produk UMKM terbaik dari tetangga Anda!")
+st.title("🏡 Marketplace UMKM Warga")
+st.write("Temukan produk terbaik dari tetangga Anda!")
 
 # --- NAVIGASI ---
-# Menambahkan opsi "Daftar sebagai Penjual"
 menu_selection = st.sidebar.radio(
     "Menu Navigasi",
-   
+    ["Belanja", "Keranjang Belanja", "Portal Penjual", "Daftar sebagai Penjual"]
 )
 
 # =================================================================
@@ -57,26 +56,29 @@ if menu_selection == "Belanja":
     products_df = get_data("Products")
     vendors_df = get_data("Vendors")
 
-    if products_df.empty or vendors_df.empty:
-        st.warning("Gagal memuat produk atau data penjual. Silakan coba lagi nanti.")
+    if vendors_df.empty:
+        st.info("Saat ini belum ada penjual terdaftar.")
+    elif products_df.empty:
+        st.info("Saat ini belum ada produk yang tersedia.")
     else:
         products_df = pd.merge(products_df, vendors_df[['vendor_id', 'vendor_name']], on='vendor_id', how='left')
         active_products = products_df[products_df['is_active'] == True]
 
         if active_products.empty:
-            st.info("Saat ini belum ada produk yang tersedia.")
+            st.info("Saat ini belum ada produk yang ditampilkan.")
         else:
             cols = st.columns(3)
             for index, product in active_products.iterrows():
                 col = cols[index % 3]
                 with col:
                     with st.container(border=True):
-                        st.image(product['image_url'], caption=product['product_name'])
+                        if pd.notna(product['image_url']):
+                            st.image(product['image_url'], caption=product['product_name'])
                         st.subheader(product['product_name'])
                         st.write(f"**Rp {product['price']:,}**")
-                        st.write(f"Oleh: **{product['vendor_name']}**")
+                        st.write(f"Oleh: **{product.get('vendor_name', 'N/A')}**")
                         st.write(product['description'])
-                        if st.button("🛒 Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                        if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
                             add_to_cart(product)
 
 # =================================================================
@@ -166,6 +168,7 @@ elif menu_selection == "Keranjang Belanja":
                                 st.write(f"**Pembayaran:** (Tambahkan info rekening di sini)")
                                 st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
 
+                            # Mengosongkan keranjang setelah berhasil (BAGIAN YANG DIPERBAIKI)
                             st.session_state.cart = []
 
 # =================================================================
@@ -223,7 +226,7 @@ elif menu_selection == "Portal Penjual":
                         st.rerun()
 
 # =================================================================
-# --- HALAMAN PENDAFTARAN VENDOR (BARU) ---
+# --- HALAMAN PENDAFTARAN VENDOR ---
 # =================================================================
 elif menu_selection == "Daftar sebagai Penjual":
     st.header("✍️ Pendaftaran Penjual Baru")
@@ -239,7 +242,6 @@ elif menu_selection == "Daftar sebagai Penjual":
         submitted = st.form_submit_button("Daftar Sekarang")
 
         if submitted:
-            # Validasi input
             if not all([vendor_name, username, whatsapp_number, password, confirm_password]):
                 st.warning("Semua kolom wajib diisi.")
             elif password!= confirm_password:
@@ -248,25 +250,21 @@ elif menu_selection == "Daftar sebagai Penjual":
                 with st.spinner("Mendaftarkan akun Anda..."):
                     vendors_df = get_data("Vendors")
                     
-                    # Cek apakah username sudah ada
                     if not vendors_df.empty and username in vendors_df['username'].values:
                         st.error("Username ini sudah digunakan. Silakan pilih yang lain.")
                     else:
                         vendors_ws = get_worksheet("Vendors")
                         if vendors_ws:
-                            # Buat data vendor baru
                             vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
                             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
                             
                             new_vendor_row = [vendor_id, vendor_name, username, hashed_password, whatsapp_number]
                             
-                            # Tambahkan ke Google Sheets
                             vendors_ws.append_row(new_vendor_row)
                             
                             st.success(f"Pendaftaran berhasil! Selamat datang, {vendor_name}. Silakan login melalui 'Portal Penjual'.")
                             st.balloons()
                             
-                            # Hapus cache agar data vendor yang baru bisa langsung terbaca
                             st.cache_data.clear()
                         else:
                             st.error("Gagal terhubung ke database. Coba lagi nanti.")
