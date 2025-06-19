@@ -10,7 +10,7 @@ from g_sheets import get_data, get_worksheet
 from auth import login_form, logout
 
 # --- KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="Marketplace UMKM Warga", layout="wide")
+st.set_page_config(page_title="Marketplace Gading Kirana", layout="wide")
 
 # --- INISIALISASI SESSION STATE (BAGIAN YANG DIPERBAIKI) ---
 if 'cart' not in st.session_state:
@@ -38,7 +38,7 @@ def add_to_cart(product):
     st.toast(f"{product['product_name']} ditambahkan ke keranjang!", icon="✅")
 
 # --- TAMPILAN UTAMA ---
-st.title("🏡 Marketplace UMKM Warga")
+st.title("🏡 Marketplace Gading Kirana")
 st.write("Temukan produk terbaik dari tetangga Anda!")
 
 # --- NAVIGASI ---
