@@ -55,7 +55,7 @@ if menu_selection == "Belanja":
     
     products_df = get_data("Products")
     vendors_df = get_data("Vendors")
-
+    products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
     if vendors_df.empty:
         st.info("Saat ini belum ada penjual terdaftar.")
     elif products_df.empty:
