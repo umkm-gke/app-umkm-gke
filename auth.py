@@ -28,10 +28,10 @@ def login_form():
                 # Verifikasi password
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password_bytes):
                     st.session_state['logged_in'] = True
-                    st.session_state['vendor_id'] = vendor_data.iloc['vendor_id']
-                    st.session_state['vendor_name'] = vendor_data.iloc['vendor_name']
+                    st.session_state['vendor_id'] = vendor_data['vendor_id'].values[0]
+                    st.session_state['vendor_name'] = vendor_data['vendor_name'].values[0]
                     st.success(f"Login berhasil! Selamat datang, {st.session_state['vendor_name']}.")
-                    st.rerun() # Muat ulang halaman untuk menampilkan dashboard
+                    st.rerun()  # Muat ulang halaman untuk menampilkan dashboard
                 else:
                     st.error("Username atau password salah.")
             else:
