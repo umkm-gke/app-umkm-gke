@@ -153,15 +153,18 @@ elif menu_selection == "Keranjang Belanja":
                             st.info("Silakan lakukan pembayaran ke masing-masing penjual dan konfirmasi pesanan dengan mengklik tombol WhatsApp di bawah ini.")
 
                             for vendor_id, amount in vendors_in_cart.items():
-                                vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc
+                                #vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc
                                 items_from_vendor = [f"{item['quantity']}x {item['product_name']}" for item in st.session_state.cart if item['vendor_id'] == vendor_id]
-                                message = (
-                                    f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
-                                    f"Pesanan saya:\n"
-                                    f"{', '.join(items_from_vendor)}\n\n"
-                                    f"Total: Rp {amount:,}\n"
-                                    f"Terima kasih!"
-                                )
+                                vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id]
+                                if not vendor_info.empty:
+                                    vendor_info = vendor_info.iloc[0]
+                                    message = (
+                                        f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
+                                        f"Pesanan saya:\n"
+                                        f"{', '.join(items_from_vendor)}\n\n"
+                                        f"Total: Rp {amount:,}\n"
+                                        f"Terima kasih!"
+                                    )
                                 encoded_message = quote_plus(message)
                                 whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
                                 
