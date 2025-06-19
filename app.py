@@ -183,7 +183,7 @@ elif menu_selection == "Portal Penjual":
         
         st.header(f"Dashboard: {st.session_state['vendor_name']}")
         st.subheader("📦 Produk Anda")
-        try
+        try:
             products_df = get_data("Products")
             my_products = products_df[products_df['vendor_id'] == st.session_state['vendor_id']]
 
