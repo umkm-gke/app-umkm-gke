@@ -22,7 +22,7 @@ def login_form():
 
             if not vendor_data.empty:
                 # Ambil password hash dari dataframe
-                hashed_password_str = vendor_data.iloc['password_hash']
+                hashed_password_str = vendor_data['password_hash'].values[0]
                 hashed_password_bytes = hashed_password_str.encode('utf-8')
 
                 # Verifikasi password
