@@ -183,15 +183,18 @@ elif menu_selection == "Portal Penjual":
         
         st.header(f"Dashboard: {st.session_state['vendor_name']}")
         st.subheader("📦 Produk Anda")
-        
-        products_df = get_data("Products")
-        my_products = products_df[products_df['vendor_id'] == st.session_state['vendor_id']]
+        try
+            products_df = get_data("Products")
+            my_products = products_df[products_df['vendor_id'] == st.session_state['vendor_id']]
 
-        if my_products.empty:
-            st.info("Anda belum memiliki produk. Silakan tambahkan produk baru.")
-        else:
-            st.dataframe(my_products)
-
+            if my_products.empty:
+                st.info("Anda belum memiliki produk. Silakan tambahkan produk baru.")
+            else:
+                st.dataframe(my_products)
+        except Exception as e:
+            st.error("Gagal memuat data produk.")
+            st.write(e)
+            
         with st.expander("➕ Tambah atau Edit Produk"):
             with st.form("product_form", clear_on_submit=True):
                 product_id_to_edit = st.text_input("ID Produk (kosongkan untuk menambah produk baru)")
