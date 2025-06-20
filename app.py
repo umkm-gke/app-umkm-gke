@@ -477,3 +477,44 @@ elif menu_selection == "Daftar sebagai Penjual":
                             st.cache_data.clear()
                         else:
                             st.error("Gagal terhubung ke database. Coba lagi nanti.")
+# =================================================================
+# --- HALAMAN VERIFIKASI ADMIN ---
+# =================================================================
+elif menu_selection == "Verifikasi Pendaftar":
+    if not st.session_state.get("is_admin"):
+        st.error("Halaman ini hanya dapat diakses oleh admin.")
+        st.stop()
+
+    st.header("🛂 Verifikasi Pendaftar Vendor")
+    
+    vendors_df = get_data("Vendors")
+    vendors_ws = get_worksheet("Vendors")
+
+    pending_vendors = vendors_df[vendors_df['status'].str.lower() == "pending"]
+
+    if pending_vendors.empty:
+        st.info("Tidak ada vendor yang menunggu persetujuan.")
+    else:
+        for idx, row in pending_vendors.iterrows():
+            st.markdown("---")
+            st.markdown(f"**{row['vendor_name']}** (`{row['username']}`)")
+            st.caption(f"📱 {row['whatsapp']}")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button(f"✅ Setujui {row['username']}", key=f"approve_{row['username']}"):
+                    status_col_index = vendors_df.columns.get_loc('status') + 1
+                    cell = vendors_ws.find(row['username'])
+                    if cell:
+                        vendors_ws.update_cell(cell.row, status_col_index, "approved")
+                        st.success(f"Akun '{row['username']}' telah disetujui.")
+                        st.rerun()
+            with col2:
+                if st.button(f"❌ Tolak {row['username']}", key=f"reject_{row['username']}"):
+                    status_col_index = vendors_df.columns.get_loc('status') + 1
+                    cell = vendors_ws.find(row['username'])
+                    if cell:
+                        vendors_ws.update_cell(cell.row, status_col_index, "rejected")
+                        st.warning(f"Akun '{row['username']}' telah ditolak.")
+                        st.rerun()
+
