@@ -321,32 +321,43 @@ elif menu_selection == "Portal Penjual":
             my_products = products_df[products_df['vendor_id'] == vendor_id]
             existing_ids = my_products['product_id'].tolist()
 
-            with st.form("product_form", clear_on_submit=True):
-                selected_product_id = st.selectbox(
-                    "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
-                    [""] + existing_ids
-                )
+        # --- Langkah 1: Pilih Produk di luar Form
+            selected_product_id = st.selectbox(
+            "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
+                [""] + existing_ids,
+                key="selected_product_id"
+            )
 
-                if selected_product_id:
-                    product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
-                    product_name = st.text_input("Nama Produk", value=product_data['product_name'])
-                    description = st.text_area("Deskripsi", value=product_data['description'])
-                    price = st.number_input("Harga", min_value=0, value=int(product_data['price']))
-                    stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=int(product_data['stock_quantity']))
-                    is_active = st.checkbox("Tampilkan Produk?", value=product_data['is_active'])
-                    current_image = product_data['image_url']
-                    if current_image:
-                        st.image(current_image, width=200, caption="Gambar Produk Saat Ini")
-                else:
-                    product_name = st.text_input("Nama Produk")
-                    description = st.text_area("Deskripsi")
-                    price = st.number_input("Harga", min_value=0)
-                    stock_quantity = st.number_input("Jumlah Stok", min_value=0)
-                    is_active = st.checkbox("Tampilkan Produk?", value=True)
-                    current_image = ""
+        # --- Langkah 2: Ambil Data Produk Jika Ada
+            if selected_product_id:
+                product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
+                default_name = product_data['product_name']
+                default_desc = product_data['description']
+                default_price = int(product_data['price'])
+                default_stock = int(product_data['stock_quantity'])
+                default_active = product_data['is_active']
+                default_image = product_data['image_url']
+            else:
+                default_name = ""
+                default_desc = ""
+                default_price = 0
+                default_stock = 0
+                default_active = True
+                default_image = ""
+
+        # --- Langkah 3: Tampilkan Form
+            with st.form("product_form", clear_on_submit=True):
+                product_name = st.text_input("Nama Produk", value=default_name)
+                description = st.text_area("Deskripsi", value=default_desc)
+                price = st.number_input("Harga", min_value=0, value=default_price)
+                stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=default_stock)
+                is_active = st.checkbox("Tampilkan Produk?", value=default_active)
+
+                if default_image:
+                    st.image(default_image, width=200, caption="Gambar Produk Saat Ini")
 
                 uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
-                image_url = current_image
+                image_url = default_image
 
                 submitted = st.form_submit_button("💾 Simpan Produk")
 
@@ -357,7 +368,6 @@ elif menu_selection == "Portal Penjual":
 
                     products_ws = get_worksheet("Products")
 
-                    # Simpan gambar baru jika ada
                     if uploaded_file:
                         os.makedirs("images", exist_ok=True)
                         image_url = f"images/{uuid.uuid4().hex[:8]}.jpg"
@@ -373,7 +383,7 @@ elif menu_selection == "Portal Penjual":
                     ]
 
                     if selected_product_id:
-                        # Update produk
+                    # Update produk
                         cell = products_ws.find(selected_product_id)
                         if cell:
                             products_ws.update(f"A{cell.row}:I{cell.row}", [new_row])
@@ -381,7 +391,7 @@ elif menu_selection == "Portal Penjual":
                         else:
                             st.error("Produk tidak ditemukan.")
                     else:
-                        # Tambah produk
+                    # Tambah produk baru
                         products_ws.append_row(new_row)
                         st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
 
@@ -391,6 +401,7 @@ elif menu_selection == "Portal Penjual":
         except Exception as e:
             st.error("Gagal menampilkan form produk.")
             st.write(e)
+
 # =================================================================
 # --- HALAMAN PENDAFTARAN VENDOR ---
 # =================================================================
