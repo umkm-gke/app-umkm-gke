@@ -188,30 +188,30 @@ elif menu_selection == "Portal Penjual":
         st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
         logout()
 
-vendor_id = st.session_state.get('vendor_id')
+    vendor_id = st.session_state.get('vendor_id')
     if not vendor_id:
         st.error("Vendor ID tidak ditemukan.")
         st.stop()
 
 # ------------------ DASHBOARD PENJUAL ------------------
-st.header(f"Dashboard: {st.session_state['vendor_name']}")
-st.subheader("📦 Produk Anda")
+    st.header(f"Dashboard: {st.session_state['vendor_name']}")
+    st.subheader("📦 Produk Anda")
 
-try:
-    products_df = get_data("Products")
-    my_products = products_df[products_df['vendor_id'] == vendor_id]
+    try:
+        products_df = get_data("Products")
+        my_products = products_df[products_df['vendor_id'] == vendor_id]
 
     # --- FILTER AKTIF / NON-AKTIF ---
-    filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
-    if filter_status == "Aktif":
-        my_products = my_products[my_products['is_active'] == True]
-    elif filter_status == "Nonaktif":
-        my_products = my_products[my_products['is_active'] == False]
+        filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
+        if filter_status == "Aktif":
+            my_products = my_products[my_products['is_active'] == True]
+        elif filter_status == "Nonaktif":
+            my_products = my_products[my_products['is_active'] == False]
 
-    if my_products.empty:
-        st.info("Anda belum memiliki produk.")
-    else:
-        st.dataframe(my_products)
+        if my_products.empty:
+            st.info("Anda belum memiliki produk.")
+        else:
+            st.dataframe(my_products)
 
         # --- HAPUS PRODUK ---
         with st.expander("🗑️ Hapus Produk"):
@@ -227,9 +227,9 @@ try:
                         st.rerun()
                     else:
                         st.error("Produk tidak ditemukan.")
-except Exception as e:
-    st.error("Gagal memuat data produk.")
-    st.write(e)
+    except Exception as e:
+        st.error("Gagal memuat data produk.")
+        st.write(e)
 
 # ------------------ FORM TAMBAH / EDIT PRODUK ------------------
 with st.expander("➕ Tambah atau Edit Produk"):
