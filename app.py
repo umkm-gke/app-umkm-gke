@@ -169,7 +169,7 @@ if menu_selection == "Belanja":
 # =================================================================
 # --- HALAMAN KERANJANG BELANJA ---
 # =================================================================
-elif menu_selection == "Keranjang Belanja":
+elif menu_selection == "Keranjang":
     st.header("🛒 Keranjang Belanja Anda")
     
     if not st.session_state.cart:
