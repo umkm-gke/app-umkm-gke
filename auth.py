@@ -5,7 +5,12 @@ from g_sheets import get_data
 def login_form():
     """Menampilkan form login dan menangani logika autentikasi."""
     st.header("Portal Penjual: Login")
-
+    if username == "admin" and password == "admin123":
+        st.session_state['logged_in'] = True
+        st.session_state['is_admin'] = True
+        st.session_state['vendor_name'] = "Administrator"
+        st.success("Login sebagai Admin")
+        st.rerun()
     vendors_df = get_data("Vendors")
     if vendors_df.empty:
         st.error("Tidak dapat memuat data penjual. Periksa koneksi Google Sheets.")
