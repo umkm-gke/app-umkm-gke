@@ -110,7 +110,7 @@ with st.sidebar:
         menu_items = [f"Verifikasi Pendaftar ({jumlah_pending})" if jumlah_pending > 0 else "Verifikasi Pendaftar"]
         icons = ["shield-lock"]
     elif role == 'vendor':
-        menu_items = ["Portal Penjual"]
+        menu_items = ["Portal Penjual", "Lupa Password"]
         icons = ["box-seam"]
     else:
         menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual"]
