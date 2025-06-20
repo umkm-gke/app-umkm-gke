@@ -315,92 +315,92 @@ elif menu_selection == "Portal Penjual":
         st.write(e)
 
     # ------------------ TAMBAH / EDIT PRODUK ------------------
-    with st.expander("➕ Tambah atau Edit Produk"):
-        try:
-            products_df = get_data("Products")
-            my_products = products_df[products_df['vendor_id'] == vendor_id]
-            existing_ids = my_products['product_id'].tolist()
+        with st.expander("➕ Tambah atau Edit Produk"):
+            try:
+                products_df = get_data("Products")
+                my_products = products_df[products_df['vendor_id'] == vendor_id]
+                existing_ids = my_products['product_id'].tolist()
 
         # --- Langkah 1: Pilih Produk di luar Form
-            selected_product_id = st.selectbox(
+                selected_product_id = st.selectbox(
             "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
-                [""] + existing_ids,
-                key="selected_product_id"
-            )
+                    [""] + existing_ids,
+                    key="selected_product_id"
+                )
 
         # --- Langkah 2: Ambil Data Produk Jika Ada
-            if selected_product_id:
-                product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
-                default_name = product_data['product_name']
-                default_desc = product_data['description']
-                default_price = int(product_data['price'])
-                default_stock = int(product_data['stock_quantity'])
-                default_active = product_data['is_active']
-                default_image = product_data['image_url']
-            else:
-                default_name = ""
-                default_desc = ""
-                default_price = 0
-                default_stock = 0
-                default_active = True
-                default_image = ""
+                if selected_product_id:
+                    product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
+                    default_name = product_data['product_name']
+                    default_desc = product_data['description']
+                    default_price = int(product_data['price'])
+                    default_stock = int(product_data['stock_quantity'])
+                    default_active = product_data['is_active']
+                    default_image = product_data['image_url']
+                else:
+                    default_name = ""
+                    default_desc = ""
+                    default_price = 0
+                    default_stock = 0
+                    default_active = True
+                    default_image = ""
 
         # --- Langkah 3: Tampilkan Form
-            with st.form("product_form", clear_on_submit=True):
-                product_name = st.text_input("Nama Produk", value=default_name)
-                description = st.text_area("Deskripsi", value=default_desc)
-                price = st.number_input("Harga", min_value=0, value=default_price)
-                stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=default_stock)
-                is_active = st.checkbox("Tampilkan Produk?", value=default_active)
+                with st.form("product_form", clear_on_submit=True):
+                    product_name = st.text_input("Nama Produk", value=default_name)
+                    description = st.text_area("Deskripsi", value=default_desc)
+                    price = st.number_input("Harga", min_value=0, value=default_price)
+                    stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=default_stock)
+                    is_active = st.checkbox("Tampilkan Produk?", value=default_active)
 
-                if default_image:
-                    st.image(default_image, width=200, caption="Gambar Produk Saat Ini")
+                    if default_image:
+                        st.image(default_image, width=200, caption="Gambar Produk Saat Ini")
 
-                uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
-                image_url = default_image
+                    uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
+                    image_url = default_image
 
-                submitted = st.form_submit_button("💾 Simpan Produk")
+                    submitted = st.form_submit_button("💾 Simpan Produk")
 
-                if submitted:
-                    if not product_name or not description:
-                        st.warning("Nama produk dan deskripsi wajib diisi.")
-                        st.stop()
+                    if submitted:
+                        if not product_name or not description:
+                            st.warning("Nama produk dan deskripsi wajib diisi.")
+                            st.stop()
 
-                    products_ws = get_worksheet("Products")
+                        products_ws = get_worksheet("Products")
 
-                    if uploaded_file:
-                        os.makedirs("images", exist_ok=True)
-                        image_url = f"images/{uuid.uuid4().hex[:8]}.jpg"
-                        with open(image_url, "wb") as f:
-                            f.write(uploaded_file.read())
-                        st.image(image_url, width=200, caption="Gambar Baru")
+                        if uploaded_file:
+                            os.makedirs("images", exist_ok=True)
+                            image_url = f"images/{uuid.uuid4().hex[:8]}.jpg"
+                            with open(image_url, "wb") as f:
+                                f.write(uploaded_file.read())
+                            st.image(image_url, width=200, caption="Gambar Baru")
 
-                    product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
-                    new_row = [
-                        product_id, vendor_id, product_name, description, price,
-                        image_url, stock_quantity, is_active,
-                        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    ]
+                        product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
+                        new_row = [
+                            product_id, vendor_id, product_name, description, price,
+                            image_url, stock_quantity, is_active,
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        ]
 
-                    if selected_product_id:
+                        if selected_product_id:
                     # Update produk
-                        cell = products_ws.find(selected_product_id)
-                        if cell:
-                            products_ws.update(f"A{cell.row}:I{cell.row}", [new_row])
-                            st.success(f"Produk '{product_name}' berhasil diperbarui!")
+                            cell = products_ws.find(selected_product_id)
+                            if cell:
+                                products_ws.update(f"A{cell.row}:I{cell.row}", [new_row])
+                                st.success(f"Produk '{product_name}' berhasil diperbarui!")
+                            else:
+                                st.error("Produk tidak ditemukan.")
                         else:
-                            st.error("Produk tidak ditemukan.")
-                    else:
                     # Tambah produk baru
-                        products_ws.append_row(new_row)
-                        st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
+                            products_ws.append_row(new_row)
+                            st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
 
-                    st.cache_data.clear()
-                    st.rerun()
+                        st.cache_data.clear()
+                        st.rerun()
 
-        except Exception as e:
-            st.error("Gagal menampilkan form produk.")
-            st.write(e)
+            except Exception as e:
+                st.error("Gagal menampilkan form produk.")
+                st.write(e)
 
 # =================================================================
 # --- HALAMAN PENDAFTARAN VENDOR ---
