@@ -8,7 +8,7 @@ import bcrypt # Diperlukan untuk hashing password pendaftaran
 import os
 
 from g_sheets import get_data, get_worksheet
-from auth import login_form, logout, reset password
+from auth import login_form, logout
 
 from streamlit_option_menu import option_menu
 
