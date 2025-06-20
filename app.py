@@ -145,7 +145,7 @@ with st.sidebar:
         menu_items = ["Portal Penjual"]
         icons = ["box-seam"]
     else:
-        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual"]
+        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual", "Reset Password"]
         icons = ["shop", "cart", "person-plus"]
 
     # TAMPILAN NAVIGASI
@@ -176,8 +176,8 @@ with st.sidebar:
             },
         }
     )
-    #if menu_selection == "Lupa Password":
-       # reset_password_vendor()
+    if menu_selection == "Reset Password":
+        reset_password_vendor()
 # =================================================================
 # --- HALAMAN PEMBELI (Guest) ---
 # =================================================================
