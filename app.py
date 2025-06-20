@@ -6,6 +6,7 @@ import json
 from urllib.parse import quote_plus
 import bcrypt # Diperlukan untuk hashing password pendaftaran
 import os
+import reset_password_vendor
 
 from g_sheets import get_data, get_worksheet
 from auth import login_form, logout
@@ -110,10 +111,10 @@ with st.sidebar:
         menu_items = [f"Verifikasi Pendaftar ({jumlah_pending})" if jumlah_pending > 0 else "Verifikasi Pendaftar"]
         icons = ["shield-lock"]
     elif role == 'vendor':
-        menu_items = ["Portal Penjual", "Lupa Password"]
+        menu_items = ["Portal Penjual"]
         icons = ["box-seam"]
     else:
-        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual"]
+        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual", "Lupa Password"]
         icons = ["shop", "cart", "person-plus"]
 
     # TAMPILAN NAVIGASI
