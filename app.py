@@ -245,15 +245,16 @@ elif menu_selection == "Portal Penjual":
         # --- UPLOAD GAMBAR ---
             uploaded_file = st.file_uploader("Upload Gambar Produk", type=["png", "jpg", "jpeg"])
             image_url = ""
+import os
             if uploaded_file:
+                os.makedirs("images", exist_ok=True)
             # Simpan ke folder lokal atau cloud, ini hanya simulasi lokal
                 image_url = f"images/{uuid.uuid4().hex[:8]}.jpg"
                 with open(image_url, "wb") as f:
                     f.write(uploaded_file.read())
-                st.image(image_url, width=200, caption="Pratinjau Gambar")
-
-            submitted = st.form_submit_button("Simpan Produk")
-
+                    st.image(image_url, width=200, caption="Pratinjau Gambar")
+                    submitted = st.form_submit_button("Simpan Produk")
+            
             if submitted:
                 if not product_name or not description:
                     st.warning("Nama produk dan deskripsi wajib diisi.")
