@@ -564,4 +564,19 @@ elif role == 'admin':
                             st.cache_data.clear()  # ✅ Wajib
                             st.warning(f"Akun '{row['username']}' telah ditolak.")
                             st.rerun()
-
+                with col3:
+                    with st.expander(f"🔁 Reset Password untuk {row['username']}"):
+                        new_password = st.text_input("Password Baru", type="password", key=f"reset_pass_{row['username']}")
+                        if st.button("Setel Ulang Password", key=f"btn_reset_{row['username']}"):
+                            if not new_password:
+                                st.error("Password baru tidak boleh kosong.")
+                            else:
+                                hashed_new_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                                password_col_index = vendors_df.columns.get_loc('password_hash') + 1
+                                cell = vendors_ws.find(row['username'])
+                                if cell:
+                                    vendors_ws.update_cell(cell.row, password_col_index, hashed_new_pw)
+                                    st.success(f"Password untuk '{row['username']}' berhasil direset.")
+                                    st.experimental_rerun()
+                                else:
+                                    st.error("Gagal menemukan data vendor untuk reset password.")
