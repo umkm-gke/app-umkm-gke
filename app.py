@@ -81,15 +81,32 @@ with col2:
     st.image("https://borneoshops.com/image/marketplace/storeicon.png", width=200)
 
 st.markdown("""<hr style="border-top: 1px solid #7f8c8d;">""", unsafe_allow_html=True)
+# --- LOGIN FORM DI HALAMAN UTAMA ---
+if not st.session_state.get('logged_in'):
+    # Tampilkan login form hanya di halaman utama (sebelum navigasi)
+    login_form()
+    st.stop()  # Stop agar tidak lanjut render menu lainnya sebelum login
+
 # --- NAVIGASI ---
 with st.sidebar:
-    vendors_df = get_data("Vendors")
-    jumlah_pending = vendors_df[vendors_df['status'].str.lower() == 'pending'].shape[0]
-    menu_label = "Verifikasi Pendaftar"
-    if jumlah_pending > 0:
-        menu_label += f" 🔴 ({jumlah_pending})"
+    # Ambil data vendor untuk cek jumlah pending (dipakai kalau admin login nanti)
+    vendors_df = get_data("Vendors") if not st.session_state.get('is_admin') else pd.DataFrame()
+    jumlah_pending = 0
+    if not vendors_df.empty:
+        jumlah_pending = vendors_df[vendors_df['status'].str.lower() == 'pending'].shape[0]
+    
+    # Tentukan menu berdasarkan status login
+    if not st.session_state.get('logged_in'):
+        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual"]
+    elif st.session_state.get('is_admin'):
+        menu_label = "Verifikasi Pendaftar"
+        if jumlah_pending > 0:
+            menu_label += f" 🔴 ({jumlah_pending})"
+        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual", menu_label]
+    else:  # Vendor login
+        menu_items = ["Belanja", "Keranjang", "Portal Penjual", "Daftar sebagai Penjual"]
+        
     menu_selection = option_menu(
-
         "📍 Navigasi",
         ["Belanja", "Keranjang", "Portal Penjual", "Daftar sebagai Penjual", menu_label],
         icons=["shop", "cart", "shop-window", "person-plus"],
@@ -283,7 +300,8 @@ elif menu_selection == "Keranjang":
 # --- HALAMAN PORTAL PENJUAL ---
 # =================================================================
 elif menu_selection == "Portal Penjual":
-    if not st.session_state.get('logged_in'):
+    if not st.session_state.get('logged_in') or st.session_state.get('is_admin', False):
+        st.warning("Silakan login sebagai vendor untuk mengakses Portal Penjual.")
         login_form()
         st.stop()
     else:
@@ -494,9 +512,14 @@ elif menu_selection == "Daftar sebagai Penjual":
 # --- HALAMAN VERIFIKASI ADMIN ---
 # =================================================================
 elif menu_selection == "Verifikasi Pendaftar":
-    if not st.session_state.get("is_admin"):
+    if not st.session_state.get('logged_in') or not st.session_state.get('is_admin', False):
+        st.warning("Silakan login sebagai admin untuk mengakses Verifikasi Pendaftar.")
+        login_form()
         st.error("Halaman ini hanya dapat diakses oleh admin.")
         st.stop()
+    else:
+        st.sidebar.success(f"Login sebagai: **Administrator**")
+        logout()
 
     st.header("🛂 Verifikasi Pendaftar Vendor")
     
