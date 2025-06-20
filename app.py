@@ -144,7 +144,8 @@ with st.sidebar:
             },
         }
     )
-
+    if menu_selection == "Lupa Password":
+        reset_password_vendor()
 # =================================================================
 # --- HALAMAN PEMBELI (Guest) ---
 # =================================================================
