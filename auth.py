@@ -6,7 +6,7 @@ def login_form():
     """Menampilkan form login dan menangani logika autentikasi."""
     st.header("Portal Penjual: Login")
     vendors_df = get_data("Vendors")
-    st.write("DATA VENDORS:", vendors_df)
+    #st.write("DATA VENDORS:", vendors_df)
     if vendors_df.empty:
         st.error("Tidak dapat memuat data penjual. Periksa koneksi Google Sheets.")
         return
