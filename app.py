@@ -81,25 +81,31 @@ st.markdown("---")
 with st.sidebar:
     menu_selection = option_menu(
         "📍 Navigasi",
-        ["Belanja", "Keranjang Belanja", "Portal Penjual", "Daftar sebagai Penjual"],
+        ["Belanja", "Keranjang", "Portal Penjual", "Daftar sebagai Penjual"],
         icons=["shop", "cart", "shop-window", "person-plus"],
         default_index=0,
-        menu_icon="menu-button-fill",
         styles={
-            "container": {"padding": "5px", "background-color": "#f9f9f9"},
-            "icon": {"color": "#FD7E14", "font-size": "20px"},
+            "container": {
+                "padding": "10px",
+                "background-color": "#2c3e50",  # background gelap
+            },
+            "icon": {
+                "color": "#f1c40f",  # kuning terang
+                "font-size": "20px"
+            },
             "nav-link": {
                 "font-size": "16px",
                 "text-align": "left",
-                "margin": "4px",
-                "--hover-color": "#eee"
+                "color": "#ecf0f1",  # teks putih
+                "--hover-color": "#34495e"
             },
             "nav-link-selected": {
-                "background-color": "#FD7E14", "color": "white", "font-weight": "bold"
+                "background-color": "#f39c12",
+                "color": "white",
+                "font-weight": "bold"
             },
         }
     )
-
 # =================================================================
 # --- HALAMAN BELANJA ---
 # =================================================================
