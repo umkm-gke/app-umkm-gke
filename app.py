@@ -279,11 +279,11 @@ elif menu_selection == "Portal Penjual":
     st.subheader("📦 Produk Anda")
 
     try:
-        # Ambil data produk vendor
+        # Ambil data produk milik vendor
         products_df = get_data("Products")
         my_products = products_df[products_df['vendor_id'] == vendor_id]
 
-        # ------------------ FILTER ------------------
+        # ------------------ FILTER PRODUK ------------------
         filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
         if filter_status == "Aktif":
             my_products = my_products[my_products['is_active'] == True]
@@ -297,38 +297,41 @@ elif menu_selection == "Portal Penjual":
 
         # ------------------ HAPUS PRODUK ------------------
         with st.expander("🗑️ Hapus Produk"):
-            delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
-            if st.button("Hapus Produk Ini"):
-                products_ws = get_worksheet("Products")
-                if products_ws:
-                    cell = products_ws.find(delete_id)
-                    if cell:
-                        products_ws.delete_rows(cell.row)
-                        st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
-                        st.cache_data.clear()
-                        st.rerun()
-                    else:
-                        st.error("Produk tidak ditemukan.")
+            if not my_products.empty:
+                delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
+                if st.button("Hapus Produk Ini"):
+                    products_ws = get_worksheet("Products")
+                    if products_ws:
+                        cell = products_ws.find(delete_id)
+                        if cell:
+                            products_ws.delete_rows(cell.row)
+                            st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
+                            st.cache_data.clear()
+                            st.rerun()
+                        else:
+                            st.error("Produk tidak ditemukan.")
+            else:
+                st.caption("Belum ada produk yang bisa dihapus.")
 
     except Exception as e:
         st.error("Gagal memuat data produk.")
         st.write(e)
 
     # ------------------ TAMBAH / EDIT PRODUK ------------------
-     with st.expander("➕ Tambah atau Edit Produk"):
+    with st.expander("➕ Tambah atau Edit Produk"):
         try:
             products_df = get_data("Products")
             my_products = products_df[products_df['vendor_id'] == vendor_id]
             existing_ids = my_products['product_id'].tolist()
 
-        # --- Langkah 1: Pilih Produk di luar Form
+            # Pilihan produk di luar form
             selected_product_id = st.selectbox(
-            "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
+                "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
                 [""] + existing_ids,
                 key="selected_product_id"
             )
 
-        # --- Langkah 2: Ambil Data Produk Jika Ada
+            # Ambil data produk jika ada
             if selected_product_id:
                 product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
                 default_name = product_data['product_name']
@@ -345,7 +348,7 @@ elif menu_selection == "Portal Penjual":
                 default_active = True
                 default_image = ""
 
-        # --- Langkah 3: Tampilkan Form
+            # Form input
             with st.form("product_form", clear_on_submit=True):
                 product_name = st.text_input("Nama Produk", value=default_name)
                 description = st.text_area("Deskripsi", value=default_desc)
@@ -368,6 +371,7 @@ elif menu_selection == "Portal Penjual":
 
                     products_ws = get_worksheet("Products")
 
+                    # Simpan gambar baru jika diupload
                     if uploaded_file:
                         os.makedirs("images", exist_ok=True)
                         image_url = f"images/{uuid.uuid4().hex[:8]}.jpg"
@@ -383,7 +387,7 @@ elif menu_selection == "Portal Penjual":
                     ]
 
                     if selected_product_id:
-                    # Update produk
+                        # Update produk
                         cell = products_ws.find(selected_product_id)
                         if cell:
                             products_ws.update(f"A{cell.row}:I{cell.row}", [new_row])
@@ -391,7 +395,7 @@ elif menu_selection == "Portal Penjual":
                         else:
                             st.error("Produk tidak ditemukan.")
                     else:
-                    # Tambah produk baru
+                        # Tambah produk baru
                         products_ws.append_row(new_row)
                         st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
 
@@ -401,6 +405,7 @@ elif menu_selection == "Portal Penjual":
         except Exception as e:
             st.error("Gagal menampilkan form produk.")
             st.write(e)
+
 
 
 # =================================================================
