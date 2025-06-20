@@ -564,44 +564,44 @@ elif role == 'admin':
                             st.cache_data.clear()  # ✅ Wajib
                             st.warning(f"Akun '{row['username']}' telah ditolak.")
                             st.rerun()
-    st.subheader("🔍 Cari Vendor untuk Reset Password")
-
-search_term = st.text_input("Cari berdasarkan username atau nama vendor")
-
-if search_term:
-    filtered_vendors = vendors_df[
-        vendors_df['username'].str.contains(search_term, case=False, na=False) |
-        vendors_df['vendor_name'].str.contains(search_term, case=False, na=False)
-    ]
-
-    if filtered_vendors.empty:
-        st.warning("Vendor tidak ditemukan.")
-    else:
-        selected_username = st.selectbox(
-            "Pilih Vendor",
-            filtered_vendors['username'].tolist()
-        )
-
-        if selected_username:
-            vendor_row = filtered_vendors[filtered_vendors['username'] == selected_username].iloc[0]
-            st.markdown(f"**{vendor_row['vendor_name']}** (`{vendor_row['username']}`) - Status: {vendor_row['status']}")
-
-            new_password = st.text_input("Password Baru", type="password", key=f"reset_pass_{selected_username}")
-
-            if st.button("Setel Ulang Password", key=f"btn_reset_{selected_username}"):
-                if not new_password:
-                    st.error("Password baru tidak boleh kosong.")
-                else:
-                    hashed_new_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                    password_col_index = vendors_df.columns.get_loc('password_hash') + 1
-                    cell = vendors_ws.find(selected_username)
-                    if cell:
-                        vendors_ws.update_cell(cell.row, password_col_index, hashed_new_pw)
-                        st.success(f"Password untuk '{selected_username}' berhasil direset.")
+        st.subheader("🔍 Cari Vendor untuk Reset Password")
+    
+    search_term = st.text_input("Cari berdasarkan username atau nama vendor")
+    
+    if search_term:
+        filtered_vendors = vendors_df[
+            vendors_df['username'].str.contains(search_term, case=False, na=False) |
+            vendors_df['vendor_name'].str.contains(search_term, case=False, na=False)
+        ]
+    
+        if filtered_vendors.empty:
+            st.warning("Vendor tidak ditemukan.")
+        else:
+            selected_username = st.selectbox(
+                "Pilih Vendor",
+                filtered_vendors['username'].tolist()
+            )
+    
+            if selected_username:
+                vendor_row = filtered_vendors[filtered_vendors['username'] == selected_username].iloc[0]
+                st.markdown(f"**{vendor_row['vendor_name']}** (`{vendor_row['username']}`) - Status: {vendor_row['status']}")
+    
+                new_password = st.text_input("Password Baru", type="password", key=f"reset_pass_{selected_username}")
+    
+                if st.button("Setel Ulang Password", key=f"btn_reset_{selected_username}"):
+                    if not new_password:
+                        st.error("Password baru tidak boleh kosong.")
                     else:
-                        st.error("Gagal menemukan akun vendor.")
-else:
-    st.info("Masukkan nama atau username vendor untuk mencari.")
+                        hashed_new_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                        password_col_index = vendors_df.columns.get_loc('password_hash') + 1
+                        cell = vendors_ws.find(selected_username)
+                        if cell:
+                            vendors_ws.update_cell(cell.row, password_col_index, hashed_new_pw)
+                            st.success(f"Password untuk '{selected_username}' berhasil direset.")
+                        else:
+                            st.error("Gagal menemukan akun vendor.")
+    else:
+        st.info("Masukkan nama atau username vendor untuk mencari.")
 
 def reset_password_vendor():
     st.header("🔒 Reset Password Vendor")
