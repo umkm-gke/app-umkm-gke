@@ -74,11 +74,11 @@ st.markdown("""
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown('<div class="main-header">🏡 Marketplace Gading Kirana</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">Marketplace Gading Kirana</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Temukan produk terbaik dari <span class="highlight">tetangga Anda</span> dan dukung ekonomi lokal!</div>', unsafe_allow_html=True)
 
 with col2:
-    st.image("https://cdn-icons-png.flaticon.com/512/3461/3461628.png", width=180)
+    st.image("https://borneoshops.com/image/marketplace/storeicon.png", width=200)
 
 st.markdown("""<hr style="border-top: 1px solid #7f8c8d;">""", unsafe_allow_html=True)
 # --- NAVIGASI ---
