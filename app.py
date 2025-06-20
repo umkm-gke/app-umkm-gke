@@ -511,9 +511,6 @@ elif role == 'vendor':
         except Exception as e:
             st.error("Gagal menampilkan form produk.")
             st.write(e)
-    with st.sidebar:
-            st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
-            logout()
 
 # =================================================================
 # --- HALAMAN PENDAFTARAN VENDOR ---
@@ -531,7 +528,7 @@ elif role == 'admin':
             st.stop()
         else:
             st.sidebar.success(f"Login sebagai: **Administrator**")
-            logout()
+            logout()  # ❗️Panggilan hanya satu kali, aman
     
         st.header("🛂 Verifikasi Pendaftar Vendor")
         
@@ -565,6 +562,4 @@ elif role == 'admin':
                             vendors_ws.update_cell(cell.row, status_col_index, "rejected")
                             st.warning(f"Akun '{row['username']}' telah ditolak.")
                             st.rerun()
-    with st.sidebar:
-        st.sidebar.success(f"Login sebagai: **Administrator**")
-        logout()
+
