@@ -288,8 +288,8 @@ elif menu_selection == "Portal Penjual":
         # Ambil data produk milik vendor
         products_df = get_data("Products")
         if 'category' not in products_df.columns:
-        products_df['category'] = ""
-        my_products = products_df[products_df['vendor_id'] == vendor_id]
+            products_df['category'] = ""
+            my_products = products_df[products_df['vendor_id'] == vendor_id]
 
         # ------------------ FILTER PRODUK ------------------
         filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
