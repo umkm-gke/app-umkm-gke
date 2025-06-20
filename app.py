@@ -442,7 +442,7 @@ elif menu_selection == "Daftar sebagai Penjual":
         if submitted:
             if not all([vendor_name, username, whatsapp_number, password, confirm_password]):
                 st.warning("Semua kolom wajib diisi.")
-            elif password!= confirm_password:
+            elif password != confirm_password:
                 st.error("Password dan konfirmasi password tidak cocok.")
             else:
                 with st.spinner("Mendaftarkan akun Anda..."):
@@ -455,14 +455,25 @@ elif menu_selection == "Daftar sebagai Penjual":
                         if vendors_ws:
                             vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
                             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                            
-                            new_vendor_row = [vendor_id, vendor_name, username, hashed_password, whatsapp_number]
-                            
+
+                            # ✅ Tambahkan status: 'pending'
+                            new_vendor_row = [
+                                vendor_id,
+                                vendor_name,
+                                username,
+                                hashed_password,
+                                whatsapp_number,
+                                "pending"  # status kolom ke-6
+                            ]
+
                             vendors_ws.append_row(new_vendor_row)
-                            
-                            st.success(f"Pendaftaran berhasil! Selamat datang, {vendor_name}. Silakan login melalui 'Portal Penjual'.")
+
+                            st.success(
+                                f"Pendaftaran berhasil, {vendor_name}! "
+                                "Akun Anda sedang menunggu persetujuan admin. "
+                                "Kami akan menghubungi Anda setelah disetujui."
+                            )
                             st.balloons()
-                            
                             st.cache_data.clear()
                         else:
                             st.error("Gagal terhubung ke database. Coba lagi nanti.")
