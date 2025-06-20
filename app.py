@@ -315,18 +315,18 @@ elif menu_selection == "Portal Penjual":
         st.write(e)
 
     # ------------------ TAMBAH / EDIT PRODUK ------------------
- with st.expander("➕ Tambah atau Edit Produk"):
-    try:
-        products_df = get_data("Products")
-        my_products = products_df[products_df['vendor_id'] == vendor_id]
-        existing_ids = my_products['product_id'].tolist()
+     with st.expander("➕ Tambah atau Edit Produk"):
+        try:
+            products_df = get_data("Products")
+            my_products = products_df[products_df['vendor_id'] == vendor_id]
+            existing_ids = my_products['product_id'].tolist()
 
         # --- Langkah 1: Pilih Produk di luar Form
-        selected_product_id = st.selectbox(
+            selected_product_id = st.selectbox(
             "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
-            [""] + existing_ids,
-            key="selected_product_id"
-        )
+                [""] + existing_ids,
+                key="selected_product_id"
+            )
 
         # --- Langkah 2: Ambil Data Produk Jika Ada
         if selected_product_id:
