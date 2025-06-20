@@ -14,14 +14,17 @@ def login_form():
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         submitted = st.form_submit_button("Login")
-        if username == "admin" and password == "admin123":
-        st.session_state['logged_in'] = True
-        st.session_state['is_admin'] = True
-        st.session_state['vendor_name'] = "Administrator"
-        st.success("Login sebagai Admin")
-        st.rerun()
+
         if submitted:
-            # Cari vendor berdasarkan username
+            # Login admin dulu
+            if username == "admin" and password == "admin123":
+                st.session_state['logged_in'] = True
+                st.session_state['is_admin'] = True
+                st.session_state['vendor_name'] = "Administrator"
+                st.success("Login sebagai Admin")
+                st.rerun()
+
+            # Login vendor
             vendor_data = vendors_df[vendors_df['username'] == username]
 
             if not vendor_data.empty:
@@ -29,11 +32,11 @@ def login_form():
                 hashed_password_bytes = hashed_password_str.encode('utf-8')
                 status = vendor_data['status'].values[0] if 'status' in vendor_data.columns else 'pending'
 
-                # Verifikasi password
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password_bytes):
                     if status.lower() != 'approved':
                         st.warning("⏳ Akun Anda belum disetujui oleh admin. Silakan tunggu persetujuan.")
                         return
+
                     st.session_state['logged_in'] = True
                     st.session_state['vendor_id'] = vendor_data['vendor_id'].values[0]
                     st.session_state['vendor_name'] = vendor_data['vendor_name'].values[0]
@@ -48,6 +51,6 @@ def logout():
     """Menangani logika logout."""
     if st.sidebar.button("Logout"):
         for key in list(st.session_state.keys()):
-            if key in ['logged_in', 'vendor_id', 'vendor_name']:
+            if key in ['logged_in', 'vendor_id', 'vendor_name', 'is_admin']:
                 del st.session_state[key]
         st.rerun()
