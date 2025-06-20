@@ -232,62 +232,73 @@ elif menu_selection == "Portal Penjual":
         st.write(e)
 
 # ------------------ FORM TAMBAH / EDIT PRODUK ------------------
-    with st.expander("➕ Tambah atau Edit Produk"):
-        with st.form("product_form", clear_on_submit=True):
-        # --- FORM INPUT ---
-            product_id_to_edit = st.text_input("ID Produk (kosongkan untuk menambah produk baru)")
-            product_name = st.text_input("Nama Produk")
-            description = st.text_area("Deskripsi")
-            price = st.number_input("Harga", min_value=0)
-            stock_quantity = st.number_input("Jumlah Stok", min_value=0)
-            is_active = st.checkbox("Tampilkan Produk?", value=True)
-
-        # --- UPLOAD GAMBAR ---
-            uploaded_file = st.file_uploader("Upload Gambar Produk", type=["png", "jpg", "jpeg"])
-            image_url = ""
 import os
+
+with st.expander("➕ Tambah atau Edit Produk"):
+    products_df = get_data("Products")
+    my_products = products_df[products_df['vendor_id'] == vendor_id]
+    
+    existing_ids = my_products['product_id'].tolist()
+    selected_product_id = st.selectbox("Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)", [""] + existing_ids)
+
+    if selected_product_id:
+        # Isi field otomatis jika memilih produk
+        product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
+        product_name = st.text_input("Nama Produk", value=product_data['product_name'])
+        description = st.text_area("Deskripsi", value=product_data['description'])
+        price = st.number_input("Harga", min_value=0, value=int(product_data['price']))
+        stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=int(product_data['stock_quantity']))
+        is_active = st.checkbox("Tampilkan Produk?", value=product_data['is_active'])
+        current_image = product_data['image_url']
+        if current_image:
+            st.image(current_image, width=200, caption="Gambar Produk Saat Ini")
+    else:
+        # Untuk produk baru
+        product_name = st.text_input("Nama Produk")
+        description = st.text_area("Deskripsi")
+        price = st.number_input("Harga", min_value=0)
+        stock_quantity = st.number_input("Jumlah Stok", min_value=0)
+        is_active = st.checkbox("Tampilkan Produk?", value=True)
+        current_image = ""
+
+    uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
+    image_url = current_image
+
+    submitted = st.form_submit_button("💾 Simpan Produk")
+
+    if submitted:
+        if not product_name or not description:
+            st.warning("Nama produk dan deskripsi wajib diisi.")
+        else:
+            products_ws = get_worksheet("Products")
             if uploaded_file:
                 os.makedirs("images", exist_ok=True)
-            # Simpan ke folder lokal atau cloud, ini hanya simulasi lokal
                 image_url = f"images/{uuid.uuid4().hex[:8]}.jpg"
                 with open(image_url, "wb") as f:
                     f.write(uploaded_file.read())
-                st.image(image_url, width=200, caption="Pratinjau Gambar")
-                submitted = st.form_submit_button("Simpan Produk")
-            
-            if submitted:
-                if not product_name or not description:
-                    st.warning("Nama produk dan deskripsi wajib diisi.")
-                else:
-                    products_ws = get_worksheet("Products")
-                    if products_ws:
-                        if product_id_to_edit:
-                        # --- UPDATE PRODUK ---
-                            cell = products_ws.find(product_id_to_edit)
-                            if cell:
-                                row_to_update = cell.row
-                                update_data = [
-                                    product_id_to_edit, vendor_id, product_name, description,
-                                    price, image_url, stock_quantity, is_active,
-                                    datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                ]
-                                products_ws.update(f'A{row_to_update}:I{row_to_update}', [update_data])
-                                st.success(f"Produk '{product_name}' berhasil diperbarui!")
-                            else:
-                                st.error("ID Produk tidak ditemukan.")
-                        else:
-                        # --- TAMBAH PRODUK BARU ---
-                            new_product_id = f"PROD-{uuid.uuid4().hex[:6].upper()}"
-                            new_row = [
-                                new_product_id, vendor_id, product_name, description,
-                                price, image_url, stock_quantity, is_active,
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            ]
-                            products_ws.append_row(new_row)
-                            st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
+                st.image(image_url, width=200, caption="Gambar Baru")
 
-                        st.cache_data.clear()
-                        st.rerun()
+            data_row = [
+                selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}",
+                vendor_id, product_name, description, price,
+                image_url, stock_quantity, is_active,
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ]
+
+            if selected_product_id:
+                # Update
+                cell = products_ws.find(selected_product_id)
+                if cell:
+                    products_ws.update(f"A{cell.row}:I{cell.row}", [data_row])
+                    st.success(f"Produk '{product_name}' berhasil diperbarui!")
+            else:
+                # Tambah
+                products_ws.append_row(data_row)
+                st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
+
+            st.cache_data.clear()
+            st.rerun()
+
 # =================================================================
 # --- HALAMAN PENDAFTARAN VENDOR ---
 # =================================================================
