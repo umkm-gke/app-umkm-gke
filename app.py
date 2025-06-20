@@ -182,16 +182,16 @@ elif menu_selection == "Keranjang Belanja":
 # =================================================================
 elif menu_selection == "Portal Penjual":
     if not st.session_state.get('logged_in'):
-    login_form()
-    st.stop()
-else:
-    st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
-    logout()
+        login_form()
+        st.stop()
+    else:
+        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
+        logout()
 
 vendor_id = st.session_state.get('vendor_id')
-if not vendor_id:
-    st.error("Vendor ID tidak ditemukan.")
-    st.stop()
+    if not vendor_id:
+        st.error("Vendor ID tidak ditemukan.")
+        st.stop()
 
 # ------------------ DASHBOARD PENJUAL ------------------
 st.header(f"Dashboard: {st.session_state['vendor_name']}")
