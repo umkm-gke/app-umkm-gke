@@ -36,11 +36,15 @@ def login_form():
                 status = vendor_data['status'].values[0] if 'status' in vendor_data.columns else 'pending'
 
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password_bytes):
-                    if status == 'pending':
-                        st.warning("⏳ Akun Anda belum disetujui. Silakan tunggu persetujuan dari admin.")
+                    status_lower = status.lower()
+                    if status_lower == 'pending':
+                        st.warning("⏳ Akun Anda belum disetujui. Silakan hubungi admin.")
                         return
-                    elif status == 'rejected':
-                        st.error("❌ Pendaftaran Anda telah ditolak. Silakan hubungi admin untuk informasi lebih lanjut.")
+                    elif status_lower == 'rejected':
+                        st.error("❌ Akun Anda telah ditolak. Silakan hubungi admin untuk informasi lebih lanjut.")
+                        return
+                    elif status_lower != 'approved':
+                        st.warning("Status akun tidak valid. Silakan hubungi admin.")
                         return
 
                     st.session_state['logged_in'] = True
