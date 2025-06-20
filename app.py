@@ -512,7 +512,7 @@ elif menu_selection == "Verifikasi Pendaftar":
         for idx, row in pending_vendors.iterrows():
             st.markdown("---")
             st.markdown(f"**{row['vendor_name']}** (`{row['username']}`)")
-            st.caption(f"📱 {row['whatsapp']}")
+            st.caption(f"📱 {row['whatsapp_number']}")
 
             col1, col2 = st.columns(2)
             with col1:
