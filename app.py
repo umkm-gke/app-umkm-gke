@@ -289,7 +289,7 @@ elif menu_selection == "Portal Penjual":
         products_df = get_data("Products")
         if 'category' not in products_df.columns:
             products_df['category'] = ""
-            my_products = products_df[products_df['vendor_id'] == vendor_id]
+        my_products = products_df[products_df['vendor_id'] == vendor_id]
 
         # ------------------ FILTER PRODUK ------------------
         filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
@@ -330,7 +330,7 @@ elif menu_selection == "Portal Penjual":
         try:
             products_df = get_data("Products")
             if 'category' not in products_df.columns:
-            products_df['category'] = ""
+                products_df['category'] = ""
             my_products = products_df[products_df['vendor_id'] == vendor_id]
             existing_ids = my_products['product_id'].tolist()
 
