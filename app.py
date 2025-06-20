@@ -8,7 +8,7 @@ import bcrypt # Diperlukan untuk hashing password pendaftaran
 import os
 
 from g_sheets import get_data, get_worksheet
-from auth import login_form, logout
+from auth import login_form, logout, reset password
 
 from streamlit_option_menu import option_menu
 
@@ -145,7 +145,7 @@ with st.sidebar:
         menu_items = ["Portal Penjual"]
         icons = ["box-seam"]
     else:
-        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual", "Lupa Password"]
+        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual"]
         icons = ["shop", "cart", "person-plus"]
 
     # TAMPILAN NAVIGASI
@@ -176,8 +176,8 @@ with st.sidebar:
             },
         }
     )
-    if menu_selection == "Lupa Password":
-        reset_password_vendor()
+    #if menu_selection == "Lupa Password":
+       # reset_password_vendor()
 # =================================================================
 # --- HALAMAN PEMBELI (Guest) ---
 # =================================================================
