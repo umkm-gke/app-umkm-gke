@@ -552,6 +552,7 @@ elif role == 'admin':
                         cell = vendors_ws.find(row['username'])
                         if cell:
                             vendors_ws.update_cell(cell.row, status_col_index, "approved")
+                            st.cache_data.clear()  # ✅ Hapus cache data agar data terbaru muncul
                             st.success(f"Akun '{row['username']}' telah disetujui.")
                             st.rerun()
                 with col2:
@@ -560,6 +561,7 @@ elif role == 'admin':
                         cell = vendors_ws.find(row['username'])
                         if cell:
                             vendors_ws.update_cell(cell.row, status_col_index, "rejected")
+                            st.cache_data.clear()  # ✅ Wajib
                             st.warning(f"Akun '{row['username']}' telah ditolak.")
                             st.rerun()
 
