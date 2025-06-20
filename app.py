@@ -137,7 +137,7 @@ if menu_selection == "Belanja":
     selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
 
     if selected_kategori != "Semua":
-    active_products = active_products[active_products['category'] == selected_kategori]
+        active_products = active_products[active_products['category'] == selected_kategori]
     
     if selected_vendor != "Semua":
         active_products = active_products[active_products['vendor_name'] == selected_vendor]
@@ -287,6 +287,8 @@ elif menu_selection == "Portal Penjual":
     try:
         # Ambil data produk milik vendor
         products_df = get_data("Products")
+        if 'category' not in products_df.columns:
+        products_df['category'] = ""
         my_products = products_df[products_df['vendor_id'] == vendor_id]
 
         # ------------------ FILTER PRODUK ------------------
@@ -327,6 +329,8 @@ elif menu_selection == "Portal Penjual":
     with st.expander("➕ Tambah atau Edit Produk"):
         try:
             products_df = get_data("Products")
+            if 'category' not in products_df.columns:
+            products_df['category'] = ""
             my_products = products_df[products_df['vendor_id'] == vendor_id]
             existing_ids = my_products['product_id'].tolist()
 
@@ -391,7 +395,7 @@ elif menu_selection == "Portal Penjual":
                     product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
                     new_row = [
                         product_id, vendor_id, product_name, description, price,
-                        image_url, stock_quantity, is_active, category,
+                        image_url, stock_quantity, is_active, kategori,
                         datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     ]
 
