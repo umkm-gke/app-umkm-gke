@@ -4,7 +4,7 @@ from g_sheets import get_data
 
 def login_form():
     """Menampilkan form login dan menangani logika autentikasi."""
-    st.header("Portal Penjual: Login")
+    st.header("Silakan Log in")
     vendors_df = get_data("Vendors")
     #st.write("DATA VENDORS:", vendors_df)
     if vendors_df.empty:
