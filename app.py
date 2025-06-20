@@ -56,34 +56,44 @@ if menu_selection == "Belanja":
     
     products_df = get_data("Products")
     vendors_df = get_data("Vendors")
-    products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
-    if vendors_df.empty:
-        st.info("Saat ini belum ada penjual terdaftar.")
-    elif products_df.empty:
-        st.info("Saat ini belum ada produk yang tersedia.")
-    else:
-        products_df = pd.merge(products_df, vendors_df[['vendor_id', 'vendor_name']], on='vendor_id', how='left')
-        active_products = products_df[products_df['is_active'] == True]
 
-        if active_products.empty:
-            st.info("Saat ini belum ada produk yang ditampilkan.")
-        else:
-            cols = st.columns(3)
-            for index, product in active_products.iterrows():
-                col = cols[index % 3]
-                with col:
-                    with st.container(border=True):
-                        image_url = product.get('image_url', '').strip()
-                        if image_url:
-                            st.image(image_url, caption=product['product_name'])
-                        else:
-                            st.image("https://via.placeholder.com/150", caption="Gambar tidak tersedia")
-                        st.subheader(product['product_name'])
-                        st.write(f"**Rp {product['price']:,}**")
-                        st.write(f"Oleh: **{product.get('vendor_name', 'N/A')}**")
-                        st.write(product['description'])
-                        if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                            add_to_cart(product)
+    # Preprocessing
+    products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
+    products_df = pd.merge(products_df, vendors_df[['vendor_id', 'vendor_name']], on='vendor_id', how='left')
+
+    st.sidebar.header("🔍 Filter")
+    vendor_list = vendors_df['vendor_name'].tolist()
+    selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
+
+    search_query = st.sidebar.text_input("Cari Nama Produk")
+
+    # Filter data
+    active_products = products_df[products_df['is_active'] == True]
+
+    if selected_vendor != "Semua":
+        active_products = active_products[active_products['vendor_name'] == selected_vendor]
+    if search_query:
+        active_products = active_products[active_products['product_name'].str.contains(search_query, case=False)]
+
+    if active_products.empty:
+        st.info("Tidak ada produk sesuai filter.")
+    else:
+        cols = st.columns(3)
+        for index, product in active_products.iterrows():
+            col = cols[index % 3]
+            with col:
+                with st.container(border=True):
+                    image_url = product.get('image_url', '').strip()
+                    if image_url:
+                        st.image(image_url, caption=None, use_column_width='always')
+                    else:
+                        st.image("https://via.placeholder.com/150", caption=None)
+                    st.markdown(f"**{product['product_name']}**")
+                    st.caption(f"Oleh: {product['vendor_name']}")
+                    st.markdown(f"💰 Rp {product['price']:,}")
+                    st.write(product['description'][:80] + "...")
+                    if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                        add_to_cart(product)
 
 # =================================================================
 # --- HALAMAN KERANJANG BELANJA ---
