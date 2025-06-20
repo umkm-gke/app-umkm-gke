@@ -405,7 +405,7 @@ elif menu_selection == "Portal Penjual":
                         # Update produk
                         cell = products_ws.find(selected_product_id)
                         if cell:
-                            products_ws.update(f"A{cell.row}:I{cell.row}", [new_row])
+                            products_ws.update(f"A{cell.row}:J{cell.row}", [new_row])
                             st.success(f"Produk '{product_name}' berhasil diperbarui!")
                         else:
                             st.error("Produk tidak ditemukan.")
