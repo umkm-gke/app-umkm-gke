@@ -96,15 +96,18 @@ st.markdown("""<hr style="border-top: 1px solid #7f8c8d;">""", unsafe_allow_html
 
 # --- NAVIGASI ---
 with st.sidebar:
-    # Ambil data vendor untuk cek jumlah pending (dipakai kalau admin login nanti)
-    vendors_df = get_data("Vendors") if not st.session_state.get('is_admin') else pd.DataFrame()
+
+    role = st.session_state.get("role", "guest")
+    
+    # Ambil data vendor untuk cek jumlah pending (untuk admin)
+    vendors_df = get_data("Vendors") if role != 'admin' else pd.DataFrame()
     jumlah_pending = 0
     if not vendors_df.empty:
         jumlah_pending = vendors_df[vendors_df['status'].str.lower() == 'pending'].shape[0]
-    
+
     # Menu sesuai role
     if role == 'admin':
-        menu_items = ["Verifikasi Pendaftar"]
+        menu_items = [f"Verifikasi Pendaftar ({jumlah_pending})" if jumlah_pending > 0 else "Verifikasi Pendaftar"]
         icons = ["shield-lock"]
     elif role == 'vendor':
         menu_items = ["Portal Penjual"]
@@ -113,10 +116,11 @@ with st.sidebar:
         menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual"]
         icons = ["shop", "cart", "person-plus"]
 
+    # TAMPILAN NAVIGASI
     menu_selection = option_menu(
         "📍 Navigasi",
-        ["Belanja", "Keranjang", "Portal Penjual", "Daftar sebagai Penjual", menu_label],
-        icons=["shop", "cart", "shop-window", "person-plus"],
+        menu_items,
+        icons=icons,
         default_index=0,
         styles={
             "container": {
