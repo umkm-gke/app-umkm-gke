@@ -6,7 +6,7 @@ def login_form():
     """Menampilkan form login dan menangani logika autentikasi."""
     st.header("Silakan Log in")
     vendors_df = get_data("Vendors")
-    #st.write("DATA VENDORS:", vendors_df)
+
     if vendors_df.empty:
         st.error("Tidak dapat memuat data penjual. Periksa koneksi Google Sheets.")
         return
@@ -17,17 +17,17 @@ def login_form():
         submitted = st.form_submit_button("Login")
 
         if submitted:
-            # Login admin dulu
+            # Login Admin
             if username == "admin" and password == "admin123":
                 st.session_state['logged_in'] = True
                 st.session_state['is_admin'] = True
                 st.session_state['vendor_name'] = "Administrator"
-                st.session_state['vendor_id'] = None  # Tambahkan ini supaya tidak error
-                st.success("Login sebagai Admin")
+                st.session_state['vendor_id'] = None
+                st.session_state['role'] = 'admin'
+                st.success("✅ Login sebagai Admin")
                 st.rerun()
 
-
-            # Login vendor
+            # Login Vendor
             vendor_data = vendors_df[vendors_df['username'] == username]
 
             if not vendor_data.empty:
@@ -37,23 +37,25 @@ def login_form():
 
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password_bytes):
                     if status.lower() != 'approved':
-                        st.warning("⏳ Akun Anda belum disetujui oleh admin. Silakan tunggu persetujuan.")
+                        st.warning("⏳ Akun Anda belum disetujui oleh admin.")
                         return
 
                     st.session_state['logged_in'] = True
+                    st.session_state['is_admin'] = False
                     st.session_state['vendor_id'] = vendor_data['vendor_id'].values[0]
                     st.session_state['vendor_name'] = vendor_data['vendor_name'].values[0]
-                    st.success(f"Login berhasil! Selamat datang, {st.session_state['vendor_name']}.")
+                    st.session_state['role'] = 'vendor'
+                    st.success(f"✅ Login berhasil! Selamat datang, {st.session_state['vendor_name']}.")
                     st.rerun()
                 else:
-                    st.error("Username atau password salah.")
+                    st.error("❌ Username atau password salah.")
             else:
-                st.error("Username atau password salah.")
+                st.error("❌ Username atau password salah.")
 
 def logout():
     """Menangani logika logout."""
     if st.sidebar.button("Logout"):
         for key in list(st.session_state.keys()):
-            if key in ['logged_in', 'vendor_id', 'vendor_name', 'is_admin']:
+            if key in ['logged_in', 'vendor_id', 'vendor_name', 'is_admin', 'role']:
                 del st.session_state[key]
         st.rerun()
