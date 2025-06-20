@@ -21,8 +21,10 @@ def login_form():
                 st.session_state['logged_in'] = True
                 st.session_state['is_admin'] = True
                 st.session_state['vendor_name'] = "Administrator"
+                st.session_state['vendor_id'] = None  # Tambahkan ini supaya tidak error
                 st.success("Login sebagai Admin")
                 st.rerun()
+
 
             # Login vendor
             vendor_data = vendors_df[vendors_df['username'] == username]
