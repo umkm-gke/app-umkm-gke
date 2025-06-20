@@ -71,8 +71,10 @@ with st.sidebar:
 # --- HALAMAN BELANJA ---
 # =================================================================
 if menu_selection == "Belanja":
-    st.header("🛍️ Katalog Produk")
-    
+    st.markdown("### 🛍️ Katalog Produk")
+    st.markdown("_Temukan produk terbaik dari tetangga Anda!_")
+
+    # Ambil data produk dan penjual
     products_df = get_data("Products")
     vendors_df = get_data("Vendors")
 
@@ -80,37 +82,44 @@ if menu_selection == "Belanja":
     products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
     products_df = pd.merge(products_df, vendors_df[['vendor_id', 'vendor_name']], on='vendor_id', how='left')
 
-    st.sidebar.header("🔍 Filter")
-    vendor_list = vendors_df['vendor_name'].tolist()
+    # Sidebar: Filter
+    st.sidebar.header("🔍 Filter Pencarian")
+    vendor_list = vendors_df['vendor_name'].dropna().unique().tolist()
     selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
-
     search_query = st.sidebar.text_input("Cari Nama Produk")
 
-    # Filter data
+    # Filter Produk Aktif
     active_products = products_df[products_df['is_active'] == True]
 
     if selected_vendor != "Semua":
         active_products = active_products[active_products['vendor_name'] == selected_vendor]
+
     if search_query:
         active_products = active_products[active_products['product_name'].str.contains(search_query, case=False)]
 
+    # Tampilkan
     if active_products.empty:
-        st.info("Tidak ada produk sesuai filter.")
+        st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
     else:
-        cols = st.columns(3)
+        st.markdown("---")
+        cols = st.columns(3)  # 3 produk per baris
+
         for index, product in active_products.iterrows():
             col = cols[index % 3]
             with col:
                 with st.container(border=True):
+                    # Gambar produk (ukuran konsisten)
                     image_url = product.get('image_url', '').strip()
-                    if image_url:
-                        st.image(image_url, caption=None, use_container_width='always')
-                    else:
-                        st.image("https://via.placeholder.com/150", caption=None)
-                    st.markdown(f"**{product['product_name']}**")
-                    st.caption(f"Oleh: {product['vendor_name']}")
-                    st.markdown(f"💰 Rp {product['price']:,}")
-                    st.write(product['description'][:80] + "...")
+                    img_src = image_url if image_url else "https://via.placeholder.com/200"
+                    st.image(img_src, width=200)
+
+                    # Info produk
+                    st.markdown(f"**{product['product_name'][:30]}**")
+                    st.caption(f"🧑 {product['vendor_name']}")
+                    st.markdown(f"💰 Rp {int(product['price']):,}")
+                    st.caption(product['description'][:60] + "..." if len(product['description']) > 60 else product['description'])
+
+                    # Tombol beli
                     if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
                         add_to_cart(product)
 
