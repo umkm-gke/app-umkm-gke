@@ -84,6 +84,12 @@ st.markdown("""<hr style="border-top: 1px solid #7f8c8d;">""", unsafe_allow_html
 # --- NAVIGASI ---
 with st.sidebar:
     menu_selection = option_menu(
+        vendors_df = get_data("Vendors")
+        jumlah_pending = vendors_df[vendors_df['status'].str.lower() == 'pending'].shape[0]
+        menu_label = "Verifikasi Pendaftar"
+        if jumlah_pending > 0:
+            menu_label += f" 🔴 ({jumlah_pending})"
+
         "📍 Navigasi",
         ["Belanja", "Keranjang", "Portal Penjual", "Daftar sebagai Penjual"],
         icons=["shop", "cart", "shop-window", "person-plus"],
