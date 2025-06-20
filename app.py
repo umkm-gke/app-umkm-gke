@@ -73,7 +73,7 @@ with col1:
     st.write("🛒 Belanja lokal, dukung ekonomi komunitas.")
 
 with col2:
-    st.image("https://cdn-icons-png.flaticon.com/512/4003/4003655.png", width=180, caption=None)
+    st.image("https://cdn-icons-png.freepik.com/512/9198/9198486.png", width=180, caption=None)
 
 st.markdown("---")
 
