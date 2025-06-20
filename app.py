@@ -117,11 +117,10 @@ with st.sidebar:
         }
     )
 
-menu_items = ["Beranda", "Belanja", "Daftar sebagai Penjual", "Portal Penjual"]
-if st.session_state.get("is_admin"):
-    menu_items.append("Verifikasi Pendaftar")
-
-menu_selection = st.sidebar.selectbox("Navigasi", menu_items)
+#menu_items = ["Beranda", "Belanja", "Daftar sebagai Penjual", "Portal Penjual"]
+#if st.session_state.get("is_admin"):
+  #  menu_items.append("Verifikasi Pendaftar")
+#menu_selection = st.sidebar.selectbox("Navigasi", menu_items)
 
 # =================================================================
 # --- HALAMAN BELANJA ---
