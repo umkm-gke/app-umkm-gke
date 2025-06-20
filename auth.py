@@ -26,9 +26,6 @@ def login_form():
                 st.session_state['role'] = 'admin'
                 st.success("✅ Login sebagai Admin")
                 st.rerun()
-        if st.form_submit_button("🔁 Lupa Password?"):
-            st.session_state['menu_selection'] = "Reset Password"
-            st.rerun()
     
 
             # Login Vendor
