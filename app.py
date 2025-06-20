@@ -94,6 +94,38 @@ with col2:
 
 st.markdown("""<hr style="border-top: 1px solid #7f8c8d;">""", unsafe_allow_html=True)
 
+def reset_password_vendor():
+    st.header("🔒 Reset Password Vendor")
+
+    username = st.text_input("Masukkan Username Anda")
+
+    if username:
+        vendors_df = get_data("Vendors")
+        vendor_data = vendors_df[vendors_df['username'] == username]
+
+        if vendor_data.empty:
+            st.error("Username tidak ditemukan.")
+            return
+
+        new_password = st.text_input("Password Baru", type="password")
+        confirm_password = st.text_input("Konfirmasi Password Baru", type="password")
+
+        if st.button("Reset Password"):
+            if not new_password or not confirm_password:
+                st.warning("Password dan konfirmasi harus diisi.")
+            elif new_password != confirm_password:
+                st.warning("Password dan konfirmasi tidak sama.")
+            else:
+                hashed_new_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                vendors_ws = get_worksheet("Vendors")
+                cell = vendors_ws.find(username)
+                if cell:
+                    password_col_index = vendors_df.columns.get_loc('password_hash') + 1
+                    vendors_ws.update_cell(cell.row, password_col_index, hashed_new_pw)
+                    st.success("Password berhasil direset. Silakan login dengan password baru.")
+                else:
+                    st.error("Gagal menemukan akun di database.")
+
 # --- NAVIGASI ---
 with st.sidebar:
 
