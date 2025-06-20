@@ -565,6 +565,6 @@ elif role == 'admin':
                             vendors_ws.update_cell(cell.row, status_col_index, "rejected")
                             st.warning(f"Akun '{row['username']}' telah ditolak.")
                             st.rerun()
-     with st.sidebar:
-            st.sidebar.success(f"Login sebagai: **Administrator**")
-            logout()
+    with st.sidebar:
+        st.sidebar.success(f"Login sebagai: **Administrator**")
+        logout()
