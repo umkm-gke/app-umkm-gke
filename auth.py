@@ -37,7 +37,7 @@ def login_form():
 
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password_bytes):
                     if status.lower() != 'approved':
-                        st.warning("⏳ Akun Anda belum disetujui oleh admin.")
+                        st.warning("⏳ Akun Anda belum disetujui. Silakan hubungi admin.")
                         return
 
                     st.session_state['logged_in'] = True
