@@ -85,7 +85,7 @@ if menu_selection == "Belanja":
                 with st.container(border=True):
                     image_url = product.get('image_url', '').strip()
                     if image_url:
-                        st.image(image_url, caption=None, use_column_width='always')
+                        st.image(image_url, caption=None, use_container_width='always')
                     else:
                         st.image("https://via.placeholder.com/150", caption=None)
                     st.markdown(f"**{product['product_name']}**")
