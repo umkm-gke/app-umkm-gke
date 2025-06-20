@@ -285,9 +285,10 @@ elif menu_selection == "Portal Penjual":
         logout()
 
     vendor_id = st.session_state.get('vendor_id')
-    if not vendor_id:
+    if not vendor_id and not st.session_state.get('is_admin', False):
         st.error("Vendor ID tidak ditemukan.")
         st.stop()
+
 
     st.header(f"Dashboard: {st.session_state['vendor_name']}")
     st.subheader("📦 Produk Anda")
