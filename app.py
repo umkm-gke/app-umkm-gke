@@ -130,10 +130,15 @@ if menu_selection == "Belanja":
     vendor_list = vendors_df['vendor_name'].dropna().unique().tolist()
     selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
     search_query = st.sidebar.text_input("Cari Nama Produk")
-
+    
     # Filter Produk Aktif
     active_products = products_df[products_df['is_active'] == True]
+    kategori_list = sorted(active_products['category'].dropna().unique().tolist())
+    selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
 
+    if selected_kategori != "Semua":
+    active_products = active_products[active_products['category'] == selected_kategori]
+    
     if selected_vendor != "Semua":
         active_products = active_products[active_products['vendor_name'] == selected_vendor]
 
@@ -158,6 +163,7 @@ if menu_selection == "Belanja":
 
                     # Info produk
                     st.markdown(f"**{product['product_name'][:30]}**")
+                    st.caption(f"Kategori: {product.get('category', 'Tidak tersedia')}")
                     st.caption(f"🧑 {product['vendor_name']}")
                     st.markdown(f"💰 Rp {int(product['price']):,}")
                     st.caption(product['description'][:60] + "..." if len(product['description']) > 60 else product['description'])
@@ -355,6 +361,9 @@ elif menu_selection == "Portal Penjual":
                 price = st.number_input("Harga", min_value=0, value=default_price)
                 stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=default_stock)
                 is_active = st.checkbox("Tampilkan Produk?", value=default_active)
+                kategori_list = ["Makanan", "Minuman", "Rumah Tangga", "Kesehatan", "Bayi", "Mainan", "Lainnya"]
+                kategori = st.selectbox("Kategori Produk", options=kategori_list, index=0 if not selected_product_id else kategori_list.index(product_data['category']) if product_data['category'] in kategori_list else len(kategori_list)-1)
+
 
                 if default_image:
                     st.image(default_image, width=200, caption="Gambar Produk Saat Ini")
@@ -382,7 +391,7 @@ elif menu_selection == "Portal Penjual":
                     product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
                     new_row = [
                         product_id, vendor_id, product_name, description, price,
-                        image_url, stock_quantity, is_active,
+                        image_url, stock_quantity, is_active, category,
                         datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     ]
 
