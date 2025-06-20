@@ -44,39 +44,43 @@ def add_to_cart(product):
 # CSS custom
 st.markdown("""
     <style>
+        html, body, [class*="css"] {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Segoe UI', sans-serif;
+        }
         .main-header {
             font-size: 2.5em;
             font-weight: bold;
-            color: #2c3e50;
-            padding: 0.2em 0;
+            color: #f39c12;
+            padding-bottom: 0.2em;
         }
         .sub-header {
             font-size: 1.2em;
-            color: #7f8c8d;
+            color: #bdc3c7;
+            margin-bottom: 1em;
         }
         .highlight {
-            background-color: #f39c12;
-            color: white;
-            padding: 0.4em 0.6em;
-            border-radius: 5px;
+            color: #ffffff;
+            background-color: #e67e22;
+            padding: 0.3em 0.6em;
+            border-radius: 6px;
             font-weight: bold;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Layout dengan kolom (contoh 60-40 split)
-col1, col2 = st.columns([3, 2])
+# Layout: 2 kolom
+col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown('<div class="main-header">Marketplace Gading Kirana</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-header">Temukan produk terbaik dari <span class="highlight">tetangga Anda</span></div>', unsafe_allow_html=True)
-    #st.write("🛒 Belanja lokal, dukung ekonomi komunitas.")
+    st.markdown('<div class="main-header">🏡 Marketplace Gading Kirana</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Temukan produk terbaik dari <span class="highlight">tetangga Anda</span> dan dukung ekonomi lokal!</div>', unsafe_allow_html=True)
 
 with col2:
-    st.image("https://cdn-icons-png.freepik.com/512/9198/9198446.png", width=200, caption=None)
+    st.image("https://cdn-icons-png.flaticon.com/512/3461/3461628.png", width=180)
 
-st.markdown("---")
-
+st.markdown("""<hr style="border-top: 1px solid #7f8c8d;">""", unsafe_allow_html=True)
 # --- NAVIGASI ---
 with st.sidebar:
     menu_selection = option_menu(
