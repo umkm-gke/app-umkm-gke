@@ -252,8 +252,8 @@ import os
                 image_url = f"images/{uuid.uuid4().hex[:8]}.jpg"
                 with open(image_url, "wb") as f:
                     f.write(uploaded_file.read())
-                    st.image(image_url, width=200, caption="Pratinjau Gambar")
-                    submitted = st.form_submit_button("Simpan Produk")
+                st.image(image_url, width=200, caption="Pratinjau Gambar")
+                submitted = st.form_submit_button("Simpan Produk")
             
             if submitted:
                 if not product_name or not description:
