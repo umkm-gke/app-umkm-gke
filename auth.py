@@ -21,17 +21,20 @@ def login_form():
             vendor_data = vendors_df[vendors_df['username'] == username]
 
             if not vendor_data.empty:
-                # Ambil password hash dari dataframe
                 hashed_password_str = vendor_data['password_hash'].values[0]
                 hashed_password_bytes = hashed_password_str.encode('utf-8')
+                status = vendor_data['status'].values[0] if 'status' in vendor_data.columns else 'pending'
 
                 # Verifikasi password
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password_bytes):
+                    if status.lower() != 'approved':
+                        st.warning("⏳ Akun Anda belum disetujui oleh admin. Silakan tunggu persetujuan.")
+                        return
                     st.session_state['logged_in'] = True
                     st.session_state['vendor_id'] = vendor_data['vendor_id'].values[0]
                     st.session_state['vendor_name'] = vendor_data['vendor_name'].values[0]
                     st.success(f"Login berhasil! Selamat datang, {st.session_state['vendor_name']}.")
-                    st.rerun()  # Muat ulang halaman untuk menampilkan dashboard
+                    st.rerun()
                 else:
                     st.error("Username atau password salah.")
             else:
