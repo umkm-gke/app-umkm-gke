@@ -16,10 +16,22 @@ from streamlit_option_menu import option_menu
 st.set_page_config(page_title="Marketplace Gading Kirana", layout="wide")
 
 # --- INISIALISASI SESSION STATE (BAGIAN YANG DIPERBAIKI) ---
-if 'cart' not in st.session_state:
-    st.session_state.cart = [] # Memberikan nilai daftar kosong
+if 'role' not in st.session_state:
+    st.session_state['role'] = 'guest'
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
+
+role = st.session_state['role']
+def set_role_after_login():
+    if st.session_state.get('logged_in'):
+        if st.session_state.get('is_admin', False):
+            st.session_state['role'] = 'admin'
+        else:
+            st.session_state['role'] = 'vendor'
+    else:
+        st.session_state['role'] = 'guest'
+
+set_role_after_login()
 
 # --- FUNGSI BANTU ---
 def add_to_cart(product):
@@ -81,11 +93,6 @@ with col2:
     st.image("https://borneoshops.com/image/marketplace/storeicon.png", width=200)
 
 st.markdown("""<hr style="border-top: 1px solid #7f8c8d;">""", unsafe_allow_html=True)
-# --- LOGIN FORM DI HALAMAN UTAMA ---
-if not st.session_state.get('logged_in'):
-    # Tampilkan login form hanya di halaman utama (sebelum navigasi)
-    login_form()
-    st.stop()  # Stop agar tidak lanjut render menu lainnya sebelum login
 
 # --- NAVIGASI ---
 with st.sidebar:
@@ -95,17 +102,17 @@ with st.sidebar:
     if not vendors_df.empty:
         jumlah_pending = vendors_df[vendors_df['status'].str.lower() == 'pending'].shape[0]
     
-    # Tentukan menu berdasarkan status login
-    if not st.session_state.get('logged_in'):
+    # Menu sesuai role
+    if role == 'admin':
+        menu_items = ["Verifikasi Pendaftar"]
+        icons = ["shield-lock"]
+    elif role == 'vendor':
+        menu_items = ["Portal Penjual"]
+        icons = ["box-seam"]
+    else:
         menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual"]
-    elif st.session_state.get('is_admin'):
-        menu_label = "Verifikasi Pendaftar"
-        if jumlah_pending > 0:
-            menu_label += f" 🔴 ({jumlah_pending})"
-        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual", menu_label]
-    else:  # Vendor login
-        menu_items = ["Belanja", "Keranjang", "Portal Penjual", "Daftar sebagai Penjual"]
-        
+        icons = ["shop", "cart", "person-plus"]
+
     menu_selection = option_menu(
         "📍 Navigasi",
         ["Belanja", "Keranjang", "Portal Penjual", "Daftar sebagai Penjual", menu_label],
@@ -134,229 +141,278 @@ with st.sidebar:
         }
     )
 
-#menu_items = ["Beranda", "Belanja", "Daftar sebagai Penjual", "Portal Penjual"]
-#if st.session_state.get("is_admin"):
-  #  menu_items.append("Verifikasi Pendaftar")
-#menu_selection = st.sidebar.selectbox("Navigasi", menu_items)
-
 # =================================================================
-# --- HALAMAN BELANJA ---
+# --- HALAMAN PEMBELI (Guest) ---
 # =================================================================
-if menu_selection == "Belanja":
-    st.markdown("### 🛍️ Katalog Produk")
-    st.markdown("_Temukan produk terbaik dari tetangga Anda!_")
-
-    # Ambil data produk dan penjual
-    products_df = get_data("Products")
-    if 'category' not in products_df.columns:
-        products_df['category'] = ""
-    vendors_df = get_data("Vendors")
-
-    # Preprocessing
-    products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
-    products_df = pd.merge(products_df, vendors_df[['vendor_id', 'vendor_name']], on='vendor_id', how='left')
-
-    # Sidebar: Filter
-    st.sidebar.header("🔍 Filter Pencarian")
-    vendor_list = vendors_df['vendor_name'].dropna().unique().tolist()
-    selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
-    search_query = st.sidebar.text_input("Cari Nama Produk")
+if role == 'guest':
+    if menu_selection == "Belanja":
+        st.markdown("### 🛍️ Katalog Produk")
+        st.markdown("_Temukan produk terbaik dari tetangga Anda!_")
     
-    # Filter Produk Aktif
-    active_products = products_df[products_df['is_active'] == True]
-    kategori_list = sorted(active_products['category'].dropna().unique().tolist())
-    selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
-
-    if selected_kategori != "Semua":
-        active_products = active_products[active_products['category'] == selected_kategori]
+        # Ambil data produk dan penjual
+        products_df = get_data("Products")
+        if 'category' not in products_df.columns:
+            products_df['category'] = ""
+        vendors_df = get_data("Vendors")
     
-    if selected_vendor != "Semua":
-        active_products = active_products[active_products['vendor_name'] == selected_vendor]
+        # Preprocessing
+        products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
+        products_df = pd.merge(products_df, vendors_df[['vendor_id', 'vendor_name']], on='vendor_id', how='left')
+    
+        # Sidebar: Filter
+        st.sidebar.header("🔍 Filter Pencarian")
+        vendor_list = vendors_df['vendor_name'].dropna().unique().tolist()
+        selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
+        search_query = st.sidebar.text_input("Cari Nama Produk")
+        
+        # Filter Produk Aktif
+        active_products = products_df[products_df['is_active'] == True]
+        kategori_list = sorted(active_products['category'].dropna().unique().tolist())
+        selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
+    
+        if selected_kategori != "Semua":
+            active_products = active_products[active_products['category'] == selected_kategori]
+        
+        if selected_vendor != "Semua":
+            active_products = active_products[active_products['vendor_name'] == selected_vendor]
+    
+        if search_query:
+            active_products = active_products[active_products['product_name'].str.contains(search_query, case=False)]
+    
+        # Tampilkan
+        if active_products.empty:
+            st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
+        else:
+            st.markdown("---")
+            cols = st.columns(3)  # 3 produk per baris
+    
+            for index, product in active_products.iterrows():
+                col = cols[index % 3]
+                with col:
+                    with st.container(border=True):
+                        # Gambar produk (ukuran konsisten)
+                        image_url = product.get('image_url', '').strip()
+                        img_src = image_url if image_url else "https://via.placeholder.com/200"
+                        st.image(img_src, width=200)
+    
+                        # Info produk
+                        st.markdown(f"**{product['product_name'][:30]}**")
+                        st.caption(f"Kategori: {product.get('category', 'Tidak tersedia')}")
+                        st.caption(f"🧑 {product['vendor_name']}")
+                        st.markdown(f"💰 Rp {int(product['price']):,}")
+                        st.caption(product['description'][:60] + "..." if len(product['description']) > 60 else product['description'])
+    
+                        # Tombol beli
+                        if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                            add_to_cart(product)
 
-    if search_query:
-        active_products = active_products[active_products['product_name'].str.contains(search_query, case=False)]
-
-    # Tampilkan
-    if active_products.empty:
-        st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
-    else:
-        st.markdown("---")
-        cols = st.columns(3)  # 3 produk per baris
-
-        for index, product in active_products.iterrows():
-            col = cols[index % 3]
-            with col:
+    elif menu_selection == "Keranjang":
+        st.header("🛒 Keranjang Belanja Anda")
+        
+        if not st.session_state.cart:
+            st.info("Keranjang Anda masih kosong. Yuk, mulai belanja!")
+        else:
+            total_price = 0
+            vendors_in_cart = {}
+    
+            for i, item in enumerate(st.session_state.cart):
                 with st.container(border=True):
-                    # Gambar produk (ukuran konsisten)
-                    image_url = product.get('image_url', '').strip()
-                    img_src = image_url if image_url else "https://via.placeholder.com/200"
-                    st.image(img_src, width=200)
-
-                    # Info produk
-                    st.markdown(f"**{product['product_name'][:30]}**")
-                    st.caption(f"Kategori: {product.get('category', 'Tidak tersedia')}")
-                    st.caption(f"🧑 {product['vendor_name']}")
-                    st.markdown(f"💰 Rp {int(product['price']):,}")
-                    st.caption(product['description'][:60] + "..." if len(product['description']) > 60 else product['description'])
-
-                    # Tombol beli
-                    if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                        add_to_cart(product)
-
-# =================================================================
-# --- HALAMAN KERANJANG BELANJA ---
-# =================================================================
-elif menu_selection == "Keranjang":
-    st.header("🛒 Keranjang Belanja Anda")
+                    col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+                    with col1:
+                        st.subheader(item['product_name'])
+                        st.write(f"Rp {item['price']:,}")
+                    with col2:
+                        new_quantity = st.number_input("Jumlah", min_value=1, value=item['quantity'], key=f"qty_{i}")
+                        st.session_state.cart[i]['quantity'] = new_quantity
+                    with col3:
+                        subtotal = item['price'] * item['quantity']
+                        st.metric("Subtotal", f"Rp {subtotal:,}")
+                    with col4:
+                        if st.button("Hapus", key=f"del_{i}"):
+                            st.session_state.cart.pop(i)
+                            st.rerun()
+                
+                total_price += subtotal
+                vendor_id = item['vendor_id']
+                if vendor_id not in vendors_in_cart:
+                    vendors_in_cart[vendor_id] = 0
+                vendors_in_cart[vendor_id] += subtotal
     
-    if not st.session_state.cart:
-        st.info("Keranjang Anda masih kosong. Yuk, mulai belanja!")
-    else:
-        total_price = 0
-        vendors_in_cart = {}
+            st.header(f"Total Belanja: Rp {total_price:,}")
+    
+            st.subheader("📝 Lanjutkan Pemesanan")
+            with st.form("checkout_form"):
+                customer_name = st.text_input("Nama Anda")
+                customer_contact = st.text_input("Nomor HP Anda (untuk konfirmasi)")
+                
+                submit_order = st.form_submit_button("Buat Pesanan Sekarang")
+    
+                if submit_order:
+                    if not customer_name or not customer_contact:
+                        st.warning("Nama dan Nomor HP tidak boleh kosong.")
+                    else:
+                        with st.spinner("Memproses pesanan..."):
+                            orders_ws = get_worksheet("Orders")
+                            vendors_df = get_data("Vendors")
+                            
+                            if orders_ws is None or vendors_df.empty:
+                                st.error("Gagal memproses pesanan. Coba lagi.")
+                            else:
+                                order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
+                                order_details_json = json.dumps(st.session_state.cart)
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                
+                                new_order_row = [order_id, customer_name, customer_contact, order_details_json, total_price, "New", timestamp]
+                                orders_ws.append_row(new_order_row)
+                                
+                                st.success(f"Pesanan Anda ({order_id}) berhasil dibuat!")
+                                st.balloons()
+    
+                                st.subheader("Rincian Tagihan & Konfirmasi Pesanan")
+                                st.info("Silakan lakukan pembayaran ke masing-masing penjual dan konfirmasi pesanan dengan mengklik tombol WhatsApp di bawah ini.")
+    
+                                for vendor_id, amount in vendors_in_cart.items():
+                                    #vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc
+                                    items_from_vendor = [f"{item['quantity']}x {item['product_name']}" for item in st.session_state.cart if item['vendor_id'] == vendor_id]
+                                    vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id]
+                                    if not vendor_info.empty:
+                                        vendor_info = vendor_info.iloc[0]
+                                        message = (
+                                            f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
+                                            f"Pesanan saya:\n"
+                                            f"{', '.join(items_from_vendor)}\n\n"
+                                            f"Total: Rp {amount:,}\n"
+                                            f"Terima kasih!"
+                                        )
+                                    encoded_message = quote_plus(message)
+                                    whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
+                                    
+                                    st.write(f"---")
+                                    st.write(f"**Penjual: {vendor_info['vendor_name']}**")
+                                    st.write(f"**Total Tagihan: Rp {amount:,}**")
+                                    st.write(f"**Pembayaran:** (Tambahkan info rekening di sini)")
+                                    st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
+    
+                                # Mengosongkan keranjang setelah berhasil (BAGIAN YANG DIPERBAIKI)
+                                st.session_state.cart = []
 
-        for i, item in enumerate(st.session_state.cart):
-            with st.container(border=True):
-                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-                with col1:
-                    st.subheader(item['product_name'])
-                    st.write(f"Rp {item['price']:,}")
-                with col2:
-                    new_quantity = st.number_input("Jumlah", min_value=1, value=item['quantity'], key=f"qty_{i}")
-                    st.session_state.cart[i]['quantity'] = new_quantity
-                with col3:
-                    subtotal = item['price'] * item['quantity']
-                    st.metric("Subtotal", f"Rp {subtotal:,}")
-                with col4:
-                    if st.button("Hapus", key=f"del_{i}"):
-                        st.session_state.cart.pop(i)
-                        st.rerun()
+    elif menu_selection == "Daftar sebagai Penjual":
+        st.header("✍️ Pendaftaran Penjual Baru")
+        st.write("Isi formulir di bawah ini untuk mulai berjualan di platform kami.")
+    
+        with st.form("vendor_registration_form", clear_on_submit=True):
+            vendor_name = st.text_input("Nama Toko / UMKM Anda")
+            username = st.text_input("Username (untuk login)")
+            whatsapp_number = st.text_input("Nomor WhatsApp (format: 628xxxxxxxxxx)")
+            password = st.text_input("Password", type="password")
+            confirm_password = st.text_input("Konfirmasi Password", type="password")
             
-            total_price += subtotal
-            vendor_id = item['vendor_id']
-            if vendor_id not in vendors_in_cart:
-                vendors_in_cart[vendor_id] = 0
-            vendors_in_cart[vendor_id] += subtotal
-
-        st.header(f"Total Belanja: Rp {total_price:,}")
-
-        st.subheader("📝 Lanjutkan Pemesanan")
-        with st.form("checkout_form"):
-            customer_name = st.text_input("Nama Anda")
-            customer_contact = st.text_input("Nomor HP Anda (untuk konfirmasi)")
-            
-            submit_order = st.form_submit_button("Buat Pesanan Sekarang")
-
-            if submit_order:
-                if not customer_name or not customer_contact:
-                    st.warning("Nama dan Nomor HP tidak boleh kosong.")
+            submitted = st.form_submit_button("Daftar Sekarang")
+    
+            if submitted:
+                if not all([vendor_name, username, whatsapp_number, password, confirm_password]):
+                    st.warning("Semua kolom wajib diisi.")
+                elif password != confirm_password:
+                    st.error("Password dan konfirmasi password tidak cocok.")
                 else:
-                    with st.spinner("Memproses pesanan..."):
-                        orders_ws = get_worksheet("Orders")
+                    with st.spinner("Mendaftarkan akun Anda..."):
                         vendors_df = get_data("Vendors")
                         
-                        if orders_ws is None or vendors_df.empty:
-                            st.error("Gagal memproses pesanan. Coba lagi.")
+                        if not vendors_df.empty and username in vendors_df['username'].values:
+                            st.error("Username ini sudah digunakan. Silakan pilih yang lain.")
                         else:
-                            order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
-                            order_details_json = json.dumps(st.session_state.cart)
-                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            
-                            new_order_row = [order_id, customer_name, customer_contact, order_details_json, total_price, "New", timestamp]
-                            orders_ws.append_row(new_order_row)
-                            
-                            st.success(f"Pesanan Anda ({order_id}) berhasil dibuat!")
-                            st.balloons()
+                            vendors_ws = get_worksheet("Vendors")
+                            if vendors_ws:
+                                vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
+                                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+                                # ✅ Tambahkan status: 'pending'
+                                new_vendor_row = [
+                                    vendor_id,
+                                    vendor_name,
+                                    username,
+                                    hashed_password,
+                                    whatsapp_number,
+                                    "pending"  # status kolom ke-6
+                                ]
+    
+                                vendors_ws.append_row(new_vendor_row)
+    
+                                st.success(
+                                    f"Pendaftaran berhasil, {vendor_name}! "
+                                    "Akun Anda sedang menunggu persetujuan admin. "
+                                    "Kami akan menghubungi Anda setelah disetujui."
+                                )
+                                st.balloons()
+                                st.cache_data.clear()
+                            else:
+                                st.error("Gagal terhubung ke database. Coba lagi nanti.")
 
-                            st.subheader("Rincian Tagihan & Konfirmasi Pesanan")
-                            st.info("Silakan lakukan pembayaran ke masing-masing penjual dan konfirmasi pesanan dengan mengklik tombol WhatsApp di bawah ini.")
-
-                            for vendor_id, amount in vendors_in_cart.items():
-                                #vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc
-                                items_from_vendor = [f"{item['quantity']}x {item['product_name']}" for item in st.session_state.cart if item['vendor_id'] == vendor_id]
-                                vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id]
-                                if not vendor_info.empty:
-                                    vendor_info = vendor_info.iloc[0]
-                                    message = (
-                                        f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
-                                        f"Pesanan saya:\n"
-                                        f"{', '.join(items_from_vendor)}\n\n"
-                                        f"Total: Rp {amount:,}\n"
-                                        f"Terima kasih!"
-                                    )
-                                encoded_message = quote_plus(message)
-                                whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
-                                
-                                st.write(f"---")
-                                st.write(f"**Penjual: {vendor_info['vendor_name']}**")
-                                st.write(f"**Total Tagihan: Rp {amount:,}**")
-                                st.write(f"**Pembayaran:** (Tambahkan info rekening di sini)")
-                                st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
-
-                            # Mengosongkan keranjang setelah berhasil (BAGIAN YANG DIPERBAIKI)
-                            st.session_state.cart = []
+    with st.sidebar:
+            st.markdown("### 🔐 Login Vendor / Admin")
+            login_form()
 
 # =================================================================
 # --- HALAMAN PORTAL PENJUAL ---
 # =================================================================
-elif menu_selection == "Portal Penjual":
-    if not st.session_state.get('logged_in') or st.session_state.get('is_admin', False):
-        st.warning("Silakan login sebagai vendor untuk mengakses Portal Penjual.")
-        login_form()
-        st.stop()
-    else:
-        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
-        logout()
-
-    vendor_id = st.session_state.get('vendor_id')
-    if not vendor_id and not st.session_state.get('is_admin', False):
-        st.error("Vendor ID tidak ditemukan.")
-        st.stop()
-
-
-    st.header(f"Dashboard: {st.session_state['vendor_name']}")
-    st.subheader("📦 Produk Anda")
-
-    try:
-        # Ambil data produk milik vendor
-        products_df = get_data("Products")
-        if 'category' not in products_df.columns:
-            products_df['category'] = ""
-        my_products = products_df[products_df['vendor_id'] == vendor_id]
-
-        # ------------------ FILTER PRODUK ------------------
-        filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
-        if filter_status == "Aktif":
-            my_products = my_products[my_products['is_active'] == True]
-        elif filter_status == "Nonaktif":
-            my_products = my_products[my_products['is_active'] == False]
-
-        if my_products.empty:
-            st.info("Anda belum memiliki produk.")
+elif role == 'vendor':
+    if menu_selection == "Portal Penjual":
+        if not st.session_state.get('logged_in') or st.session_state.get('is_admin', False):
+            st.warning("Silakan login sebagai vendor untuk mengakses Portal Penjual.")
+            login_form()
+            st.stop()
         else:
-            st.dataframe(my_products)
-
-        # ------------------ HAPUS PRODUK ------------------
-        with st.expander("🗑️ Hapus Produk"):
-            if not my_products.empty:
-                delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
-                if st.button("Hapus Produk Ini"):
-                    products_ws = get_worksheet("Products")
-                    if products_ws:
-                        cell = products_ws.find(delete_id)
-                        if cell:
-                            products_ws.delete_rows(cell.row)
-                            st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
-                            st.cache_data.clear()
-                            st.rerun()
-                        else:
-                            st.error("Produk tidak ditemukan.")
+            st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
+            logout()
+        vendor_id = st.session_state.get('vendor_id')
+        if not vendor_id and not st.session_state.get('is_admin', False):
+            st.error("Vendor ID tidak ditemukan.")
+            st.stop()
+    
+    
+        st.header(f"Dashboard: {st.session_state['vendor_name']}")
+        st.subheader("📦 Produk Anda")
+    
+        try:
+            # Ambil data produk milik vendor
+            products_df = get_data("Products")
+            if 'category' not in products_df.columns:
+                products_df['category'] = ""
+            my_products = products_df[products_df['vendor_id'] == vendor_id]
+    
+            # ------------------ FILTER PRODUK ------------------
+            filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
+            if filter_status == "Aktif":
+                my_products = my_products[my_products['is_active'] == True]
+            elif filter_status == "Nonaktif":
+                my_products = my_products[my_products['is_active'] == False]
+    
+            if my_products.empty:
+                st.info("Anda belum memiliki produk.")
             else:
-                st.caption("Belum ada produk yang bisa dihapus.")
-
-    except Exception as e:
-        st.error("Gagal memuat data produk.")
-        st.write(e)
+                st.dataframe(my_products)
+    
+            # ------------------ HAPUS PRODUK ------------------
+            with st.expander("🗑️ Hapus Produk"):
+                if not my_products.empty:
+                    delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
+                    if st.button("Hapus Produk Ini"):
+                        products_ws = get_worksheet("Products")
+                        if products_ws:
+                            cell = products_ws.find(delete_id)
+                            if cell:
+                                products_ws.delete_rows(cell.row)
+                                st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
+                                st.cache_data.clear()
+                                st.rerun()
+                            else:
+                                st.error("Produk tidak ditemukan.")
+                else:
+                    st.caption("Belum ada produk yang bisa dihapus.")
+    
+        except Exception as e:
+            st.error("Gagal memuat data produk.")
+            st.write(e)
 
     # ------------------ TAMBAH / EDIT PRODUK ------------------
     with st.expander("➕ Tambah atau Edit Produk"):
@@ -451,106 +507,60 @@ elif menu_selection == "Portal Penjual":
         except Exception as e:
             st.error("Gagal menampilkan form produk.")
             st.write(e)
-
-
+    with st.sidebar:
+            st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
+            logout()
 
 # =================================================================
 # --- HALAMAN PENDAFTARAN VENDOR ---
 # =================================================================
-elif menu_selection == "Daftar sebagai Penjual":
-    st.header("✍️ Pendaftaran Penjual Baru")
-    st.write("Isi formulir di bawah ini untuk mulai berjualan di platform kami.")
 
-    with st.form("vendor_registration_form", clear_on_submit=True):
-        vendor_name = st.text_input("Nama Toko / UMKM Anda")
-        username = st.text_input("Username (untuk login)")
-        whatsapp_number = st.text_input("Nomor WhatsApp (format: 628xxxxxxxxxx)")
-        password = st.text_input("Password", type="password")
-        confirm_password = st.text_input("Konfirmasi Password", type="password")
-        
-        submitted = st.form_submit_button("Daftar Sekarang")
-
-        if submitted:
-            if not all([vendor_name, username, whatsapp_number, password, confirm_password]):
-                st.warning("Semua kolom wajib diisi.")
-            elif password != confirm_password:
-                st.error("Password dan konfirmasi password tidak cocok.")
-            else:
-                with st.spinner("Mendaftarkan akun Anda..."):
-                    vendors_df = get_data("Vendors")
-                    
-                    if not vendors_df.empty and username in vendors_df['username'].values:
-                        st.error("Username ini sudah digunakan. Silakan pilih yang lain.")
-                    else:
-                        vendors_ws = get_worksheet("Vendors")
-                        if vendors_ws:
-                            vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
-                            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-                            # ✅ Tambahkan status: 'pending'
-                            new_vendor_row = [
-                                vendor_id,
-                                vendor_name,
-                                username,
-                                hashed_password,
-                                whatsapp_number,
-                                "pending"  # status kolom ke-6
-                            ]
-
-                            vendors_ws.append_row(new_vendor_row)
-
-                            st.success(
-                                f"Pendaftaran berhasil, {vendor_name}! "
-                                "Akun Anda sedang menunggu persetujuan admin. "
-                                "Kami akan menghubungi Anda setelah disetujui."
-                            )
-                            st.balloons()
-                            st.cache_data.clear()
-                        else:
-                            st.error("Gagal terhubung ke database. Coba lagi nanti.")
 # =================================================================
 # --- HALAMAN VERIFIKASI ADMIN ---
 # =================================================================
-elif menu_selection == "Verifikasi Pendaftar":
-    if not st.session_state.get('logged_in') or not st.session_state.get('is_admin', False):
-        st.warning("Silakan login sebagai admin untuk mengakses Verifikasi Pendaftar.")
-        login_form()
-        st.error("Halaman ini hanya dapat diakses oleh admin.")
-        st.stop()
-    else:
-        st.sidebar.success(f"Login sebagai: **Administrator**")
-        logout()
-
-    st.header("🛂 Verifikasi Pendaftar Vendor")
+elif role == 'admin':
+    if menu_selection == "Verifikasi Pendaftar":
+        if not st.session_state.get('logged_in') or not st.session_state.get('is_admin', False):
+            st.warning("Silakan login sebagai admin untuk mengakses Verifikasi Pendaftar.")
+            login_form()
+            st.error("Halaman ini hanya dapat diakses oleh admin.")
+            st.stop()
+        else:
+            st.sidebar.success(f"Login sebagai: **Administrator**")
+            logout()
     
-    vendors_df = get_data("Vendors")
-    vendors_ws = get_worksheet("Vendors")
-
-    pending_vendors = vendors_df[vendors_df['status'].str.lower() == "pending"]
-
-    if pending_vendors.empty:
-        st.info("Tidak ada vendor yang menunggu persetujuan.")
-    else:
-        for idx, row in pending_vendors.iterrows():
-            st.markdown("---")
-            st.markdown(f"**{row['vendor_name']}** (`{row['username']}`)")
-            st.caption(f"📱 {row['whatsapp_number']}")
-
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button(f"✅ Setujui {row['username']}", key=f"approve_{row['username']}"):
-                    status_col_index = vendors_df.columns.get_loc('status') + 1
-                    cell = vendors_ws.find(row['username'])
-                    if cell:
-                        vendors_ws.update_cell(cell.row, status_col_index, "approved")
-                        st.success(f"Akun '{row['username']}' telah disetujui.")
-                        st.rerun()
-            with col2:
-                if st.button(f"❌ Tolak {row['username']}", key=f"reject_{row['username']}"):
-                    status_col_index = vendors_df.columns.get_loc('status') + 1
-                    cell = vendors_ws.find(row['username'])
-                    if cell:
-                        vendors_ws.update_cell(cell.row, status_col_index, "rejected")
-                        st.warning(f"Akun '{row['username']}' telah ditolak.")
-                        st.rerun()
-
+        st.header("🛂 Verifikasi Pendaftar Vendor")
+        
+        vendors_df = get_data("Vendors")
+        vendors_ws = get_worksheet("Vendors")
+    
+        pending_vendors = vendors_df[vendors_df['status'].str.lower() == "pending"]
+    
+        if pending_vendors.empty:
+            st.info("Tidak ada vendor yang menunggu persetujuan.")
+        else:
+            for idx, row in pending_vendors.iterrows():
+                st.markdown("---")
+                st.markdown(f"**{row['vendor_name']}** (`{row['username']}`)")
+                st.caption(f"📱 {row['whatsapp_number']}")
+    
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button(f"✅ Setujui {row['username']}", key=f"approve_{row['username']}"):
+                        status_col_index = vendors_df.columns.get_loc('status') + 1
+                        cell = vendors_ws.find(row['username'])
+                        if cell:
+                            vendors_ws.update_cell(cell.row, status_col_index, "approved")
+                            st.success(f"Akun '{row['username']}' telah disetujui.")
+                            st.rerun()
+                with col2:
+                    if st.button(f"❌ Tolak {row['username']}", key=f"reject_{row['username']}"):
+                        status_col_index = vendors_df.columns.get_loc('status') + 1
+                        cell = vendors_ws.find(row['username'])
+                        if cell:
+                            vendors_ws.update_cell(cell.row, status_col_index, "rejected")
+                            st.warning(f"Akun '{row['username']}' telah ditolak.")
+                            st.rerun()
+     with st.sidebar:
+            st.sidebar.success(f"Login sebagai: **Administrator**")
+            logout()
