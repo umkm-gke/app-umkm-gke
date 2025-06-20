@@ -86,8 +86,8 @@ with st.sidebar:
     vendors_df = get_data("Vendors")
     jumlah_pending = vendors_df[vendors_df['status'].str.lower() == 'pending'].shape[0]
     menu_label = "Verifikasi Pendaftar"
-        if jumlah_pending > 0:
-            menu_label += f" 🔴 ({jumlah_pending})"
+    if jumlah_pending > 0:
+        menu_label += f" 🔴 ({jumlah_pending})"
     menu_selection = option_menu(
 
         "📍 Navigasi",
