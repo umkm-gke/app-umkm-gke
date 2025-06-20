@@ -10,6 +10,8 @@ import os
 from g_sheets import get_data, get_worksheet
 from auth import login_form, logout
 
+from streamlit_option_menu import option_menu
+
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Marketplace Gading Kirana", layout="wide")
 
@@ -43,10 +45,27 @@ st.title("🏡 Marketplace Gading Kirana")
 st.write("Temukan produk terbaik dari tetangga Anda!")
 
 # --- NAVIGASI ---
-menu_selection = st.sidebar.radio(
-    "Menu Navigasi",
-    ["Belanja", "Keranjang Belanja", "Portal Penjual", "Daftar sebagai Penjual"]
-)
+with st.sidebar:
+    menu_selection = option_menu(
+        "📍 Navigasi",
+        ["Belanja", "Keranjang Belanja", "Portal Penjual", "Daftar sebagai Penjual"],
+        icons=["shop", "cart", "shop-window", "person-plus"],
+        default_index=0,
+        menu_icon="menu-button-fill",
+        styles={
+            "container": {"padding": "5px", "background-color": "#f9f9f9"},
+            "icon": {"color": "#FD7E14", "font-size": "20px"},
+            "nav-link": {
+                "font-size": "16px",
+                "text-align": "left",
+                "margin": "4px",
+                "--hover-color": "#eee"
+            },
+            "nav-link-selected": {
+                "background-color": "#FD7E14", "color": "white", "font-weight": "bold"
+            },
+        }
+    )
 
 # =================================================================
 # --- HALAMAN BELANJA ---
