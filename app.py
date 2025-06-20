@@ -119,6 +119,8 @@ if menu_selection == "Belanja":
 
     # Ambil data produk dan penjual
     products_df = get_data("Products")
+    if 'category' not in products_df.columns:
+        products_df['category'] = ""
     vendors_df = get_data("Vendors")
 
     # Preprocessing
