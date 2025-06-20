@@ -41,8 +41,41 @@ def add_to_cart(product):
     st.toast(f"{product['product_name']} ditambahkan ke keranjang!", icon="✅")
 
 # --- TAMPILAN UTAMA ---
-st.title("🏡 Marketplace Gading Kirana")
-st.write("Temukan produk terbaik dari tetangga Anda!")
+# CSS custom
+st.markdown("""
+    <style>
+        .main-header {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            padding: 0.2em 0;
+        }
+        .sub-header {
+            font-size: 1.2em;
+            color: #7f8c8d;
+        }
+        .highlight {
+            background-color: #f39c12;
+            color: white;
+            padding: 0.4em 0.6em;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Layout dengan kolom (contoh 60-40 split)
+col1, col2 = st.columns([3, 2])
+
+with col1:
+    st.markdown('<div class="main-header">🏡 Marketplace Gading Kirana</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Temukan produk terbaik dari <span class="highlight">tetangga Anda</span>!</div>', unsafe_allow_html=True)
+    st.write("🛒 Belanja lokal, dukung ekonomi komunitas.")
+
+with col2:
+    st.image("https://cdn-icons-png.flaticon.com/512/3461/3461628.png", width=180, caption=None)
+
+st.markdown("---")
 
 # --- NAVIGASI ---
 with st.sidebar:
