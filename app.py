@@ -69,7 +69,7 @@ col1, col2 = st.columns([3, 2])
 
 with col1:
     st.markdown('<div class="main-header">Marketplace Gading Kirana</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-header">Temukan produk terbaik dari <span class="highlight">tetangga Anda</span>!</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Temukan produk terbaik dari <span class="highlight">tetangga Anda</span></div>', unsafe_allow_html=True)
     st.write("🛒 Belanja lokal, dukung ekonomi komunitas.")
 
 with col2:
