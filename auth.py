@@ -26,6 +26,12 @@ def login_form():
                 st.session_state['role'] = 'admin'
                 st.success("✅ Login sebagai Admin")
                 st.rerun()
+        st.markdown(
+            "<div style='text-align:right;'>"
+            "<a href='#' onClick=\"window.parent.postMessage({ type: 'streamlit:setSessionState', sessionState: { menu_selection: 'Reset Password' } }, '*')\">🔁 Lupa Password?</a>"
+            "</div>",
+            unsafe_allow_html=True
+        )
 
             # Login Vendor
             vendor_data = vendors_df[vendors_df['username'] == username]
