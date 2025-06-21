@@ -685,10 +685,11 @@ elif role == 'vendor':
                             )
                         
                         # Download Excel
-                        towrite = io.BytesIO()
+                        
                         df_to_save = df_financial[
                             ["timestamp", "order_id", "product_name", "quantity", "price", "total"]
                         ].sort_values(by="timestamp", ascending=False)
+                        towrite = io.BytesIO()
                         with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
                             df_to_save.to_excel(writer, index=False, sheet_name='Laporan Keuangan')
                             
