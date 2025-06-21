@@ -697,9 +697,18 @@ elif role == 'vendor':
                         
                         # Download Excel
                         
-                        df_to_save = df_financial[
+                        df_to_save = df_financial.sort_values(by="timestamp", ascending=False)[
                             ["timestamp", "order_id", "customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
-                        ].sort_values(by="timestamp", ascending=False)
+                        ].rename(columns={
+                                "timestamp": "Tanggal & Waktu",
+                                "order_id": "ID Pesanan",
+                                "customer_name": "Nama Pembeli",
+                                "customer_contact": "Kontak Pembeli",
+                                "product_name": "Nama Produk",
+                                "quantity": "Jumlah",
+                                "price": "Harga Satuan",
+                                "total": "Total"
+                            })
                         towrite = io.BytesIO()
                         with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
                             df_to_save.to_excel(writer, index=False, sheet_name='Laporan Keuangan')
