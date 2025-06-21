@@ -1,4 +1,4 @@
-streamlit
+streamlit>=1.20.0
 gspread
 pandas
 bcrypt
@@ -6,4 +6,4 @@ google-auth-oauthlib
 google-auth-httplib2
 streamlit-option-menu
 XlsxWriter
-streamlit>=1.18.0
+
