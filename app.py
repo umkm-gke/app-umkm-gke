@@ -410,6 +410,71 @@ elif role == 'vendor':
     
     
         st.header(f"Dashboard: {st.session_state['vendor_name']}")
+        # ------------------ DAFTAR PESANAN MASUK ------------------
+with st.expander("📋 Daftar Pesanan Masuk"):
+    import json  # pastikan sudah di-import
+    try:
+        orders_df = get_data("Orders")
+        vendor_id = st.session_state.get("vendor_id")
+
+        relevant_orders = []
+
+        for _, row in orders_df.iterrows():
+            try:
+                items = json.loads(row['order_details'])  # parsing JSON string
+                for item in items:
+                    if item.get('vendor_id') == vendor_id:
+                        relevant_orders.append({
+                            "order_id": row['order_id'],
+                            "product_name": item.get('product_name'),
+                            "quantity": item.get('quantity'),
+                            "price": item.get('price'),
+                            "total_item_price": item.get('price') * item.get('quantity'),
+                            "customer_name": row['customer_name'],
+                            "contact": row['customer_contact'],
+                            "status": row['order_status'],
+                            "timestamp": row['timestamp']
+                        })
+            except Exception as e:
+                st.warning(f"⛔ Pesanan {row['order_id']} tidak bisa diproses: {e}")
+
+        if not relevant_orders:
+            st.info("Belum ada pesanan yang masuk untuk Anda.")
+        else:
+            orders_display_df = pd.DataFrame(relevant_orders)
+
+            # Filter status
+            filter_status = st.selectbox("Filter Status Pesanan", ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"])
+            if filter_status != "Semua":
+                orders_display_df = orders_display_df[orders_display_df['status'] == filter_status]
+
+            # Tampilkan daftar pesanan
+            st.dataframe(
+                orders_display_df.sort_values(by='timestamp', ascending=False)[
+                    ["timestamp", "order_id", "product_name", "quantity", "total_item_price", "customer_name", "status"]
+                ],
+                use_container_width=True
+            )
+
+            # Ubah status (optional)
+            selected_order_id = st.selectbox("Pilih Pesanan untuk Perubahan Status", orders_display_df['order_id'].unique())
+            new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
+            if st.button("✅ Perbarui Status Pesanan"):
+                orders_ws = get_worksheet("Orders")
+                if orders_ws:
+                    cell = orders_ws.find(selected_order_id)
+                    if cell:
+                        # Misalnya kolom order_status di kolom F
+                        orders_ws.update(f"F{cell.row}", new_status)
+                        st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
+                        st.cache_data.clear()
+                        st.rerun()
+                    else:
+                        st.error("Tidak dapat menemukan pesanan.")
+    except Exception as e:
+        st.error("Gagal memuat daftar pesanan.")
+        st.write(e)
+#========================================================================================
         st.subheader("📦 Produk Anda")
     
         try:
