@@ -714,10 +714,10 @@ elif role == 'vendor':
                             df_to_save.to_excel(writer, index=False, sheet_name='Laporan Keuangan')
                             
                         towrite.seek(0)
+                        vendor_name = st.session_state.get("vendor_name", "Vendor")
                         st.download_button(
                             label="⬇️ Download Laporan Excel",
                             data=towrite,
-                            vendor_name = st.session_state.get("vendor_name", "Vendor"),
                             file_name = f"Laporan Keuangan {vendor_name}.xlsx".replace(" ", "_"),
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                         )
