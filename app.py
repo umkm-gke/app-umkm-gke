@@ -52,14 +52,29 @@ def set_role_after_login():
 set_role_after_login()
 
 # --- FUNGSI BANTU ---
-def add_to_cart(product):
-    """Menambahkan produk ke keranjang belanja."""
+def add_to_cart(product: dict) -> None:
+    """
+    Menambahkan produk ke keranjang belanja di session state.
+
+    Jika produk sudah ada di keranjang, jumlahnya ditambah 1.
+    Jika belum ada, produk baru ditambahkan dengan quantity 1.
+
+    Args:
+        product (dict): Data produk dengan setidaknya keys
+            'product_id', 'product_name', 'price', dan 'vendor_id'.
+    """
+    # Inisialisasi keranjang jika belum ada
+    if 'cart' not in st.session_state:
+        st.session_state.cart = []
+
+    # Cek apakah produk sudah ada di keranjang
     for item in st.session_state.cart:
         if item['product_id'] == product['product_id']:
             item['quantity'] += 1
             st.toast(f"Jumlah {product['product_name']} ditambah!", icon="🛒")
             return
-    
+
+    # Produk baru, tambahkan ke keranjang
     new_item = {
         'product_id': product['product_id'],
         'product_name': product['product_name'],
@@ -69,6 +84,7 @@ def add_to_cart(product):
     }
     st.session_state.cart.append(new_item)
     st.toast(f"{product['product_name']} ditambahkan ke keranjang!", icon="✅")
+
 
 # --- TAMPILAN UTAMA ---
 # CSS custom
