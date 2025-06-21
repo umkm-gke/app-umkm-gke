@@ -800,7 +800,7 @@ elif role == 'admin':
                 st.cache_data.clear()
                 st.rerun()
 
-    with st.expander("🔍 Cari Vendor untuk Reset Password")
+    with st.expander("🔍 Cari Vendor untuk Reset Password"):
         search_term = st.text_input("Cari berdasarkan username atau nama vendor")
         
         if search_term:
