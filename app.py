@@ -795,7 +795,7 @@ elif role == 'admin':
             if cell:
                 row_idx = cell.row
                 # Misalnya kolom `is_active` ada di kolom D (kolom ke-4)
-                vendors_ws.update_cell(row_idx, 4, str(new_status))
+                vendors_ws.update_cell(row_idx, 7, str(new_status))
                 st.success(f"Status vendor {selected_vendor_id} berhasil diperbarui ke: {'Aktif' if new_status else 'Nonaktif'}")
                 st.cache_data.clear()
                 st.rerun()
