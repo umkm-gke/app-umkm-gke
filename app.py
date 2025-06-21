@@ -691,7 +691,7 @@ elif role == 'vendor':
                         ].sort_values(by="timestamp", ascending=False)
                         with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
                             df_to_save.to_excel(writer, index=False, sheet_name='Laporan Keuangan')
-                            writer.save()
+                            
                         towrite.seek(0)
                         st.download_button(
                             label="⬇️ Download Laporan Excel",
