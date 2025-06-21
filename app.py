@@ -682,8 +682,7 @@ elif role == 'vendor':
                             st.dataframe(
                                 df_financial[
                                     ["timestamp", "order_id","customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
-                                ]
-                                .rename(columns={
+                                ].rename(columns={
                                     "timestamp": "Tanggal & Waktu",
                                     "order_id": "ID Pesanan",
                                     "customer_name": "Nama Pembeli",
