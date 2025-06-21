@@ -717,7 +717,7 @@ elif role == 'vendor':
                         st.download_button(
                             label="⬇️ Download Laporan Excel",
                             data=towrite,
-                            file_name="laporan_keuangan_vendor.xlsx",
+                            file_name = f"Laporan Keuangan {vendor_name}.xlsx".replace(" ", "_"),
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                         )
                     else:
