@@ -475,48 +475,48 @@ elif role == 'vendor':
             st.error("Gagal memuat daftar pesanan.")
             st.write(e)
 #========================================================================================
-        st.subheader("📦 Produk Anda")
-    
-        try:
-            # Ambil data produk milik vendor
-            products_df = get_data("Products")
-            if 'category' not in products_df.columns:
-                products_df['category'] = ""
-            my_products = products_df[products_df['vendor_id'] == vendor_id]
-    
-            # ------------------ FILTER PRODUK ------------------
-            filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
-            if filter_status == "Aktif":
-                my_products = my_products[my_products['is_active'] == True]
-            elif filter_status == "Nonaktif":
-                my_products = my_products[my_products['is_active'] == False]
-    
-            if my_products.empty:
-                st.info("Anda belum memiliki produk.")
+    with st.expander("📦 Produk Anda"):
+
+    try:
+        # Ambil data produk milik vendor
+        products_df = get_data("Products")
+        if 'category' not in products_df.columns:
+            products_df['category'] = ""
+        my_products = products_df[products_df['vendor_id'] == vendor_id]
+
+        # ------------------ FILTER PRODUK ------------------
+        filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
+        if filter_status == "Aktif":
+            my_products = my_products[my_products['is_active'] == True]
+        elif filter_status == "Nonaktif":
+            my_products = my_products[my_products['is_active'] == False]
+
+        if my_products.empty:
+            st.info("Anda belum memiliki produk.")
+        else:
+            st.dataframe(my_products)
+
+        # ------------------ HAPUS PRODUK ------------------
+        with st.expander("🗑️ Hapus Produk"):
+            if not my_products.empty:
+                delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
+                if st.button("Hapus Produk Ini"):
+                    products_ws = get_worksheet("Products")
+                    if products_ws:
+                        cell = products_ws.find(delete_id)
+                        if cell:
+                            products_ws.delete_rows(cell.row)
+                            st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
+                            st.cache_data.clear()
+                            st.rerun()
+                        else:
+                            st.error("Produk tidak ditemukan.")
             else:
-                st.dataframe(my_products)
-    
-            # ------------------ HAPUS PRODUK ------------------
-            with st.expander("🗑️ Hapus Produk"):
-                if not my_products.empty:
-                    delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
-                    if st.button("Hapus Produk Ini"):
-                        products_ws = get_worksheet("Products")
-                        if products_ws:
-                            cell = products_ws.find(delete_id)
-                            if cell:
-                                products_ws.delete_rows(cell.row)
-                                st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
-                                st.cache_data.clear()
-                                st.rerun()
-                            else:
-                                st.error("Produk tidak ditemukan.")
-                else:
-                    st.caption("Belum ada produk yang bisa dihapus.")
-    
-        except Exception as e:
-            st.error("Gagal memuat data produk.")
-            st.write(e)
+                st.caption("Belum ada produk yang bisa dihapus.")
+
+    except Exception as e:
+        st.error("Gagal memuat data produk.")
+        st.write(e)
 
     # ------------------ TAMBAH / EDIT PRODUK ------------------
     with st.expander("➕ Tambah atau Edit Produk"):
