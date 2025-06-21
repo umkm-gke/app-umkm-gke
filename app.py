@@ -835,7 +835,7 @@ elif role == 'admin':
                                 st.success(f"Password untuk '{selected_username}' berhasil direset.")
                             else:
                                 st.error("Gagal menemukan akun vendor.")
-                        st.cache_data.clear()
-                        st.rerun()
+                            st.cache_data.clear()
+                            st.rerun()
         else:
             st.info("Masukkan nama atau username vendor untuk mencari.")
