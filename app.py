@@ -6,6 +6,7 @@ import json
 from urllib.parse import quote_plus
 import bcrypt # Diperlukan untuk hashing password pendaftaran
 import os
+import io
 
 from g_sheets import get_data, get_worksheet
 from auth import login_form, logout
