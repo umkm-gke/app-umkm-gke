@@ -486,17 +486,20 @@ elif role == 'vendor':
                     orders_display_df = pd.DataFrame(relevant_orders)
         
                     # Filter tanggal wajib dipilih, dengan rentang 3 bulan terakhir
-                    selected_date = st.date_input(
-                        "Filter Tanggal Pesanan",
-                        value=today.date(),
+                    selected_date_range = st.date_input(
+                        "📆 Filter Rentang Tanggal Pesanan",
+                        value=(today.date(), today.date()),
                         min_value=three_months_ago.date(),
                         max_value=today.date()
                     )
-        
-                    # Filter data untuk tanggal yang dipilih
-                    orders_display_df = orders_display_df[
-                        (orders_display_df['timestamp'].dt.date == selected_date)
-                    ]
+                    
+                    # Validasi range input
+                    if isinstance(selected_date_range, tuple) and len(selected_date_range) == 2:
+                        start_date, end_date = selected_date_range
+                        orders_display_df = orders_display_df[
+                            (orders_display_df['timestamp'].dt.date >= start_date) &
+                            (orders_display_df['timestamp'].dt.date <= end_date)
+                        ]
         
                     # Filter status dengan pilihan "Semua"
                     filter_status = st.selectbox(
