@@ -13,6 +13,23 @@ from auth import login_form, logout
 
 from streamlit_option_menu import option_menu
 
+try:
+    from zoneinfo import ZoneInfo  # Python 3.9+
+    jakarta_tz = ZoneInfo("Asia/Jakarta")
+except ImportError:
+    import pytz
+    jakarta_tz = pytz.timezone("Asia/Jakarta")
+
+def now_jakarta():
+    return datetime.now(jakarta_tz)
+
+def format_jakarta(dt, fmt="%Y-%m-%d %H:%M:%S"):
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=jakarta_tz)
+    else:
+        dt = dt.astimezone(jakarta_tz)
+    return dt.strftime(fmt)
+    
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Marketplace Gading Kirana", layout="wide")
 
@@ -331,8 +348,7 @@ if role == 'guest':
                             else:
                                 order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
                                 order_details_json = json.dumps(st.session_state.cart)
-                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                
+                                timestamp = format_jakarta(now_jakarta())
                                 new_order_row = [order_id, customer_name, customer_contact, order_details_json, total_price, "Baru", timestamp]
                                 orders_ws.append_row(new_order_row)
                                 
@@ -449,9 +465,10 @@ elif role == 'vendor':
         
                 # Parsing kolom timestamp ke datetime
                 orders_df['timestamp'] = pd.to_datetime(orders_df['timestamp'], errors='coerce')
-        
+                orders_df['timestamp'] = orders_df['timestamp'].dt.tz_localize("UTC").dt.tz_convert(jakarta_tz)
+                
                 # Definisikan rentang waktu maksimal data yang bisa di-load
-                today = datetime.now()
+                today = now_jakarta()
                 three_months_ago = today - pd.DateOffset(months=3)
         
                 # Filter data 3 bulan terakhir saja
