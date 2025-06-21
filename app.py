@@ -680,7 +680,7 @@ elif role == 'vendor':
                         with st.expander("📄 Detail Transaksi"):
                             st.dataframe(
                                 df_financial[
-                                    ["timestamp", "order_id", "product_name", "quantity", "price", "total"]
+                                    ["timestamp", "order_id","customer_name", "product_name", "quantity", "price", "total"]
                                 ].sort_values(by="timestamp", ascending=False),
                                 use_container_width=True
                             )
@@ -688,7 +688,7 @@ elif role == 'vendor':
                         # Download Excel
                         
                         df_to_save = df_financial[
-                            ["timestamp", "order_id", "product_name", "quantity", "price", "total"]
+                            ["timestamp", "order_id", "customer_name", "product_name", "quantity", "price", "total"]
                         ].sort_values(by="timestamp", ascending=False)
                         towrite = io.BytesIO()
                         with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
