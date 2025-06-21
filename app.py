@@ -633,12 +633,13 @@ elif role == 'vendor':
                                 if item.get('vendor_id') == vendor_id:
                                     transactions.append({
                                         "order_id": row['order_id'],
-                                        "customer_name": item.get("customer_name"),
                                         "product_name": item.get("product_name"),
                                         "quantity": item.get("quantity"),
                                         "price": item.get("price"),
                                         "total": item.get("price") * item.get("quantity"),
                                         "timestamp": row["timestamp"]
+                                        "customer_name": row.get("customer_name", ""),
+                                        "customer_contact": row.get("customer_contact", "")
                                     })
                         except Exception as e:
                             st.warning(f"Transaksi tidak valid: {e}")
@@ -680,7 +681,7 @@ elif role == 'vendor':
                         with st.expander("📄 Detail Transaksi"):
                             st.dataframe(
                                 df_financial[
-                                    ["timestamp", "order_id","customer_name", "product_name", "quantity", "price", "total"]
+                                    ["timestamp", "order_id","customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
                                 ].sort_values(by="timestamp", ascending=False),
                                 use_container_width=True
                             )
@@ -688,7 +689,7 @@ elif role == 'vendor':
                         # Download Excel
                         
                         df_to_save = df_financial[
-                            ["timestamp", "order_id", "customer_name", "product_name", "quantity", "price", "total"]
+                            ["timestamp", "order_id", "customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
                         ].sort_values(by="timestamp", ascending=False)
                         towrite = io.BytesIO()
                         with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
