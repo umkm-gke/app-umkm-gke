@@ -453,7 +453,8 @@ elif role == 'vendor':
                     st.dataframe(
                         orders_display_df.sort_values(by='timestamp', ascending=False)[
                             ["timestamp", "order_id", "product_name", "quantity", "total_item_price", "customer_name", "status"]
-                        ]
+                        ],
+                            use_container_width=False
                         
                     )
         
@@ -692,7 +693,7 @@ elif role == 'vendor':
                                 "total": "Total"
                             })
                         
-                            st.dataframe(df_display)
+                            st.dataframe(df_display, use_container_width=False)
 
                         
                         # Download Excel
