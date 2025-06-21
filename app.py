@@ -465,7 +465,7 @@ elif role == 'vendor':
                         cell = orders_ws.find(selected_order_id)
                         if cell:
                             # Misalnya kolom order_status di kolom F
-                            orders_ws.update(f"F{cell.row}", new_status)
+                            orders_ws.update(f"F{cell.row}", [[new_status]])
                             st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                             st.cache_data.clear()
                             st.rerun()
