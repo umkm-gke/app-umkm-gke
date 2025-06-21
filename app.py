@@ -451,7 +451,7 @@ elif role == 'vendor':
                 orders_df['timestamp'] = pd.to_datetime(orders_df['timestamp'], errors='coerce')
         
                 # Definisikan rentang waktu maksimal data yang bisa di-load
-                today = datetime.datetime.now()
+                today = datetime.now()
                 three_months_ago = today - pd.DateOffset(months=3)
         
                 # Filter data 3 bulan terakhir saja
