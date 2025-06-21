@@ -682,7 +682,7 @@ elif role == 'vendor':
                             st.dataframe(
                                 df_financial[
                                     ["timestamp", "order_id","customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
-                                ].sort_values(by="timestamp", ascending=False),
+                                ]
                                 .rename(columns={
                                     "timestamp": "Tanggal & Waktu",
                                     "order_id": "ID Pesanan",
@@ -693,6 +693,7 @@ elif role == 'vendor':
                                     "price": "Harga Satuan",
                                     "total": "Total"
                                 })
+                                sort_values(by="timestamp", ascending=False),
                                 use_container_width=True
                             )
                         
