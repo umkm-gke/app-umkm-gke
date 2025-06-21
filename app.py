@@ -248,16 +248,16 @@ if role == 'guest':
             st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
         else:
             st.markdown("---")
-            cols = st.columns(3)  # 3 produk per baris
+            cols = st.columns(4)  # 3 produk per baris
 
             for index, product in active_products.iterrows():
-                col = cols[index % 3]
+                col = cols[index % 4]
                 with col:
                     with st.container():
                         # Gambar produk (ukuran konsisten)
                         image_url = product.get('image_url', '').strip()
                         img_src = image_url if image_url else "https://via.placeholder.com/200"
-                        st.image(img_src, width=200)
+                        st.image(img_src, width=160)
 
                         # Info produk
                         st.markdown(f"**{product['product_name'][:30]}**")
@@ -541,7 +541,7 @@ elif role == 'vendor':
                                     orders_ws.update(f"F{cell.row}", [[new_status]])
                                     st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                                     st.cache_data.clear()
-                                    st.experimental_rerun()
+                                    st.rerun()
                                 else:
                                     st.error("Tidak dapat menemukan pesanan.")
             except Exception as e:
