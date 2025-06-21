@@ -638,8 +638,8 @@ elif role == 'vendor':
                                         "total": item.get("price") * item.get("quantity"),
                                         "timestamp": row["timestamp"]
                                     })
-                        except Exception as e:
-                            st.warning(f"Transaksi tidak valid: {e}")
+            except Exception as e:
+                st.warning(f"Transaksi tidak valid: {e}")
         
                 if not transactions:
                     st.info("Belum ada transaksi selesai yang masuk.")
