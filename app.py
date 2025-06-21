@@ -511,8 +511,8 @@ elif role == 'vendor':
                             st.rerun()
                         else:
                             st.error("Produk tidak ditemukan.")
-            else:
-                st.caption("Belum ada produk yang bisa dihapus.")
+        else:
+            st.caption("Belum ada produk yang bisa dihapus.")
 
     except Exception as e:
         st.error("Gagal memuat data produk.")
