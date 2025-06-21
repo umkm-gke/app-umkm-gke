@@ -474,6 +474,53 @@ elif role == 'vendor':
         except Exception as e:
             st.error("Gagal memuat daftar pesanan.")
             st.write(e)
+
+    # ------------------ LAPORAN KEUANGAN VENDOR ------------------
+    with st.expander("💰 Laporan Keuangan"):
+        try:
+            orders_df = get_data("Orders")
+            vendor_id = st.session_state.get("vendor_id")
+    
+            import json
+            transactions = []
+    
+            for _, row in orders_df.iterrows():
+                if row['order_status'] == "Selesai":
+                    try:
+                        items = json.loads(row['order_details'])
+                        for item in items:
+                            if item.get('vendor_id') == vendor_id:
+                                transactions.append({
+                                    "order_id": row['order_id'],
+                                    "product_name": item.get("product_name"),
+                                    "quantity": item.get("quantity"),
+                                    "price": item.get("price"),
+                                    "total": item.get("price") * item.get("quantity"),
+                                    "timestamp": row["timestamp"]
+                                })
+                    except Exception as e:
+                        st.warning(f"Transaksi tidak valid: {e}")
+    
+            if not transactions:
+                st.info("Belum ada transaksi selesai yang masuk.")
+            else:
+                df_financial = pd.DataFrame(transactions)
+                df_financial['timestamp'] = pd.to_datetime(df_financial['timestamp']).dt.strftime("%d-%m-%Y %H:%M")
+    
+                total_income = df_financial['total'].sum()
+                st.metric("💵 Total Pendapatan", f"Rp {total_income:,.0f}")
+    
+                with st.expander("📄 Detail Transaksi"):
+                    st.dataframe(
+                        df_financial[
+                            ["timestamp", "order_id", "product_name", "quantity", "price", "total"]
+                        ].sort_values(by="timestamp", ascending=False),
+                        use_container_width=True
+                    )
+    
+        except Exception as e:
+            st.error("Gagal memuat laporan keuangan.")
+            st.write(e)
 #========================================================================================
     with st.expander("📦 Produk Anda"):
 
