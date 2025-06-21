@@ -637,7 +637,7 @@ elif role == 'vendor':
                                         "quantity": item.get("quantity"),
                                         "price": item.get("price"),
                                         "total": item.get("price") * item.get("quantity"),
-                                        "timestamp": row["timestamp"]
+                                        "timestamp": row["timestamp"],
                                         "customer_name": row.get("customer_name", ""),
                                         "customer_contact": row.get("customer_contact", "")
                                     })
