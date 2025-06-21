@@ -616,72 +616,62 @@ elif role == 'vendor':
 
  # ------------------ LAPORAN KEUANGAN VENDOR ------------------
         with st.expander("💰 Laporan Keuangan"):
-            try:
-                orders_df = get_data("Orders")
-                vendor_id = st.session_state.get("vendor_id")
-        
-                import json
-                transactions = []
-        
-                # Tambah filter tanggal
-                st.write("Filter berdasarkan tanggal transaksi:")
-                start_date, end_date = st.date_input(
-                    "Pilih rentang tanggal:",
-                    value=[datetime.now().date().replace(day=1), datetime.now().date()],
-                    help="Pilih tanggal mulai dan tanggal akhir"
+        try:
+            orders_df = get_data("Orders")
+            vendor_id = st.session_state.get("vendor_id")
+    
+            import json
+            transactions = []
+    
+            # Ambil semua transaksi selesai dari vendor
+            for _, row in orders_df.iterrows():
+                if row['order_status'] == "Selesai":
+                    try:
+                        items = json.loads(row['order_details'])
+                        for item in items:
+                            if item.get('vendor_id') == vendor_id:
+                                transactions.append({
+                                    "order_id": row['order_id'],
+                                    "product_name": item.get("product_name"),
+                                    "quantity": item.get("quantity"),
+                                    "price": item.get("price"),
+                                    "total": item.get("price") * item.get("quantity"),
+                                    "timestamp": row["timestamp"]
+                                })
+                    except Exception as e:
+                        st.warning(f"Transaksi tidak valid: {e}")
+    
+            if not transactions:
+                st.info("Belum ada transaksi selesai yang masuk.")
+            else:
+                df_financial = pd.DataFrame(transactions)
+                df_financial['timestamp'] = pd.to_datetime(df_financial['timestamp'])
+    
+                # Filter tanggal
+                min_date = df_financial['timestamp'].min().date()
+                max_date = df_financial['timestamp'].max().date()
+                date_range = st.date_input(
+                    "Filter Tanggal Transaksi",
+                    value=(min_date, max_date),
+                    min_value=min_date,
+                    max_value=max_date
                 )
-                # Pastikan end_date tidak sebelum start_date
-                if isinstance(start_date, datetime):
-                    start_date = start_date.date()
-                if isinstance(end_date, datetime):
-                    end_date = end_date.date()
-                if start_date > end_date:
-                    st.error("Tanggal mulai harus sebelum atau sama dengan tanggal akhir.")
-                    st.stop()
-        
-                for _, row in orders_df.iterrows():
-                    if row['order_status'] == "Selesai":
-                        try:
-                            # Parsing timestamp ke date
-                            order_date = pd.to_datetime(row["timestamp"]).date()
-                            # Filter tanggal
-                            if not (start_date <= order_date <= end_date):
-                                continue
-        
-                            items = json.loads(row['order_details'])
-                            for item in items:
-                                if item.get('vendor_id') == vendor_id:
-                                    transactions.append({
-                                        "order_id": row['order_id'],
-                                        "product_name": item.get("product_name"),
-                                        "quantity": item.get("quantity"),
-                                        "price": item.get("price"),
-                                        "total": item.get("price") * item.get("quantity"),
-                                        "timestamp": row["timestamp"]
-                                    })
-                        except Exception as e:
-                            st.warning(f"Transaksi tidak valid: {e}")
-        
-                if not transactions:
-                    st.info("Belum ada transaksi selesai yang masuk di rentang tanggal tersebut.")
-                else:
-                    df_financial = pd.DataFrame(transactions)
-                    df_financial['timestamp'] = pd.to_datetime(df_financial['timestamp']).dt.strftime("%d-%m-%Y %H:%M")
-        
-                    total_income = df_financial['total'].sum()
-                    st.metric("💵 Total Pendapatan", f"Rp {total_income:,.0f}")
-        
-                    with st.expander("📄 Detail Transaksi"):
-                        st.dataframe(
-                            df_financial[
-                                ["timestamp", "order_id", "product_name", "quantity", "price", "total"]
-                            ].sort_values(by="timestamp", ascending=False),
-                            use_container_width=True
-                        )
-        
-            except Exception as e:
-                st.error("Gagal memuat laporan keuangan.")
-                st.write(e)
+    
+                if len(date_range) == 2:
+                    start_date, end_date = date_range
+                    df_financial = df_financial[(df_financial['timestamp'].dt.date >= start_date) &
+                                                (df_financial['timestamp'].dt.date <= end_date)]
+    
+                # Filter produk
+                produk_list = df_financial['product_name'].unique().tolist()
+                produk_pilih = st.selectbox("Filter berdasarkan produk:", ["Semua"] + produk_list)
+    
+                if produk_pilih != "Semua":
+                    df_financial = df_financial[df_financial['product_name'] == produk_pilih]
+    
+                # Tampilkan total pendapatan
+                total_income = df_financial['total'].sum()
+
 
 # =================================================================
 # --- HALAMAN VERIFIKASI ADMIN ---
