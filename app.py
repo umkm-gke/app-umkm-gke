@@ -186,64 +186,91 @@ if role == 'guest':
     if menu_selection == "Belanja":
         st.markdown("### 🛍️ Katalog Produk")
         st.markdown("_Temukan produk terbaik dari tetangga Anda!_")
-    
+
         # Ambil data produk dan penjual
         products_df = get_data("Products")
         if 'category' not in products_df.columns:
             products_df['category'] = ""
+
         vendors_df = get_data("Vendors")
-    
-        # Preprocessing
+
+        # Pastikan kolom is_active di products_df menjadi boolean (true jika 'true' string, else false)
         products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
-        products_df = pd.merge(products_df, vendors_df[['vendor_id', 'vendor_name']], on='vendor_id', how='left')
-    
+
+        # Pastikan kolom is_active di vendors_df juga boolean
+        vendors_df['is_active'] = vendors_df['is_active'].apply(lambda x: str(x).lower() == 'true')
+
+        # Merge produk dengan vendor untuk dapatkan nama vendor dan status aktif vendor
+        products_df = pd.merge(
+            products_df,
+            vendors_df[['vendor_id', 'vendor_name', 'is_active']],
+            on='vendor_id',
+            how='left',
+            suffixes=('', '_vendor')
+        )
+
         # Sidebar: Filter
         st.sidebar.header("🔍 Filter Pencarian")
+
+        # Daftar vendor aktif untuk dropdown
         active_vendors_df = vendors_df[vendors_df['is_active'] == True]
         vendor_list = active_vendors_df['vendor_name'].dropna().unique().tolist()
         selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
-        search_query = st.sidebar.text_input("Cari Nama Produk")
-        
-        # Filter Produk Aktif
-        active_products = products_df[products_df['is_active'] == True]
+
+        # Filter kategori berdasar produk yang aktif dan vendor aktif juga
+        # Jadi kita gunakan produk yang vendor-nya aktif dan produk itu aktif
+        active_products = products_df[
+            (products_df['is_active'] == True) &
+            (products_df['is_active_vendor'] == True)
+        ]
+
         kategori_list = sorted(active_products['category'].dropna().unique().tolist())
         selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
-    
+
+        search_query = st.sidebar.text_input("Cari Nama Produk")
+
+        # Terapkan filter kategori
         if selected_kategori != "Semua":
             active_products = active_products[active_products['category'] == selected_kategori]
-        
+
+        # Terapkan filter vendor
         if selected_vendor != "Semua":
             active_products = active_products[active_products['vendor_name'] == selected_vendor]
-    
+
+        # Terapkan filter pencarian nama produk
         if search_query:
-            active_products = active_products[active_products['product_name'].str.contains(search_query, case=False)]
-    
-        # Tampilkan
+            active_products = active_products[
+                active_products['product_name'].str.contains(search_query, case=False, na=False)
+            ]
+
+        # Tampilkan hasil filter
         if active_products.empty:
             st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
         else:
             st.markdown("---")
             cols = st.columns(3)  # 3 produk per baris
-    
+
             for index, product in active_products.iterrows():
                 col = cols[index % 3]
                 with col:
-                    with st.container(border=True):
+                    with st.container():
                         # Gambar produk (ukuran konsisten)
                         image_url = product.get('image_url', '').strip()
                         img_src = image_url if image_url else "https://via.placeholder.com/200"
                         st.image(img_src, width=200)
-    
+
                         # Info produk
                         st.markdown(f"**{product['product_name'][:30]}**")
                         st.caption(f"Kategori: {product.get('category', 'Tidak tersedia')}")
                         st.caption(f"🧑 {product['vendor_name']}")
                         st.markdown(f"💰 Rp {int(product['price']):,}")
-                        st.caption(product['description'][:60] + "..." if len(product['description']) > 60 else product['description'])
-    
+                        description = product.get('description', '')
+                        st.caption(description[:60] + "..." if len(description) > 60 else description)
+
                         # Tombol beli
                         if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
                             add_to_cart(product)
+
 
     elif menu_selection == "Keranjang":
         st.header("🛒 Keranjang Belanja Anda")
