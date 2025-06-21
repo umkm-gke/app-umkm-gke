@@ -832,10 +832,11 @@ elif role == 'admin':
                             cell = vendors_ws.find(selected_username)
                             if cell:
                                 vendors_ws.update_cell(cell.row, password_col_index, hashed_new_pw)
+                                get_data.clear()  # Clear cache data get_data saja
                                 st.success(f"Password untuk '{selected_username}' berhasil direset.")
+                                st.rerun()
                             else:
                                 st.error("Gagal menemukan akun vendor.")
-                                st.cache_data.clear()
-                                st.rerun()
+
         else:
             st.info("Masukkan nama atau username vendor untuk mencari.")
