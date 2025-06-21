@@ -679,22 +679,21 @@ elif role == 'vendor':
                     if not df_financial.empty:
                         # Tabel detail transaksi
                         with st.expander("📄 Detail Transaksi"):
-                            st.dataframe(
-                                df_financial[
-                                    ["timestamp", "order_id","customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
-                                ].rename(columns={
-                                    "timestamp": "Tanggal & Waktu",
-                                    "order_id": "ID Pesanan",
-                                    "customer_name": "Nama Pembeli",
-                                    "customer_contact": "Kontak Pembeli",
-                                    "product_name": "Nama Produk",
-                                    "quantity": "Jumlah",
-                                    "price": "Harga Satuan",
-                                    "total": "Total"
-                                }).sort_values(by="timestamp", ascending=False),
-                                st.dataframe(df_display, use_container_width=True)
-                                
-                            )
+                            df_display = df_financial.sort_values(by="timestamp", ascending=False)[
+                                ["timestamp", "order_id", "customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
+                            ].rename(columns={
+                                "timestamp": "Tanggal & Waktu",
+                                "order_id": "ID Pesanan",
+                                "customer_name": "Nama Pembeli",
+                                "customer_contact": "Kontak Pembeli",
+                                "product_name": "Nama Produk",
+                                "quantity": "Jumlah",
+                                "price": "Harga Satuan",
+                                "total": "Total"
+                            })
+                        
+                            st.dataframe(df_display, use_container_width=True)
+
                         
                         # Download Excel
                         
