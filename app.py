@@ -514,9 +514,9 @@ elif role == 'vendor':
         else:
             st.caption("Belum ada produk yang bisa dihapus.")
 
-    except Exception as e:
-        st.error("Gagal memuat data produk.")
-        st.write(e)
+        except Exception as e:
+            st.error("Gagal memuat data produk.")
+            st.write(e)
 
     # ------------------ TAMBAH / EDIT PRODUK ------------------
     with st.expander("➕ Tambah atau Edit Produk"):
