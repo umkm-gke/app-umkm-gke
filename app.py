@@ -477,24 +477,24 @@ elif role == 'vendor':
 #========================================================================================
     with st.expander("📦 Produk Anda"):
 
-    try:
-        # Ambil data produk milik vendor
-        products_df = get_data("Products")
-        if 'category' not in products_df.columns:
-            products_df['category'] = ""
-        my_products = products_df[products_df['vendor_id'] == vendor_id]
-
-        # ------------------ FILTER PRODUK ------------------
-        filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
-        if filter_status == "Aktif":
-            my_products = my_products[my_products['is_active'] == True]
-        elif filter_status == "Nonaktif":
-            my_products = my_products[my_products['is_active'] == False]
-
-        if my_products.empty:
-            st.info("Anda belum memiliki produk.")
-        else:
-            st.dataframe(my_products)
+        try:
+            # Ambil data produk milik vendor
+            products_df = get_data("Products")
+            if 'category' not in products_df.columns:
+                products_df['category'] = ""
+            my_products = products_df[products_df['vendor_id'] == vendor_id]
+    
+            # ------------------ FILTER PRODUK ------------------
+            filter_status = st.selectbox("Filter Produk:", ["Semua", "Aktif", "Nonaktif"])
+            if filter_status == "Aktif":
+                my_products = my_products[my_products['is_active'] == True]
+            elif filter_status == "Nonaktif":
+                my_products = my_products[my_products['is_active'] == False]
+    
+            if my_products.empty:
+                st.info("Anda belum memiliki produk.")
+            else:
+                st.dataframe(my_products)
 
         # ------------------ HAPUS PRODUK ------------------
         with st.expander("🗑️ Hapus Produk"):
