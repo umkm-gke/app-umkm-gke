@@ -301,7 +301,7 @@ if role == 'guest':
                                 order_details_json = json.dumps(st.session_state.cart)
                                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                 
-                                new_order_row = [order_id, customer_name, customer_contact, order_details_json, total_price, "New", timestamp]
+                                new_order_row = [order_id, customer_name, customer_contact, order_details_json, total_price, "Baru", timestamp]
                                 orders_ws.append_row(new_order_row)
                                 
                                 st.success(f"Pesanan Anda ({order_id}) berhasil dibuat!")
