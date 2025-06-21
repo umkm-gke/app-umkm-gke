@@ -271,7 +271,8 @@ if role == 'guest':
                         if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
                             add_to_cart(product)
 
-
+    if 'cart' not in st.session_state:
+        st.session_state.cart = []
     elif menu_selection == "Keranjang":
         st.header("🛒 Keranjang Belanja Anda")
         if "cart" not in st.session_state:
@@ -282,7 +283,7 @@ if role == 'guest':
         else:
             total_price = 0
             vendors_in_cart = {}
-    
+            delete_index = None
             for i, item in enumerate(st.session_state.cart):
                 with st.container(border=True):
                     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
@@ -305,7 +306,9 @@ if role == 'guest':
                 if vendor_id not in vendors_in_cart:
                     vendors_in_cart[vendor_id] = 0
                 vendors_in_cart[vendor_id] += subtotal
-    
+            if delete_index is not None:
+                st.session_state.cart.pop(delete_index)
+                st.rerun()
             st.header(f"Total Belanja: Rp {total_price:,}")
     
             st.subheader("📝 Lanjutkan Pemesanan")
