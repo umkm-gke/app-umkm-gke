@@ -397,8 +397,7 @@ if role == 'guest':
                                     st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
     
                                 # Mengosongkan keranjang setelah berhasil (BAGIAN YANG DIPERBAIKI)
-                                st.session_state.cart = []
-                                st.experimental_rerun()
+                                    st.session_state.cart = []
 
     elif menu_selection == "Daftar sebagai Penjual":
         st.header("✍️ Pendaftaran Penjual Baru")
