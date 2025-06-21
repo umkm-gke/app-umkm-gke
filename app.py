@@ -542,6 +542,7 @@ elif role == 'vendor':
                                     st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                                     st.cache_data.clear()
                                     st.experimental_rerun()
+                                    return
                                 else:
                                     st.error("Tidak dapat menemukan pesanan.")
             except Exception as e:
