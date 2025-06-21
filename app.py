@@ -398,6 +398,7 @@ if role == 'guest':
     
                                 # Mengosongkan keranjang setelah berhasil (BAGIAN YANG DIPERBAIKI)
                                 st.session_state.cart = []
+                                st.experimental_rerun()
 
     elif menu_selection == "Daftar sebagai Penjual":
         st.header("✍️ Pendaftaran Penjual Baru")
