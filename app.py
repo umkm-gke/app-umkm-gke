@@ -633,7 +633,7 @@ elif role == 'vendor':
                                 if item.get('vendor_id') == vendor_id:
                                     transactions.append({
                                         "order_id": row['order_id'],
-                                        "customer_name": item.get("customer_name")
+                                        "customer_name": item.get("customer_name"),
                                         "product_name": item.get("product_name"),
                                         "quantity": item.get("quantity"),
                                         "price": item.get("price"),
