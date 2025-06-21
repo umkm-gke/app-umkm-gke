@@ -691,9 +691,9 @@ elif role == 'vendor':
                                     "quantity": "Jumlah",
                                     "price": "Harga Satuan",
                                     "total": "Total"
-                                })
-                                sort_values(by="timestamp", ascending=False),
-                                use_container_width=True
+                                }).sort_values(by="timestamp", ascending=False),
+                                st.dataframe(df_display, use_container_width=True)
+                                
                             )
                         
                         # Download Excel
