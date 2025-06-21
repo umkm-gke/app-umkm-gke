@@ -745,7 +745,7 @@ elif role == 'admin':
             st.sidebar.success(f"Login sebagai: **Administrator**")
             logout()  # ❗️Panggilan hanya satu kali, aman
     
-    with st.expander("🛂 Verifikasi Pendaftar Vendor")
+    with st.expander("🛂 Verifikasi Pendaftar Vendor"):
     
         vendors_df = get_data("Vendors")
         vendors_ws = get_worksheet("Vendors")
