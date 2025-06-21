@@ -745,60 +745,60 @@ elif role == 'admin':
             st.sidebar.success(f"Login sebagai: **Administrator**")
             logout()  # ❗️Panggilan hanya satu kali, aman
     
-        with st.expander("🛂 Verifikasi Pendaftar Vendor")
-        
-            vendors_df = get_data("Vendors")
-            vendors_ws = get_worksheet("Vendors")
-        
-            pending_vendors = vendors_df[vendors_df['status'].str.lower() == "pending"]
-        
-            if pending_vendors.empty:
-                st.info("Tidak ada vendor yang menunggu persetujuan.")
-            else:
-                for idx, row in pending_vendors.iterrows():
-                    st.markdown("---")
-                    st.markdown(f"**{row['vendor_name']}** (`{row['username']}`)")
-                    st.caption(f"📱 {row['whatsapp_number']}")
-        
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button(f"✅ Setujui {row['username']}", key=f"approve_{row['username']}"):
-                            status_col_index = vendors_df.columns.get_loc('status') + 1
-                            cell = vendors_ws.find(row['username'])
-                            if cell:
-                                vendors_ws.update_cell(cell.row, status_col_index, "approved")
-                                st.cache_data.clear()  # ✅ Hapus cache data agar data terbaru muncul
-                                st.success(f"Akun '{row['username']}' telah disetujui.")
-                                st.rerun()
-                    with col2:
-                        if st.button(f"❌ Tolak {row['username']}", key=f"reject_{row['username']}"):
-                            status_col_index = vendors_df.columns.get_loc('status') + 1
-                            cell = vendors_ws.find(row['username'])
-                            if cell:
-                                vendors_ws.update_cell(cell.row, status_col_index, "rejected")
-                                st.cache_data.clear()  # ✅ Wajib
-                                st.warning(f"Akun '{row['username']}' telah ditolak.")
-                                st.rerun()
+    with st.expander("🛂 Verifikasi Pendaftar Vendor")
+    
+        vendors_df = get_data("Vendors")
+        vendors_ws = get_worksheet("Vendors")
+    
+        pending_vendors = vendors_df[vendors_df['status'].str.lower() == "pending"]
+    
+        if pending_vendors.empty:
+            st.info("Tidak ada vendor yang menunggu persetujuan.")
+        else:
+            for idx, row in pending_vendors.iterrows():
+                st.markdown("---")
+                st.markdown(f"**{row['vendor_name']}** (`{row['username']}`)")
+                st.caption(f"📱 {row['whatsapp_number']}")
+    
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button(f"✅ Setujui {row['username']}", key=f"approve_{row['username']}"):
+                        status_col_index = vendors_df.columns.get_loc('status') + 1
+                        cell = vendors_ws.find(row['username'])
+                        if cell:
+                            vendors_ws.update_cell(cell.row, status_col_index, "approved")
+                            st.cache_data.clear()  # ✅ Hapus cache data agar data terbaru muncul
+                            st.success(f"Akun '{row['username']}' telah disetujui.")
+                            st.rerun()
+                with col2:
+                    if st.button(f"❌ Tolak {row['username']}", key=f"reject_{row['username']}"):
+                        status_col_index = vendors_df.columns.get_loc('status') + 1
+                        cell = vendors_ws.find(row['username'])
+                        if cell:
+                            vendors_ws.update_cell(cell.row, status_col_index, "rejected")
+                            st.cache_data.clear()  # ✅ Wajib
+                            st.warning(f"Akun '{row['username']}' telah ditolak.")
+                            st.rerun()
 
-        with st.expander("🛠️ Kelola Status Vendor"):
-            vendors_df = get_data("Vendors")
-            st.dataframe(vendors_df[["vendor_id", "vendor_name", "is_active"]])
-            
-            selected_vendor_id = st.selectbox("Pilih Vendor", vendors_df['vendor_id'])
-            current_status = vendors_df[vendors_df['vendor_id'] == selected_vendor_id]['is_active'].values[0]
-            
-            new_status = st.radio("Status Vendor", [True, False], index=0 if current_status else 1, format_func=lambda x: "Aktif" if x else "Nonaktif")
-            
-            if st.button("💾 Perbarui Status"):
-                vendors_ws = get_worksheet("Vendors")
-                cell = vendors_ws.find(selected_vendor_id)
-                if cell:
-                    row_idx = cell.row
-                    # Misalnya kolom `is_active` ada di kolom D (kolom ke-4)
-                    vendors_ws.update_cell(row_idx, 4, str(new_status))
-                    st.success(f"Status vendor {selected_vendor_id} berhasil diperbarui ke: {'Aktif' if new_status else 'Nonaktif'}")
-                    st.cache_data.clear()
-                    st.rerun()
+    with st.expander("🛠️ Kelola Status Vendor"):
+        vendors_df = get_data("Vendors")
+        st.dataframe(vendors_df[["vendor_id", "vendor_name", "is_active"]])
+        
+        selected_vendor_id = st.selectbox("Pilih Vendor", vendors_df['vendor_id'])
+        current_status = vendors_df[vendors_df['vendor_id'] == selected_vendor_id]['is_active'].values[0]
+        
+        new_status = st.radio("Status Vendor", [True, False], index=0 if current_status else 1, format_func=lambda x: "Aktif" if x else "Nonaktif")
+        
+        if st.button("💾 Perbarui Status"):
+            vendors_ws = get_worksheet("Vendors")
+            cell = vendors_ws.find(selected_vendor_id)
+            if cell:
+                row_idx = cell.row
+                # Misalnya kolom `is_active` ada di kolom D (kolom ke-4)
+                vendors_ws.update_cell(row_idx, 4, str(new_status))
+                st.success(f"Status vendor {selected_vendor_id} berhasil diperbarui ke: {'Aktif' if new_status else 'Nonaktif'}")
+                st.cache_data.clear()
+                st.rerun()
 
         st.subheader("🔍 Cari Vendor untuk Reset Password")
     
