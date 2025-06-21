@@ -683,6 +683,16 @@ elif role == 'vendor':
                                 df_financial[
                                     ["timestamp", "order_id","customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
                                 ].sort_values(by="timestamp", ascending=False),
+                                .rename(columns={
+                                    "timestamp": "Tanggal & Waktu",
+                                    "order_id": "ID Pesanan",
+                                    "customer_name": "Nama Pembeli",
+                                    "customer_contact": "Kontak Pembeli",
+                                    "product_name": "Nama Produk",
+                                    "quantity": "Jumlah",
+                                    "price": "Harga Satuan",
+                                    "total": "Total"
+                                })
                                 use_container_width=True
                             )
                         
