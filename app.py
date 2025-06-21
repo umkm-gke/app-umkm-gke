@@ -674,14 +674,6 @@ elif role == 'vendor':
                     st.metric("💵 Total Pendapatan", f"Rp {total_income:,.0f}")
         
                     if not df_financial.empty:
-                        # Grafik pendapatan per tanggal
-                        df_financial['date'] = df_financial['timestamp'].dt.date
-                        pendapatan_per_tanggal = df_financial.groupby('date')['total'].sum().reset_index()
-        
-                        st.line_chart(
-                            pendapatan_per_tanggal.rename(columns={'date': 'index'}).set_index('index')['total']
-                        )
-        
                         # Tabel detail transaksi
                         with st.expander("📄 Detail Transaksi"):
                             st.dataframe(
@@ -690,13 +682,28 @@ elif role == 'vendor':
                                 ].sort_values(by="timestamp", ascending=False),
                                 use_container_width=True
                             )
+                        
+                        # Download Excel
+                        towrite = io.BytesIO()
+                        df_to_save = df_financial[
+                            ["timestamp", "order_id", "product_name", "quantity", "price", "total"]
+                        ].sort_values(by="timestamp", ascending=False)
+                        with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
+                            df_to_save.to_excel(writer, index=False, sheet_name='Laporan Keuangan')
+                            writer.save()
+                        towrite.seek(0)
+                        st.download_button(
+                            label="⬇️ Download Laporan Excel",
+                            data=towrite,
+                            file_name="laporan_keuangan_vendor.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
                     else:
                         st.info("Tidak ada data transaksi sesuai filter yang dipilih.")
         
             except Exception as e:
                 st.error("Gagal memuat laporan keuangan.")
                 st.write(e)
-
 
 
 # =================================================================
