@@ -245,7 +245,9 @@ if role == 'guest':
 
     elif menu_selection == "Keranjang":
         st.header("🛒 Keranjang Belanja Anda")
-        
+        if "cart" not in st.session_state:
+            st.session_state.cart = []
+
         if not st.session_state.cart:
             st.info("Keranjang Anda masih kosong. Yuk, mulai belanja!")
         else:
