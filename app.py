@@ -623,9 +623,31 @@ elif role == 'vendor':
                 import json
                 transactions = []
         
+                # Tambah filter tanggal
+                st.write("Filter berdasarkan tanggal transaksi:")
+                start_date, end_date = st.date_input(
+                    "Pilih rentang tanggal:",
+                    value=[datetime.now().date().replace(day=1), datetime.now().date()],
+                    help="Pilih tanggal mulai dan tanggal akhir"
+                )
+                # Pastikan end_date tidak sebelum start_date
+                if isinstance(start_date, datetime):
+                    start_date = start_date.date()
+                if isinstance(end_date, datetime):
+                    end_date = end_date.date()
+                if start_date > end_date:
+                    st.error("Tanggal mulai harus sebelum atau sama dengan tanggal akhir.")
+                    st.stop()
+        
                 for _, row in orders_df.iterrows():
                     if row['order_status'] == "Selesai":
                         try:
+                            # Parsing timestamp ke date
+                            order_date = pd.to_datetime(row["timestamp"]).date()
+                            # Filter tanggal
+                            if not (start_date <= order_date <= end_date):
+                                continue
+        
                             items = json.loads(row['order_details'])
                             for item in items:
                                 if item.get('vendor_id') == vendor_id:
@@ -641,7 +663,7 @@ elif role == 'vendor':
                             st.warning(f"Transaksi tidak valid: {e}")
         
                 if not transactions:
-                    st.info("Belum ada transaksi selesai yang masuk.")
+                    st.info("Belum ada transaksi selesai yang masuk di rentang tanggal tersebut.")
                 else:
                     df_financial = pd.DataFrame(transactions)
                     df_financial['timestamp'] = pd.to_datetime(df_financial['timestamp']).dt.strftime("%d-%m-%Y %H:%M")
