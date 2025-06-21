@@ -511,10 +511,10 @@ elif role == 'vendor':
         
                     # Batasi jumlah data maksimal tampil jika checkbox tidak dicentang
                     MAX_ORDERS_DISPLAY = 50
-                    if not show_all:
+                    #if not show_all:
                         orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False).head(MAX_ORDERS_DISPLAY)
-                    else:
-                        orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False)
+                    #else:
+                        #orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False)
         
                     if orders_display_df.empty:
                         st.info("Tidak ada pesanan yang sesuai dengan filter.")
