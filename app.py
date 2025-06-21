@@ -509,14 +509,8 @@ elif role == 'vendor':
                     if filter_status != "Semua":
                         orders_display_df = orders_display_df[orders_display_df['status'] == filter_status]
         
-                    # Checkbox untuk menampilkan semua data yang sesuai filter (tanpa limit)
-                    show_all = st.checkbox(
-                        "📂 Tampilkan Semua Data (Perhatian: Bisa memperlambat aplikasi)",
-                        value=False
-                    )
-        
                     # Batasi jumlah data maksimal tampil jika checkbox tidak dicentang
-                    MAX_ORDERS_DISPLAY = 100
+                    MAX_ORDERS_DISPLAY = 50
                     if not show_all:
                         orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False).head(MAX_ORDERS_DISPLAY)
                     else:
