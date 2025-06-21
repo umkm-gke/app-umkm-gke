@@ -638,8 +638,8 @@ elif role == 'vendor':
                                         "total": item.get("price") * item.get("quantity"),
                                         "timestamp": row["timestamp"]
                                     })
-            except Exception as e:
-                st.warning(f"Transaksi tidak valid: {e}")
+                        except Exception as e:
+                            st.warning(f"Transaksi tidak valid: {e}")
         
                 if not transactions:
                     st.info("Belum ada transaksi selesai yang masuk.")
@@ -671,6 +671,32 @@ elif role == 'vendor':
         
                     # Tampilkan total pendapatan
                     total_income = df_financial['total'].sum()
+                    st.metric("💵 Total Pendapatan", f"Rp {total_income:,.0f}")
+        
+                    if not df_financial.empty:
+                        # Grafik pendapatan per tanggal
+                        df_financial['date'] = df_financial['timestamp'].dt.date
+                        pendapatan_per_tanggal = df_financial.groupby('date')['total'].sum().reset_index()
+        
+                        st.line_chart(
+                            pendapatan_per_tanggal.rename(columns={'date': 'index'}).set_index('index')['total']
+                        )
+        
+                        # Tabel detail transaksi
+                        with st.expander("📄 Detail Transaksi"):
+                            st.dataframe(
+                                df_financial[
+                                    ["timestamp", "order_id", "product_name", "quantity", "price", "total"]
+                                ].sort_values(by="timestamp", ascending=False),
+                                use_container_width=True
+                            )
+                    else:
+                        st.info("Tidak ada data transaksi sesuai filter yang dipilih.")
+        
+            except Exception as e:
+                st.error("Gagal memuat laporan keuangan.")
+                st.write(e)
+
 
 
 # =================================================================
