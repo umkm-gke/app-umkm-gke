@@ -447,9 +447,11 @@ elif role == 'vendor':
                 # Parsing kolom timestamp ke datetime
                 orders_df['timestamp'] = pd.to_datetime(orders_df['timestamp'], errors='coerce')
         
-                # Filter hanya 3 bulan terakhir dari hari ini
+                # Definisikan rentang waktu maksimal data yang bisa di-load
                 today = datetime.datetime.now()
                 three_months_ago = today - pd.DateOffset(months=3)
+        
+                # Filter data 3 bulan terakhir saja
                 orders_df = orders_df[orders_df['timestamp'] >= three_months_ago]
         
                 vendor_id = st.session_state.get("vendor_id")
@@ -480,40 +482,62 @@ elif role == 'vendor':
                 else:
                     orders_display_df = pd.DataFrame(relevant_orders)
         
-                    # Default filter tanggal = hari ini
-                    selected_date = st.date_input("Filter Tanggal Pesanan", value=today.date(),
-                                                 min_value=three_months_ago.date(),
-                                                 max_value=today.date())
+                    # Filter tanggal wajib dipilih, dengan rentang 3 bulan terakhir
+                    selected_date = st.date_input(
+                        "Filter Tanggal Pesanan",
+                        value=today.date(),
+                        min_value=three_months_ago.date(),
+                        max_value=today.date()
+                    )
         
-                    # Filter berdasarkan tanggal yang dipilih
+                    # Filter data untuk tanggal yang dipilih
                     orders_display_df = orders_display_df[
                         (orders_display_df['timestamp'].dt.date == selected_date)
                     ]
         
-                    # Filter status
-                    filter_status = st.selectbox("Filter Status Pesanan", ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"])
+                    # Filter status dengan pilihan "Semua"
+                    filter_status = st.selectbox(
+                        "Filter Status Pesanan",
+                        ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"]
+                    )
                     if filter_status != "Semua":
                         orders_display_df = orders_display_df[orders_display_df['status'] == filter_status]
+        
+                    # Checkbox untuk menampilkan semua data yang sesuai filter (tanpa limit)
+                    show_all = st.checkbox(
+                        "📂 Tampilkan Semua Data (Perhatian: Bisa memperlambat aplikasi)",
+                        value=False
+                    )
+        
+                    # Batasi jumlah data maksimal tampil jika checkbox tidak dicentang
+                    MAX_ORDERS_DISPLAY = 100
+                    if not show_all:
+                        orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False).head(MAX_ORDERS_DISPLAY)
+                    else:
+                        orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False)
         
                     if orders_display_df.empty:
                         st.info("Tidak ada pesanan yang sesuai dengan filter.")
                     else:
                         st.dataframe(
-                            orders_display_df.sort_values(by='timestamp', ascending=False)[
+                            orders_display_df[
                                 ["timestamp", "order_id", "product_name", "quantity", "total_item_price", "customer_name", "status"]
                             ],
                             use_container_width=False
                         )
         
                         # Ubah status (optional)
-                        selected_order_id = st.selectbox("Pilih Pesanan untuk Perubahan Status", orders_display_df['order_id'].unique())
+                        selected_order_id = st.selectbox(
+                            "Pilih Pesanan untuk Perubahan Status",
+                            orders_display_df['order_id'].unique()
+                        )
                         new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
                         if st.button("✅ Perbarui Status Pesanan"):
                             orders_ws = get_worksheet("Orders")
                             if orders_ws:
                                 cell = orders_ws.find(selected_order_id)
                                 if cell:
-                                    # Misalnya kolom order_status di kolom F
+                                    # Misal kolom order_status di kolom F
                                     orders_ws.update(f"F{cell.row}", [[new_status]])
                                     st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                                     st.cache_data.clear()
