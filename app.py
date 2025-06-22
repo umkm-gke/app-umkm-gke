@@ -7,6 +7,7 @@ from urllib.parse import quote_plus
 import bcrypt # Diperlukan untuk hashing password pendaftaran
 import os
 import io
+import re
 
 from g_sheets import get_data, get_worksheet
 from auth import login_form, logout
@@ -397,18 +398,28 @@ if role == 'guest':
         # Metode pembayaran global (satu untuk semua vendor)
         st.subheader("🧾 Pilih Metode Pembayaran")
         payment_method = st.radio("Metode Pembayaran", ["Tunai", "Transfer Bank", "QRIS"], index=1, horizontal=True)
-    
+
+        def is_valid_wa_number(number):
+            return re.fullmatch(r"62\d{9,10}", number) is not None
+            
         # Form Checkout
         st.subheader("📝 Lanjutkan Pemesanan")
         with st.form("checkout_form"):
             customer_name = st.text_input("Nama Anda")
-            customer_contact = st.text_input("Nomor HP Anda (untuk konfirmasi)")
+            customer_contact = st.text_input(
+                "Nomor WhatsApp Anda (wajib, untuk konfirmasi)",
+                placeholder="Contoh: 6281234567890 (11–12 digit, tanpa spasi)",
+                max_chars=12
+            )
             order_note = st.text_input("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, tanpa sambal, dst.")
             submit_order = st.form_submit_button("Buat Pesanan Sekarang")
     
             if submit_order:
                 if not customer_name or not customer_contact:
                     st.warning("Nama dan Nomor HP tidak boleh kosong.")
+                    st.stop()
+                elif not is_valid_wa_number(customer_contact):
+                    st.error("❌ Nomor WhatsApp tidak valid. Gunakan format 628xxxxxxxxxx (11–12 digit angka saja).")
                     st.stop()
     
                 with st.spinner("Memproses pesanan..."):
