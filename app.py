@@ -403,7 +403,7 @@ if role == 'guest':
         with st.form("checkout_form"):
             customer_name = st.text_input("Nama Anda")
             customer_contact = st.text_input("Nomor HP Anda (untuk konfirmasi)")
-            order_note = st.text_area("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, tanpa sambal, dst.")
+            order_note = st.text_input("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, tanpa sambal, dst.")
             submit_order = st.form_submit_button("Buat Pesanan Sekarang")
     
             if submit_order:
