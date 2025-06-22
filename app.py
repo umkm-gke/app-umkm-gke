@@ -325,33 +325,33 @@ if role == 'guest':
             </style>
             """, unsafe_allow_html=True)
             rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
-for row in rows:
-    cols = st.columns(4)
-    for col, (_, product) in zip(cols, row.iterrows()):
-        with col:
-            with st.container():
-                st.markdown('<div class="product-card">', unsafe_allow_html=True)
-
-                # Gambar produk
-                image_url = product.get('image_url', '').strip()
-                img_src = image_url if image_url else "https://via.placeholder.com/200"
-                st.image(img_src, use_column_width=True)
-
-                # Informasi produk
-                st.markdown(f"**{product['product_name'][:30]}**")
-                st.caption(f"Kategori: {product.get('category', '-')}")
-                st.caption(f"🧑 {product['vendor_name']}")
-                st.markdown(f"💰 Rp {int(product['price']):,}")
-                st.caption(f"✅ Terjual: {product['sold_count']:,}")
-
-                # Deskripsi
-                desc = product.get('description', '')
-                st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
-
-                # Tombol beli
-                if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                    add_to_cart(product)
-                st.markdown('</div>', unsafe_allow_html=True)
+            for row in rows:
+                cols = st.columns(4)
+                for col, (_, product) in zip(cols, row.iterrows()):
+                    with col:
+                        with st.container():
+                            st.markdown('<div class="product-card">', unsafe_allow_html=True)
+            
+                            # Gambar produk
+                            image_url = product.get('image_url', '').strip()
+                            img_src = image_url if image_url else "https://via.placeholder.com/200"
+                            st.image(img_src, use_column_width=True)
+            
+                            # Informasi produk
+                            st.markdown(f"**{product['product_name'][:30]}**")
+                            st.caption(f"Kategori: {product.get('category', '-')}")
+                            st.caption(f"🧑 {product['vendor_name']}")
+                            st.markdown(f"💰 Rp {int(product['price']):,}")
+                            st.caption(f"✅ Terjual: {product['sold_count']:,}")
+            
+                            # Deskripsi
+                            desc = product.get('description', '')
+                            st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
+            
+                            # Tombol beli
+                            if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                                add_to_cart(product)
+                            st.markdown('</div>', unsafe_allow_html=True)
 
     if 'cart' not in st.session_state:
         st.session_state.cart = []
