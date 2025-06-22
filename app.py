@@ -464,6 +464,7 @@ if role == 'guest':
                                     hashed_password,
                                     whatsapp_number,
                                     "pending",      # status
+                                    "false",        # default saat daftar
                                     bank_account,
                                     qris_url or ""  # jika kosong, isi dengan string kosong
                                 ]
