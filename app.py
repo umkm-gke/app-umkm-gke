@@ -301,109 +301,79 @@ if role == 'guest':
             st.markdown("""
             <style>
             .product-grid {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 12px;
-                justify-content: flex-start;
-                padding: 0;
-                margin: 0;
-                list-style: none;
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 1rem;
+            }
+            @media (max-width: 768px) {
+              .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+              }
             }
             .product-card {
-                background: white;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                box-shadow: 0 0 5px rgba(0,0,0,0.1);
-                flex: 1 1 calc(25% - 12px);  /* 4 kolom desktop */
-                max-width: calc(25% - 12px);
-                display: flex;
-                flex-direction: column;
-                height: 350px;
-                overflow: hidden;
-                padding: 12px;
-                box-sizing: border-box;
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              padding: 10px;
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              box-sizing: border-box;
             }
-            .product-card img {
-                width: 100%;
-                height: 160px;
-                object-fit: cover;
-                border-radius: 6px;
-                margin-bottom: 8px;
+            .product-image {
+              width: 100%;
+              aspect-ratio: 1 / 1;
+              object-fit: contain;
+              border-radius: 6px;
+              margin-bottom: 8px;
             }
             .product-info {
-                flex-grow: 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
+              flex-grow: 1;
             }
             .product-name {
-                font-weight: 600;
-                font-size: 1rem;
-                margin-bottom: 6px;
-                line-height: 1.2em;
-                height: 2.4em;
-                overflow: hidden;
-                text-overflow: ellipsis;
+              font-weight: 700;
+              font-size: 1.1rem;
+              margin-bottom: 4px;
             }
-            .product-meta, .product-price, .product-desc {
-                font-size: 0.85rem;
-                color: #555;
-                margin-bottom: 6px;
+            .product-vendor, .product-category, .product-price, .product-sold, .product-desc {
+              font-size: 0.85rem;
+              color: #555;
+              margin-bottom: 3px;
             }
-            .product-price {
-                font-weight: 700;
-                color: #2e7d32;
-            }
-            .product-desc {
-                height: 3em;
-                overflow: hidden;
-                color: #777;
-            }
-            @media (max-width: 992px) {
-                .product-card {
-                    flex: 1 1 calc(50% - 12px);
-                    max-width: calc(50% - 12px);
-                    height: 350px;
-                }
-            }
-            @media (max-width: 576px) {
-                .product-card {
-                    flex: 1 1 calc(50% - 12px);
-                    max-width: calc(50% - 12px);
-                    height: 350px;
-                }
+            .product-button {
+              margin-top: auto;
+              text-align: center;
             }
             </style>
             """, unsafe_allow_html=True)
             
-            # Tampilkan produk (HTML untuk kartu)
+            # Mulai grid container
             st.markdown('<div class="product-grid">', unsafe_allow_html=True)
+            
+            # Render tiap produk sebagai kartu
             for _, product in filtered.iterrows():
-                img = product.get('image_url','').strip() or "https://via.placeholder.com/200"
-                product_html = f"""
+                image_url = product.get('image_url','').strip() or "https://via.placeholder.com/200"
+                st.markdown(f'''
                 <div class="product-card">
-                    <img src="{img}" alt="{product['product_name']}">
-                    <div class="product-info">
-                        <div class="product-name">{product['product_name'][:30]}</div>
-                        <div class="product-meta">🧑 {product['vendor_name']}  •  Kategori: {product['category'] or '-'}</div>
-                        <div class="product-price">💰 Rp {int(product['price']):,}</div>
-                        <div class="product-meta">✅ Terjual: {product['sold_count']:,}</div>
-                        <div class="product-desc">{(product.get('description','')[:60] + '...') if len(product.get('description','')) > 60 else product.get('description','')}</div>
-                    </div>
-                </div>
-                """
-                st.markdown(product_html, unsafe_allow_html=True)
+                  <img src="{image_url}" class="product-image" alt="{product['product_name']}">
+                  <div class="product-info">
+                    <div class="product-name">{product['product_name'][:30]}</div>
+                    <div class="product-vendor">🧑 {product['vendor_name']}</div>
+                    <div class="product-category">Kategori: {product.get('category','-')}</div>
+                    <div class="product-price">💰 Rp {int(product['price']):,}</div>
+                    <div class="product-sold">✅ Terjual: {product['sold_count']:,}</div>
+                    <div class="product-desc">{(product.get('description','')[:60] + '...') if len(product.get('description','')) > 60 else product.get('description','')}</div>
+                  </div>
+                  <div class="product-button">
+                ''', unsafe_allow_html=True)
+            
+                # Tombol beli di dalam kartu
+                if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                    add_to_cart(product)
+            
+                st.markdown('</div></div>', unsafe_allow_html=True)
+            
+            # Tutup grid container
             st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Buat tombol beli dalam grid kolom Streamlit agar rapi sesuai produk
-            # Jumlah kolom sama dengan jumlah produk per baris (4 desktop, 2 mobile)
-            cols = st.columns(4)  # buat 4 kolom
-            
-            for i, product in filtered.reset_index().iterrows():
-                col = cols[i % 4]
-                with col:
-                    if st.button(f"➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                        add_to_cart(product)
 
 
     if 'cart' not in st.session_state:
