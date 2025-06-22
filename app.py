@@ -312,7 +312,7 @@ if role == 'guest':
     
         if not cart:
             st.info("Keranjang Anda masih kosong. Yuk, mulai belanja!")
-            return
+            st.stop()
     
         total_price = 0
         vendors_in_cart = {}
