@@ -357,7 +357,7 @@ if role == 'guest':
             if submit_order:
                 if not customer_name or not customer_contact:
                     st.warning("Nama dan Nomor HP tidak boleh kosong.")
-                    return
+                    st.stop()
     
                 with st.spinner("Memproses pesanan..."):
                     orders_ws = get_worksheet("Orders")
@@ -365,7 +365,7 @@ if role == 'guest':
     
                     if orders_ws is None or vendors_df.empty:
                         st.error("Gagal memproses pesanan. Coba lagi.")
-                        return
+                        st.stop()
     
                     order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
                     order_details_json = json.dumps(cart)
