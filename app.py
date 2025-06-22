@@ -217,8 +217,7 @@ with st.sidebar:
 # =================================================================
 if role == 'guest':
     if menu_selection == "Belanja":
-        st.markdown("""
-        ### <img src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png" width="25"/> Katalog Produk
+        st.markdown("""### <img src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png" width="25"/> Katalog Produk
         """, unsafe_allow_html=True)
         st.markdown("_Temukan produk terbaik dari UMKM GKE_")
 
