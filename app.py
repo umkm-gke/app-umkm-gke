@@ -297,27 +297,30 @@ if role == 'guest':
             st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
         else:
             st.markdown("---")
-            cols = st.columns(4)  # 4 produk per baris
-        
-            for index, product in filtered.iterrows():
-                col = cols[index % 4]
-                with col:
-                    with st.container():
-                        image_url = product.get('image_url', '').strip()
-                        img_src = image_url if image_url else "https://via.placeholder.com/200"
-                        st.image(img_src, width=160)
-        
-                        st.markdown(f"**{product['product_name'][:30]}**")
-                        st.caption(f"Kategori: {product.get('category', 'Tidak tersedia')}")
-                        st.caption(f"🧑 {product['vendor_name']}")
-                        st.markdown(f"💰 Rp {int(product['price']):,}")
-                        st.caption(f"✅ Terjual: {product['sold_count']:,}")
-                        
-                        description = product.get('description', '')
-                        st.caption(description[:60] + "..." if len(description) > 60 else description)
-        
-                        if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                            add_to_cart(product)
+            #cols = st.columns(4)  # 4 produk per baris
+            #for index, product in filtered.iterrows():
+                #col = cols[index % 4]
+            rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
+            for row in rows:
+                cols = st.columns(4)
+                for col, (_, product) in zip(cols, row.iterrows()):
+                    with col:
+                        with st.container():
+                            image_url = product.get('image_url', '').strip()
+                            img_src = image_url if image_url else "https://via.placeholder.com/200"
+                            st.image(img_src, width=160)
+            
+                            st.markdown(f"**{product['product_name'][:30]}**")
+                            st.caption(f"Kategori: {product.get('category', 'Tidak tersedia')}")
+                            st.caption(f"🧑 {product['vendor_name']}")
+                            st.markdown(f"💰 Rp {int(product['price']):,}")
+                            st.caption(f"✅ Terjual: {product['sold_count']:,}")
+                            
+                            description = product.get('description', '')
+                            st.caption(description[:60] + "..." if len(description) > 60 else description)
+            
+                            if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                                add_to_cart(product)
 
     if 'cart' not in st.session_state:
         st.session_state.cart = []
