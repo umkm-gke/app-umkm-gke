@@ -335,7 +335,7 @@ if role == 'guest':
                             # Gambar produk
                             image_url = product.get('image_url', '').strip()
                             img_src = image_url if image_url else "https://via.placeholder.com/200"
-                            st.image(img_src, use_column_width=True)
+                            st.image(img_src, use_container_width=True)
             
                             # Informasi produk
                             st.markdown(f"**{product['product_name'][:30]}**")
