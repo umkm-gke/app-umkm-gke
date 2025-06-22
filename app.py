@@ -409,7 +409,7 @@ if role == 'guest':
             customer_contact = st.text_input(
                 "Wajib diisi No WhatsApp Anda (Untuk konfirmasi pesanan)",
                 placeholder="Contoh: 6281234567890 (11–12 digit)",
-                max_chars=13
+                max_chars=13,
                 key="whatsapp_input_v3"
             )
             order_note = st.text_input("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, Tanpa sambal.")
