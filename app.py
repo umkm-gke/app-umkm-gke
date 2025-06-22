@@ -305,6 +305,7 @@ if role == 'guest':
                 cols = st.columns(4)
                 for col, (_, product) in zip(cols, row.iterrows()):
                     with col:
+                        st.markdown('<div class="product-card">', unsafe_allow_html=True)
                         with st.container():
                             image_url = product.get('image_url', '').strip()
                             img_src = image_url if image_url else "https://via.placeholder.com/200"
@@ -321,7 +322,7 @@ if role == 'guest':
             
                             if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
                                 add_to_cart(product)
-
+                        st.markdown('</div>', unsafe_allow_html=True)
     if 'cart' not in st.session_state:
         st.session_state.cart = []
 
