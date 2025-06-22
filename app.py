@@ -393,7 +393,12 @@ if role == 'guest':
                                     st.write(f"---")
                                     st.write(f"**Penjual: {vendor_info['vendor_name']}**")
                                     st.write(f"**Total Tagihan: Rp {amount:,}**")
-                                    st.write(f"**Pembayaran:** (Tambahkan info rekening di sini)")
+                                    st.write(f"**Pembayaran via Transfer Bank:** {vendor_info['bank_account']}")
+                                    qris_url = vendor_info.get('qris_url', '')
+                                    if isinstance(qris_url, str) and qris_url.lower().startswith("http") and qris_url.lower().endswith(('.jpg', '.jpeg', '.png')):
+                                        st.image(qris_url, caption="Atau scan QRIS untuk membayar", width=250)
+                                    else:
+                                        st.info("QRIS belum tersedia untuk vendor ini.")
                                     st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
     
                                 # Mengosongkan keranjang setelah berhasil (BAGIAN YANG DIPERBAIKI)
