@@ -404,79 +404,79 @@ if role == 'guest':
         st.write("Isi formulir di bawah ini untuk mulai berjualan di platform kami.")
     
         with st.form("vendor_registration_form", clear_on_submit=True):
-    st.subheader("📝 Formulir Pendaftaran Penjual")
-    st.caption("Silakan isi data di bawah ini untuk mulai berjualan di platform kami.")
-
-    vendor_name = st.text_input("Nama Toko / UMKM Anda")
-    username = st.text_input("Username (untuk login)")
-    whatsapp_number = st.text_input("Nomor WhatsApp (format: 628xxxxxxxxxx)")
-
-    # ✅ Input Transfer Bank (WAJIB)
-    bank_account = st.text_input(
-        "Info Rekening Bank (WAJIB)",
-        placeholder="Contoh: BCA - 1234567890 a.n. Toko ABC"
-    )
-
-    # ✅ Input QRIS (OPSIONAL) + Validasi
-    qris_url = st.text_input(
-        "Link Gambar QRIS (Opsional)",
-        placeholder="Contoh: https://i.imgur.com/namafile.png"
-    )
-
-    password = st.text_input("Password", type="password")
-    confirm_password = st.text_input("Konfirmasi Password", type="password")
-
-    submitted = st.form_submit_button("Daftar Sekarang")
-
-    # ==== VALIDASI ====
-    def is_valid_image_url(url):
-        valid_extensions = [".jpg", ".jpeg", ".png"]
-        return url.lower().startswith("http") and any(url.lower().endswith(ext) for ext in valid_extensions)
-
-    if submitted:
-        if not all([vendor_name, username, whatsapp_number, bank_account, password, confirm_password]):
-            st.warning("Semua kolom wajib diisi, kecuali QRIS.")
-        elif password != confirm_password:
-            st.error("Password dan konfirmasi password tidak cocok.")
-        elif qris_url and not is_valid_image_url(qris_url):
-            st.error("Link QRIS harus berupa URL gambar dengan format .jpg, .jpeg, atau .png.")
-        else:
-            with st.spinner("Mendaftarkan akun Anda..."):
-                vendors_df = get_data("Vendors")
-
-                if not vendors_df.empty and username in vendors_df['username'].values:
-                    st.error("Username ini sudah digunakan. Silakan pilih yang lain.")
+            st.subheader("📝 Formulir Pendaftaran Penjual")
+            st.caption("Silakan isi data di bawah ini untuk mulai berjualan di platform kami.")
+        
+            vendor_name = st.text_input("Nama Toko / UMKM Anda")
+            username = st.text_input("Username (untuk login)")
+            whatsapp_number = st.text_input("Nomor WhatsApp (format: 628xxxxxxxxxx)")
+        
+            # ✅ Input Transfer Bank (WAJIB)
+            bank_account = st.text_input(
+                "Info Rekening Bank (WAJIB)",
+                placeholder="Contoh: BCA - 1234567890 a.n. Toko ABC"
+            )
+        
+            # ✅ Input QRIS (OPSIONAL) + Validasi
+            qris_url = st.text_input(
+                "Link Gambar QRIS (Opsional)",
+                placeholder="Contoh: https://i.imgur.com/namafile.png"
+            )
+        
+            password = st.text_input("Password", type="password")
+            confirm_password = st.text_input("Konfirmasi Password", type="password")
+        
+            submitted = st.form_submit_button("Daftar Sekarang")
+        
+            # ==== VALIDASI ====
+            def is_valid_image_url(url):
+                valid_extensions = [".jpg", ".jpeg", ".png"]
+                return url.lower().startswith("http") and any(url.lower().endswith(ext) for ext in valid_extensions)
+        
+            if submitted:
+                if not all([vendor_name, username, whatsapp_number, bank_account, password, confirm_password]):
+                    st.warning("Semua kolom wajib diisi, kecuali QRIS.")
+                elif password != confirm_password:
+                    st.error("Password dan konfirmasi password tidak cocok.")
+                elif qris_url and not is_valid_image_url(qris_url):
+                    st.error("Link QRIS harus berupa URL gambar dengan format .jpg, .jpeg, atau .png.")
                 else:
-                    vendors_ws = get_worksheet("Vendors")
-                    if vendors_ws:
-                        vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
-                        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-                        new_vendor_row = [
-                            vendor_id,
-                            vendor_name,
-                            username,
-                            hashed_password,
-                            whatsapp_number,
-                            "pending",      # status
-                            bank_account,
-                            qris_url or ""  # jika kosong, isi dengan string kosong
-                        ]
-
-                        vendors_ws.append_row(new_vendor_row)
-
-                        st.success(
-                            f"Pendaftaran berhasil, {vendor_name}! "
-                            "Akun Anda sedang menunggu persetujuan admin. "
-                            "Kami akan menghubungi Anda setelah disetujui."
-                        )
-                        st.balloons()
-                        st.cache_data.clear()
-                    else:
-                        st.error("Gagal terhubung ke database. Coba lagi nanti.")
-
-    # Bantuan untuk vendor gaptek
-    st.info("Jika kesulitan mengunggah QRIS, Anda dapat mengirimkannya ke Admin melalui WhatsApp: 62812XXXXXXX")
+                    with st.spinner("Mendaftarkan akun Anda..."):
+                        vendors_df = get_data("Vendors")
+        
+                        if not vendors_df.empty and username in vendors_df['username'].values:
+                            st.error("Username ini sudah digunakan. Silakan pilih yang lain.")
+                        else:
+                            vendors_ws = get_worksheet("Vendors")
+                            if vendors_ws:
+                                vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
+                                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+                                new_vendor_row = [
+                                    vendor_id,
+                                    vendor_name,
+                                    username,
+                                    hashed_password,
+                                    whatsapp_number,
+                                    "pending",      # status
+                                    bank_account,
+                                    qris_url or ""  # jika kosong, isi dengan string kosong
+                                ]
+        
+                                vendors_ws.append_row(new_vendor_row)
+        
+                                st.success(
+                                    f"Pendaftaran berhasil, {vendor_name}! "
+                                    "Akun Anda sedang menunggu persetujuan admin. "
+                                    "Kami akan menghubungi Anda setelah disetujui."
+                                )
+                                st.balloons()
+                                st.cache_data.clear()
+                            else:
+                                st.error("Gagal terhubung ke database. Coba lagi nanti.")
+        
+            # Bantuan untuk vendor gaptek
+            st.info("Jika kesulitan mengunggah QRIS, Anda dapat mengirimkannya ke Admin melalui WhatsApp: 62812XXXXXXX")
 
     with st.sidebar:
             st.markdown("### 🔐 Login Vendor / Admin")
