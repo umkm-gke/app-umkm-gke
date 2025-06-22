@@ -787,7 +787,7 @@ elif role == 'vendor':
                             vendors_ws.update_cell(row, 9, updated_qris)  # kolom I
         
                             st.success("Data berhasil diperbarui.")
-                            st.experimental_rerun()
+                            #st.experimental_rerun()
                         except Exception as e:
                             st.error("Gagal memperbarui data.")
                             st.write(e)
