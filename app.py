@@ -407,9 +407,9 @@ if role == 'guest':
         with st.form("checkout_form"):
             customer_name = st.text_input("Nama Anda")
             customer_contact = st.text_input(
-                "Nomor WhatsApp Anda (wajib, untuk konfirmasi)",
+                "Wajib diisi No WhatsApp Anda (Untuk konfirmasi pesanan)",
                 placeholder="Contoh: 6281234567890 (11–12 digit, tanpa spasi)",
-                max_chars=12
+                max_chars=13
             )
             order_note = st.text_input("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, tanpa sambal, dst.")
             submit_order = st.form_submit_button("Buat Pesanan Sekarang")
