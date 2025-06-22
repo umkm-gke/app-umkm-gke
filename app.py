@@ -727,18 +727,12 @@ elif role == 'vendor':
                             product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
                             # Convert is_active to string explicitly
                             is_active_str = "true" if is_active else "false"
-                            
                             new_row = [
                                 product_id, vendor_id, product_name, description, price,
                                 image_url, stock_quantity, is_active_str, kategori,
                                 datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             ]
 
-                                product_id, vendor_id, product_name, description, price,
-                                image_url, stock_quantity, is_active, kategori,
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            ]
-        
                             if selected_product_id:
                                 # Update produk
                                 cell = products_ws.find(selected_product_id)
