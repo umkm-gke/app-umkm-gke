@@ -403,6 +403,7 @@ if role == 'guest':
         with st.form("checkout_form"):
             customer_name = st.text_input("Nama Anda")
             customer_contact = st.text_input("Nomor HP Anda (untuk konfirmasi)")
+            order_note = st.text_area("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, tanpa sambal, dst.")
             submit_order = st.form_submit_button("Buat Pesanan Sekarang")
     
             if submit_order:
@@ -469,7 +470,8 @@ if role == 'guest':
                             f"Total: Rp {amount:,}\n"
                             f"{payment_info}\n\nTerima kasih!"
                         )
-    
+                        if order_note:
+                            message += f"\n\nCatatan: {order_note}"
                         encoded_message = quote_plus(message)
                         whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
                         st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
