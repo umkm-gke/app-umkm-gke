@@ -296,108 +296,31 @@ if role == 'guest':
         if filtered.empty:
             st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
         else:
-            # Sisipkan CSS untuk grid & styling produk
-            st.markdown("""
-            <style>
-            .product-grid {
-              display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 1rem;
-            }
-            @media (max-width: 1024px) {
-              .product-grid {
-                grid-template-columns: repeat(3, 1fr);
-              }
-            }
-            @media (max-width: 768px) {
-              .product-grid {
-                grid-template-columns: repeat(2, 1fr);
-              }
-            }
-            @media (max-width: 480px) {
-              .product-grid {
-                grid-template-columns: 1fr;
-              }
-            }
-            .product-card {
-              border: 1px solid #ddd;
-              border-radius: 8px;
-              padding: 10px;
-              display: flex;
-              flex-direction: column;
-              height: 100%;
-              box-sizing: border-box;
-              background: white;
-              box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
-            }
-            .product-image {
-              width: 100%;
-              aspect-ratio: 1 / 1;
-              object-fit: contain;
-              border-radius: 6px;
-              margin-bottom: 8px;
-            }
-            .product-info {
-              flex-grow: 1;
-            }
-            .product-name {
-              font-weight: 700;
-              font-size: 1.1rem;
-              margin-bottom: 4px;
-            }
-            .product-vendor, .product-category, .product-price, .product-sold, .product-desc {
-              font-size: 0.85rem;
-              color: #555;
-              margin-bottom: 3px;
-            }
-            .product-button {
-              margin-top: auto;
-              text-align: center;
-            }
-            .product-button > button {
-              width: 100%;
-              background-color: #2a9d8f;
-              color: white;
-              border: none;
-              padding: 8px 0;
-              border-radius: 5px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: background-color 0.3s ease;
-            }
-            .product-button > button:hover {
-              background-color: #21867a;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-
-            # Mulai grid container
-            st.markdown('<div class="product-grid">', unsafe_allow_html=True)
-
-            # Render tiap produk sebagai kartu
-            for _, product in filtered.iterrows():
-                image_url = product.get('image_url','').strip() or "https://via.placeholder.com/200"
-                st.markdown(f'''
-                <div class="product-card">
-                  <img src="{image_url}" class="product-image" alt="{product['product_name']}">
-                  <div class="product-info">
-                    <div class="product-name">{product['product_name'][:30]}</div>
-                    <div class="product-vendor">🧑 {product['vendor_name']}</div>
-                    <div class="product-category">Kategori: {product.get('category','-')}</div>
-                    <div class="product-price">💰 Rp {int(product['price']):,}</div>
-                    <div class="product-sold">✅ Terjual: {product['sold_count']:,}</div>
-                    <div class="product-desc">{(product.get('description','')[:60] + '...') if len(product.get('description','')) > 60 else product.get('description','')}</div>
-                  </div>
-                  <div class="product-button">
-                ''', unsafe_allow_html=True)
-
-                if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                    add_to_cart(product)
-
-                st.markdown('</div></div>', unsafe_allow_html=True)
-
-            # Tutup grid container
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("---")
+            #cols = st.columns(4)  # 4 produk per baris
+            #for index, product in filtered.iterrows():
+                #col = cols[index % 4]
+            rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
+            for row in rows:
+                cols = st.columns(4)
+                for col, (_, product) in zip(cols, row.iterrows()):
+                    with col:
+                        with st.container():
+                            image_url = product.get('image_url', '').strip()
+                            img_src = image_url if image_url else "https://via.placeholder.com/200"
+                            st.image(img_src, width=160)
+            
+                            st.markdown(f"**{product['product_name'][:30]}**")
+                            st.caption(f"Kategori: {product.get('category', 'Tidak tersedia')}")
+                            st.caption(f"🧑 {product['vendor_name']}")
+                            st.markdown(f"💰 Rp {int(product['price']):,}")
+                            st.caption(f"✅ Terjual: {product['sold_count']:,}")
+                            
+                            description = product.get('description', '')
+                            st.caption(description[:60] + "..." if len(description) > 60 else description)
+            
+                            if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                                add_to_cart(product)
 
     if 'cart' not in st.session_state:
         st.session_state.cart = []
