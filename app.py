@@ -308,101 +308,124 @@ if role == 'guest':
         st.session_state.cart = []
     elif menu_selection == "Keranjang":
         st.header("🛒 Keranjang Belanja Anda")
-        if "cart" not in st.session_state:
-            st.session_state.cart = []
-
-        if not st.session_state.cart:
+        cart = st.session_state.get("cart", [])
+    
+        if not cart:
             st.info("Keranjang Anda masih kosong. Yuk, mulai belanja!")
-        else:
-            total_price = 0
-            vendors_in_cart = {}
-            delete_index = None
-            for i, item in enumerate(st.session_state.cart):
-                with st.container(border=True):
-                    col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-                    with col1:
-                        st.subheader(item['product_name'])
-                        st.write(f"Rp {item['price']:,}")
-                    with col2:
-                        new_quantity = st.number_input("Jumlah", min_value=1, value=item['quantity'], key=f"qty_{i}")
-                        st.session_state.cart[i]['quantity'] = new_quantity
-                    with col3:
-                        subtotal = item['price'] * item['quantity']
-                        st.metric("Subtotal", f"Rp {subtotal:,}")
-                    with col4:
-                        if st.button("Hapus", key=f"del_{i}"):
-                            st.session_state.cart.pop(i)
-                            st.rerun()
-                
-                total_price += subtotal
-                vendor_id = item['vendor_id']
-                if vendor_id not in vendors_in_cart:
-                    vendors_in_cart[vendor_id] = 0
-                vendors_in_cart[vendor_id] += subtotal
-            if delete_index is not None:
-                st.session_state.cart.pop(delete_index)
-                st.rerun()
-            st.header(f"Total Belanja: Rp {total_price:,}")
+            return
     
-            st.subheader("📝 Lanjutkan Pemesanan")
-            with st.form("checkout_form"):
-                customer_name = st.text_input("Nama Anda")
-                customer_contact = st.text_input("Nomor HP Anda (untuk konfirmasi)")
-                
-                submit_order = st.form_submit_button("Buat Pesanan Sekarang")
+        total_price = 0
+        vendors_in_cart = {}
     
-                if submit_order:
-                    if not customer_name or not customer_contact:
-                        st.warning("Nama dan Nomor HP tidak boleh kosong.")
-                    else:
-                        with st.spinner("Memproses pesanan..."):
-                            orders_ws = get_worksheet("Orders")
-                            vendors_df = get_data("Vendors")
-                            
-                            if orders_ws is None or vendors_df.empty:
-                                st.error("Gagal memproses pesanan. Coba lagi.")
+        # Tampilkan isi keranjang
+        for i, item in enumerate(cart):
+            with st.container(border=True):
+                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+                with col1:
+                    st.subheader(item['product_name'])
+                    st.write(f"Rp {item['price']:,}")
+                with col2:
+                    new_quantity = st.number_input("Jumlah", min_value=1, value=item['quantity'], key=f"qty_{i}")
+                    cart[i]['quantity'] = new_quantity
+                with col3:
+                    subtotal = item['price'] * item['quantity']
+                    st.metric("Subtotal", f"Rp {subtotal:,}")
+                with col4:
+                    if st.button("Hapus", key=f"del_{i}"):
+                        cart.pop(i)
+                        st.session_state.cart = cart
+                        st.rerun()
+    
+            total_price += item['price'] * item['quantity']
+            vendor_id = item['vendor_id']
+            vendors_in_cart[vendor_id] = vendors_in_cart.get(vendor_id, 0) + subtotal
+    
+        st.session_state.cart = cart  # update after quantity change
+        st.header(f"Total Belanja: Rp {total_price:,}")
+    
+        # Metode pembayaran global (satu untuk semua vendor)
+        st.subheader("🧾 Pilih Metode Pembayaran")
+        payment_method = st.radio("Metode Pembayaran", ["Tunai", "Transfer Bank", "QRIS"], index=1, horizontal=True)
+    
+        # Form Checkout
+        st.subheader("📝 Lanjutkan Pemesanan")
+        with st.form("checkout_form"):
+            customer_name = st.text_input("Nama Anda")
+            customer_contact = st.text_input("Nomor HP Anda (untuk konfirmasi)")
+            submit_order = st.form_submit_button("Buat Pesanan Sekarang")
+    
+            if submit_order:
+                if not customer_name or not customer_contact:
+                    st.warning("Nama dan Nomor HP tidak boleh kosong.")
+                    return
+    
+                with st.spinner("Memproses pesanan..."):
+                    orders_ws = get_worksheet("Orders")
+                    vendors_df = get_data("Vendors")
+    
+                    if orders_ws is None or vendors_df.empty:
+                        st.error("Gagal memproses pesanan. Coba lagi.")
+                        return
+    
+                    order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
+                    order_details_json = json.dumps(cart)
+                    timestamp = format_jakarta(now_jakarta())
+                    orders_ws.append_row([
+                        order_id, customer_name, customer_contact,
+                        order_details_json, total_price, "Baru", timestamp
+                    ])
+    
+                    st.success(f"Pesanan Anda ({order_id}) berhasil dibuat!")
+                    st.balloons()
+    
+                    st.subheader("Rincian Tagihan & Konfirmasi Pesanan")
+                    st.info("Silakan lakukan pembayaran ke masing-masing penjual dan konfirmasi pesanan.")
+    
+                    for vendor_id, amount in vendors_in_cart.items():
+                        vendor_info_df = vendors_df[vendors_df['vendor_id'] == vendor_id]
+                        if vendor_info_df.empty:
+                            continue
+    
+                        vendor_info = vendor_info_df.iloc[0]
+                        items = [f"{item['quantity']}x {item['product_name']}" for item in cart if item['vendor_id'] == vendor_id]
+                        payment_info = ""
+    
+                        st.write("---")
+                        st.write(f"**Penjual: {vendor_info['vendor_name']}**")
+                        st.write(f"**Total Tagihan: Rp {amount:,}**")
+    
+                        if payment_method == "Transfer Bank":
+                            bank_info = vendor_info.get("bank_account", "")
+                            st.write(f"**Transfer ke Rekening:** {bank_info or 'Belum tersedia'}")
+                            payment_info = f"Metode: Transfer Bank\nRekening: {bank_info}"
+    
+                        elif payment_method == "QRIS":
+                            qris_url = vendor_info.get("qris_url", "")
+                            if isinstance(qris_url, str) and qris_url.lower().startswith("http") and qris_url.lower().endswith(('.jpg', '.jpeg', '.png')):
+                                st.image(qris_url, caption="Atau scan QRIS", width=250)
+                                payment_info = "Metode: QRIS (lihat gambar)"
                             else:
-                                order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
-                                order_details_json = json.dumps(st.session_state.cart)
-                                timestamp = format_jakarta(now_jakarta())
-                                new_order_row = [order_id, customer_name, customer_contact, order_details_json, total_price, "Baru", timestamp]
-                                orders_ws.append_row(new_order_row)
-                                
-                                st.success(f"Pesanan Anda ({order_id}) berhasil dibuat!")
-                                st.balloons()
+                                st.warning("QRIS belum tersedia.")
+                                payment_info = "Metode: QRIS (belum tersedia)"
     
-                                st.subheader("Rincian Tagihan & Konfirmasi Pesanan")
-                                st.info("Silakan lakukan pembayaran ke masing-masing penjual dan konfirmasi pesanan dengan mengklik tombol WhatsApp di bawah ini.")
+                        else:
+                            st.info("Pembayaran dilakukan saat barang diterima.")
+                            payment_info = "Metode: Tunai saat barang diterima"
     
-                                for vendor_id, amount in vendors_in_cart.items():
-                                    #vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc
-                                    items_from_vendor = [f"{item['quantity']}x {item['product_name']}" for item in st.session_state.cart if item['vendor_id'] == vendor_id]
-                                    vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id]
-                                    if not vendor_info.empty:
-                                        vendor_info = vendor_info.iloc[0]
-                                        message = (
-                                            f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
-                                            f"Pesanan saya:\n"
-                                            f"{', '.join(items_from_vendor)}\n\n"
-                                            f"Total: Rp {amount:,}\n"
-                                            f"Terima kasih!"
-                                        )
-                                    encoded_message = quote_plus(message)
-                                    whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
-                                    
-                                    st.write(f"---")
-                                    st.write(f"**Penjual: {vendor_info['vendor_name']}**")
-                                    st.write(f"**Total Tagihan: Rp {amount:,}**")
-                                    st.write(f"**Pembayaran via Transfer Bank:** {vendor_info['bank_account']}")
-                                    qris_url = vendor_info.get('qris_url', '')
-                                    if isinstance(qris_url, str) and qris_url.lower().startswith("http") and qris_url.lower().endswith(('.jpg', '.jpeg', '.png')):
-                                        st.image(qris_url, caption="Atau scan QRIS untuk membayar", width=250)
-                                    else:
-                                        st.info("QRIS belum tersedia untuk vendor ini.")
-                                    st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
+                        message = (
+                            f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
+                            f"Pesanan saya:\n{', '.join(items)}\n\n"
+                            f"Total: Rp {amount:,}\n"
+                            f"{payment_info}\n\nTerima kasih!"
+                        )
     
-                                # Mengosongkan keranjang setelah berhasil (BAGIAN YANG DIPERBAIKI)
-                                    st.session_state.cart = []
+                        encoded_message = quote_plus(message)
+                        whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
+                        st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
+    
+                    # Kosongkan keranjang setelah selesai
+                    st.session_state.cart = []
+
 
     elif menu_selection == "Daftar sebagai Penjual":
         st.header("✍️ Pendaftaran Penjual Baru")
