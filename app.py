@@ -225,15 +225,15 @@ if role == 'guest':
         products_df = get_data("Products")
         vendors_df = get_data("Vendors")
         orders_df = get_data("Orders")
-        
+
         # Tambah kolom jika belum ada
         if 'category' not in products_df.columns:
             products_df['category'] = ""
-        
+
         # Konversi is_active jadi boolean
         products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
         vendors_df['is_active'] = vendors_df['is_active'].apply(lambda x: str(x).lower() == 'true')
-        
+
         # Hitung sold_count dari order_details
         product_sales = {}
         if "order_details" in orders_df.columns:
@@ -246,7 +246,7 @@ if role == 'guest':
                         product_sales[pid] = product_sales.get(pid, 0) + qty
                 except json.JSONDecodeError:
                     continue
-        
+
         # Gabungkan produk dengan vendor, tambahkan sold_count
         merged_df = pd.merge(
             products_df,
@@ -257,47 +257,46 @@ if role == 'guest':
         )
         merged_df['is_active_vendor'] = merged_df['is_active_vendor'].fillna(False)
         merged_df['sold_count'] = merged_df['product_id'].map(product_sales).fillna(0).astype(int)
-        
+
         # Filter produk aktif dari vendor aktif
         active_products = merged_df[
             (merged_df['is_active']) &
             (merged_df['is_active_vendor'])
         ].copy()
-        
+
         if active_products.empty:
             st.warning("🚫 Tidak ada produk aktif dari vendor aktif.")
             st.stop()
-        
+
         # Urutkan berdasarkan sold_count
         active_products = active_products.sort_values(by='sold_count', ascending=False)
-        
+
         # 2. Sidebar filter
         st.sidebar.header("🔍 Filter Pencarian")
-        
+
         vendor_list = active_products['vendor_name'].dropna().unique().tolist()
         selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
-        
+
         kategori_list = sorted(active_products['category'].dropna().unique().tolist())
         selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
-        
+
         search_query = st.sidebar.text_input("Cari Nama Produk")
-        
+
         # 3. Terapkan filter
         filtered = active_products.copy()
-        
+
         if selected_vendor != "Semua":
             filtered = filtered[filtered['vendor_name'] == selected_vendor]
         if selected_kategori != "Semua":
             filtered = filtered[filtered['category'] == selected_kategori]
         if search_query:
             filtered = filtered[filtered['product_name'].str.contains(search_query, case=False, na=False)]
-        
+
         # 4. Tampilkan hasil
         if filtered.empty:
             st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
         else:
-            
-            # Sisipkan CSS (sama seperti sebelumnya)
+            # Sisipkan CSS untuk grid & styling produk
             st.markdown("""
             <style>
             .product-grid {
@@ -305,9 +304,19 @@ if role == 'guest':
               grid-template-columns: repeat(4, 1fr);
               gap: 1rem;
             }
+            @media (max-width: 1024px) {
+              .product-grid {
+                grid-template-columns: repeat(3, 1fr);
+              }
+            }
             @media (max-width: 768px) {
               .product-grid {
                 grid-template-columns: repeat(2, 1fr);
+              }
+            }
+            @media (max-width: 480px) {
+              .product-grid {
+                grid-template-columns: 1fr;
               }
             }
             .product-card {
@@ -318,6 +327,8 @@ if role == 'guest':
               flex-direction: column;
               height: 100%;
               box-sizing: border-box;
+              background: white;
+              box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
             }
             .product-image {
               width: 100%;
@@ -343,12 +354,26 @@ if role == 'guest':
               margin-top: auto;
               text-align: center;
             }
+            .product-button > button {
+              width: 100%;
+              background-color: #2a9d8f;
+              color: white;
+              border: none;
+              padding: 8px 0;
+              border-radius: 5px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: background-color 0.3s ease;
+            }
+            .product-button > button:hover {
+              background-color: #21867a;
+            }
             </style>
             """, unsafe_allow_html=True)
-            
+
             # Mulai grid container
             st.markdown('<div class="product-grid">', unsafe_allow_html=True)
-            
+
             # Render tiap produk sebagai kartu
             for _, product in filtered.iterrows():
                 image_url = product.get('image_url','').strip() or "https://via.placeholder.com/200"
@@ -365,19 +390,18 @@ if role == 'guest':
                   </div>
                   <div class="product-button">
                 ''', unsafe_allow_html=True)
-            
-                # Tombol beli di dalam kartu
+
                 if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
                     add_to_cart(product)
-            
+
                 st.markdown('</div></div>', unsafe_allow_html=True)
-            
+
             # Tutup grid container
             st.markdown('</div>', unsafe_allow_html=True)
 
-
     if 'cart' not in st.session_state:
         st.session_state.cart = []
+
 #================================================
     elif menu_selection == "Keranjang":
         st.header("🛒 Keranjang Belanja Anda")
