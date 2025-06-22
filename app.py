@@ -296,34 +296,119 @@ if role == 'guest':
         if filtered.empty:
             st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
         else:
-            st.markdown("---")
-            #cols = st.columns(4)  # 4 produk per baris
-            #for index, product in filtered.iterrows():
-                #col = cols[index % 4]
-            rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
-            for row in rows:
-                cols = st.columns(4)
-                for col, (_, product) in zip(cols, row.iterrows()):
-                    with col:
-                        with st.container():
-                            image_url = product.get('image_url', '').strip()
-                            img_src = image_url if image_url else "https://via.placeholder.com/200"
-                            st.image(img_src, width=160)
             
-                            st.markdown(f"**{product['product_name'][:30]}**")
-                            st.caption(f"Kategori: {product.get('category', 'Tidak tersedia')}")
-                            st.caption(f"🧑 {product['vendor_name']}")
-                            st.markdown(f"💰 Rp {int(product['price']):,}")
-                            st.caption(f"✅ Terjual: {product['sold_count']:,}")
-                            
-                            description = product.get('description', '')
-                            st.caption(description[:60] + "..." if len(description) > 60 else description)
+            # Sisipkan CSS (sama seperti sebelumnya)
+            st.markdown("""
+            <style>
+            .product-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                justify-content: flex-start;
+                padding: 0;
+                margin: 0;
+                list-style: none;
+            }
+            .product-card {
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 0 5px rgba(0,0,0,0.1);
+                flex: 1 1 calc(25% - 12px);  /* 4 kolom desktop */
+                max-width: calc(25% - 12px);
+                display: flex;
+                flex-direction: column;
+                height: 350px;
+                overflow: hidden;
+                padding: 12px;
+                box-sizing: border-box;
+            }
+            .product-card img {
+                width: 100%;
+                height: 160px;
+                object-fit: cover;
+                border-radius: 6px;
+                margin-bottom: 8px;
+            }
+            .product-info {
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+            .product-name {
+                font-weight: 600;
+                font-size: 1rem;
+                margin-bottom: 6px;
+                line-height: 1.2em;
+                height: 2.4em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .product-meta, .product-price, .product-desc {
+                font-size: 0.85rem;
+                color: #555;
+                margin-bottom: 6px;
+            }
+            .product-price {
+                font-weight: 700;
+                color: #2e7d32;
+            }
+            .product-desc {
+                height: 3em;
+                overflow: hidden;
+                color: #777;
+            }
+            @media (max-width: 992px) {
+                .product-card {
+                    flex: 1 1 calc(50% - 12px);
+                    max-width: calc(50% - 12px);
+                    height: 350px;
+                }
+            }
+            @media (max-width: 576px) {
+                .product-card {
+                    flex: 1 1 calc(50% - 12px);
+                    max-width: calc(50% - 12px);
+                    height: 350px;
+                }
+            }
+            </style>
+            """, unsafe_allow_html=True)
             
-                            if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                                add_to_cart(product)
+            # Tampilkan produk (HTML untuk kartu)
+            st.markdown('<div class="product-grid">', unsafe_allow_html=True)
+            for _, product in filtered.iterrows():
+                img = product.get('image_url','').strip() or "https://via.placeholder.com/200"
+                product_html = f"""
+                <div class="product-card">
+                    <img src="{img}" alt="{product['product_name']}">
+                    <div class="product-info">
+                        <div class="product-name">{product['product_name'][:30]}</div>
+                        <div class="product-meta">🧑 {product['vendor_name']}  •  Kategori: {product['category'] or '-'}</div>
+                        <div class="product-price">💰 Rp {int(product['price']):,}</div>
+                        <div class="product-meta">✅ Terjual: {product['sold_count']:,}</div>
+                        <div class="product-desc">{(product.get('description','')[:60] + '...') if len(product.get('description','')) > 60 else product.get('description','')}</div>
+                    </div>
+                </div>
+                """
+                st.markdown(product_html, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Buat tombol beli dalam grid kolom Streamlit agar rapi sesuai produk
+            # Jumlah kolom sama dengan jumlah produk per baris (4 desktop, 2 mobile)
+            cols = st.columns(4)  # buat 4 kolom
+            
+            for i, product in filtered.reset_index().iterrows():
+                col = cols[i % 4]
+                with col:
+                    if st.button(f"➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                        add_to_cart(product)
+
 
     if 'cart' not in st.session_state:
         st.session_state.cart = []
+#================================================
     elif menu_selection == "Keranjang":
         st.header("🛒 Keranjang Belanja Anda")
         cart = st.session_state.get("cart", [])
