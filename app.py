@@ -404,16 +404,6 @@ if role == 'guest':
             
         # Form Checkout
         st.subheader("📝 Lanjutkan Pemesanan")
-        st.markdown("""
-            <style>
-            .stTextInput > div > div > div > input:focus::placeholder {
-                color: transparent;
-            }
-            div[role="textbox"] + div {
-                display: none;
-            }
-            </style>
-        """, unsafe_allow_html=True)
         with st.form("checkout_form"):
             customer_name = st.text_input("Nama Anda")
             customer_contact = st.text_input(
