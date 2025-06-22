@@ -400,7 +400,7 @@ if role == 'guest':
         payment_method = st.radio("Metode Pembayaran", ["Tunai", "Transfer Bank", "QRIS"], index=1, horizontal=True)
 
         def is_valid_wa_number(number):
-            return re.fullmatch(r"62\d{9,10}", number) is not None
+            return re.fullmatch(r"62\d{10,11}", number) is not None
             
         # Form Checkout
         st.subheader("📝 Lanjutkan Pemesanan")
@@ -408,10 +408,10 @@ if role == 'guest':
             customer_name = st.text_input("Nama Anda")
             customer_contact = st.text_input(
                 "Wajib diisi No WhatsApp Anda (Untuk konfirmasi pesanan)",
-                placeholder="Contoh: 6281234567890 (11–12 digit, tanpa spasi)",
+                placeholder="Contoh: 6281234567890 (11–12 digit)",
                 max_chars=13
             )
-            order_note = st.text_input("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, tanpa sambal, dst.")
+            order_note = st.text_input("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, Tanpa sambal.")
             submit_order = st.form_submit_button("Buat Pesanan Sekarang")
     
             if submit_order:
