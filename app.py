@@ -755,39 +755,47 @@ elif role == 'vendor':
                     st.write(e)
 
  # ------------------ UPDATE DATA VENDOR ------------------
-        vendor_id = st.session_state.vendor_id
-        vendors_df = get_data("Vendors")
-        vendors_ws = get_worksheet("Vendors")
-    
-        vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc[0]
     
         with st.expander("✏️ Update Data Toko"):
-            st.caption("Perbarui data toko Anda, seperti nomor rekening atau QRIS.")
-            
-            updated_bank = st.text_input("Info Rekening Bank", value=vendor_info.get("bank_account", ""))
-            updated_qris = st.text_input("Link Gambar QRIS", value=vendor_info.get("qris_url", ""), placeholder="https://i.imgur.com/qriscontoh.png")
-    
-            def is_valid_image_url(url):
+            def is_valid_image_url(url: str) -> bool:
                 return url.lower().startswith("http") and url.lower().endswith((".jpg", ".jpeg", ".png"))
-    
-            if st.button("💾 Simpan Perubahan"):
-                if updated_qris and not is_valid_image_url(updated_qris):
-                    st.error("Link QRIS harus berupa URL gambar (.jpg/.jpeg/.png)")
-                else:
-                    try:
-                        # Cari baris vendor di worksheet
-                        cell = vendors_ws.find(vendor_id)
-                        row = cell.row
-    
-                        # Update kolom bank_account dan qris_url
-                        vendors_ws.update_cell(row, 8, updated_bank)     # kolom H (bank_account)
-                        vendors_ws.update_cell(row, 9, updated_qris)     # kolom I (qris_url)
-    
-                        st.success("Data berhasil diperbarui.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error("Gagal memperbarui data.")
-                        st.write(e)
+            
+            try:
+                vendor_id = st.session_state.vendor_id
+                vendors_df = get_data("Vendors")
+                vendors_ws = get_worksheet("Vendors")
+        
+                vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc[0]
+        
+                updated_bank = st.text_input("Info Rekening Bank", value=vendor_info.get("bank_account", ""))
+                updated_qris = st.text_input(
+                    "Link Gambar QRIS",
+                    value=vendor_info.get("qris_url", ""),
+                    placeholder="https://i.imgur.com/qriscontoh.png"
+                )
+        
+                if st.button("💾 Simpan Perubahan"):
+                    if updated_qris and not is_valid_image_url(updated_qris):
+                        st.error("Link QRIS harus berupa URL gambar dengan ekstensi .jpg, .jpeg, atau .png")
+                    else:
+                        try:
+                            cell = vendors_ws.find(vendor_id)
+                            row = cell.row
+        
+                            # Update kolom bank_account dan qris_url (pastikan kolom sesuai dengan struktur GSheet Anda)
+                            vendors_ws.update_cell(row, 8, updated_bank)  # kolom H
+                            vendors_ws.update_cell(row, 9, updated_qris)  # kolom I
+        
+                            st.success("Data berhasil diperbarui.")
+                            st.experimental_rerun()
+                        except Exception as e:
+                            st.error("Gagal memperbarui data.")
+                            st.write(e)
+        
+            except Exception as e:
+                st.error("Gagal memuat data vendor.")
+                st.write(e)
+
  # ------------------ LAPORAN KEUANGAN VENDOR ------------------
         with st.expander("💰 Laporan Keuangan"):
             try:
