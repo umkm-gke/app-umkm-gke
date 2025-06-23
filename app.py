@@ -867,10 +867,10 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
     
                     submitted = st.form_submit_button("💾 Simpan Produk")
     
-                    if submitted:
-                        if not product_name or not description:
-                            st.warning("Nama produk dan deskripsi wajib diisi.")
-                            st.stop()
+                if submitted:
+                    if not product_name or not description:
+                        st.warning("Nama produk dan deskripsi wajib diisi.")
+                        st.stop()
     
                         products_ws = get_worksheet("Products")
     
