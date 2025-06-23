@@ -692,7 +692,7 @@ elif role == 'vendor':
                         )
                         encoded = quote_plus(wa_message)
                         wa_link = f"https://wa.me/{order['contact']}?text={encoded}"
-                        st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link, key=f"wa_{order['order_id']}")
+                        st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
 
                 # ------------------ FORM PERUBAHAN STATUS ------------------
                 st.divider()
