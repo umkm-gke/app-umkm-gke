@@ -606,10 +606,10 @@ elif role == 'vendor':
                 orders_df['timestamp'] = pd.to_datetime(orders_df['timestamp'], errors='coerce')
                 orders_df['timestamp'] = orders_df['timestamp'].dt.tz_localize("UTC").dt.tz_convert(jakarta_tz)
 
-                # Filter pesanan 3 bulan terakhir
+                # Filter pesanan 1 minggu terakhir
                 today = now_jakarta()
-                three_months_ago = today - pd.DateOffset(months=3)
-                orders_df = orders_df[orders_df['timestamp'] >= three_months_ago]
+                seven_days_ago = today - pd.Timedelta(days=7)
+                orders_df = orders_df[orders_df['timestamp'] >= seven_days_ago]
 
                 # Filter hanya pesanan untuk vendor ini
                 relevant_orders = []
@@ -656,7 +656,8 @@ elif role == 'vendor':
                     # Filter status
                     filter_status = st.selectbox(
                         "📌 Filter Status Pesanan",
-                        ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"]
+                        ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"],
+                        index=1
                     )
                     if filter_status != "Semua":
                         orders_display_df = orders_display_df[orders_display_df['status'] == filter_status]
