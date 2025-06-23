@@ -605,7 +605,11 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
         st.stop()
 
     st.header(f"Dashboard: {st.session_state['vendor_name']}")
-
+    @st.cache_data(ttl=600)
+    def get_all_orders():
+        ws = get_worksheet("Orders")
+        df = pd.DataFrame(ws.get_all_records()) if ws else pd.DataFrame()
+        return ws, df
     # 2. Load dan filter data pesanan
     def load_relevant_orders(vendor_id):
         ws_orders, orders_df = get_all_orders()
@@ -706,15 +710,8 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
     if not df_orders[df_orders["status"] == "Baru"].empty:
         st.divider()
         st.subheader("🔄 Perbarui Status Pesanan")
-    
-        @st.cache_data(ttl=600)
-        def get_all_orders():
-            ws = get_worksheet("Orders")
-            df = pd.DataFrame(ws.get_all_records()) if ws else pd.DataFrame()
-            return ws, df
-    
         ws_orders, df_all = get_all_orders()
-    
+        
         if df_all.empty:
             st.warning("Tidak ada data pesanan ditemukan.")
         else:
