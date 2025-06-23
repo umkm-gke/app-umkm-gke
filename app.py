@@ -632,9 +632,12 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
     # 3. Tampilan pesanan masuk
     with st.expander("📋 Daftar Pesanan Masuk"):
         df_orders = load_relevant_orders(vendor_id)
-
-        if df_orders.empty:
+        if relevant_orders:
+            orders_display_df = pd.DataFrame(relevant_orders)
+            if not orders_display_df[orders_display_df["status"] == "Baru"].empty:
+        else:
             st.info("Belum ada pesanan yang masuk untuk Anda.")
+
         else:
             # Filter tanggal
             today = now_jakarta()
