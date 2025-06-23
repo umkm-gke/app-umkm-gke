@@ -634,7 +634,7 @@ elif role == 'vendor':
 
                 if not relevant_orders:
                     st.info("Belum ada pesanan yang masuk untuk Anda.")
-                else:
+                    st.stop()
 
                 # Tampilkan notifikasi pesanan baru
                 jumlah_pesanan_baru = sum(1 for order in relevant_orders if order["status"] == "Baru")
