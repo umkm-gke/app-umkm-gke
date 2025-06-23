@@ -763,7 +763,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
     
                             st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                             st.cache_data.clear()
-                            st.experimental_rerun()
+                            st.rerun()
                         else:
                             st.error("❌ Order ID tidak ditemukan.")
                     except Exception as e:
@@ -909,7 +909,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                             st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
                 
                         st.cache_data.clear()
-                        st.experimental_rerun()
+                        st.rerun()
     
             except Exception as e:
                 st.error("Gagal menampilkan form produk.")
