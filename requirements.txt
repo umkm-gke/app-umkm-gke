@@ -6,4 +6,6 @@ google-auth-oauthlib
 google-auth-httplib2
 streamlit-option-menu
 XlsxWriter
+gspread>=5.11.0
+google-auth>=2.23.0
 
