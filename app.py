@@ -738,17 +738,27 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         st.error("Pilih dulu Order ID-nya.")
                     else:
                         try:
-                            # Kolom F adalah kolom status = kolom ke-6
-                            cell = ws_orders.find(str(selected_order_id))
-                            if cell:
-                                ws_orders.update_cell(cell.row, 6, new_status)
-                                st.success(f"✅ Status pesanan `{selected_order_id}` diperbarui ke **{new_status}**.")
+                            # Cari baris order_id langsung dari df_all, bukan pakai .find()
+                            order_row_index = df_all[df_all['order_id'] == selected_order_id].index
+                
+                            if not order_row_index.empty:
+                                row_num = order_row_index[0] + 2  # +2 karena df index mulai dari 0, dan header di baris 1
+                                range_to_update = f"F{row_num}"  # Kolom F untuk status
+                
+                                ws_orders.batch_update([{
+                                    "range": range_to_update,
+                                    "values": [[new_status]]
+                                }])
+                
+                                st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                                 st.cache_data.clear()
-                                st.experimental_rerun()  # Refresh tampilan langsung
+                                st.experimental_rerun()
+                
                             else:
-                                st.error("❌ Order ID tidak ditemukan di spreadsheet.")
+                                st.error("❌ Order ID tidak ditemukan di data.")
                         except Exception as e:
                             st.error(f"❌ Gagal update status: {e}")
+
 
 #========================================================================================
     with st.expander("📦 Produk Anda"):
