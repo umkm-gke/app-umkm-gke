@@ -632,95 +632,89 @@ elif role == 'vendor':
                     except Exception as e:
                         st.warning(f"⛔ Pesanan {row['order_id']} tidak bisa diproses: {e}")
 
+                # ===================== TAMPILKAN PESANAN =====================
                 if not relevant_orders:
                     st.info("Belum ada pesanan yang masuk untuk Anda.")
-                    st.stop()
-
-                # Tampilkan notifikasi pesanan baru
-                jumlah_pesanan_baru = sum(1 for order in relevant_orders if order["status"] == "Baru")
-                if jumlah_pesanan_baru > 0:
-                    st.warning(f"📢 Anda memiliki {jumlah_pesanan_baru} pesanan baru yang belum diproses!")
-
-                # Konversi ke DataFrame
-                orders_display_df = pd.DataFrame(relevant_orders)
-
-                # Filter tanggal
-                selected_date_range = st.date_input(
-                    "📆 Filter Rentang Tanggal Pesanan",
-                    value=(today.date(), today.date()),
-                    min_value=three_months_ago.date(),
-                    max_value=today.date()
-                )
-                if isinstance(selected_date_range, tuple) and len(selected_date_range) == 2:
-                    start_date, end_date = selected_date_range
-                    orders_display_df = orders_display_df[
-                        (orders_display_df['timestamp'].dt.date >= start_date) &
-                        (orders_display_df['timestamp'].dt.date <= end_date)
-                    ]
-
-                # Filter status
-                filter_status = st.selectbox(
-                    "Filter Status Pesanan",
-                    ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"]
-                )
-                if filter_status != "Semua":
-                    orders_display_df = orders_display_df[orders_display_df['status'] == filter_status]
-
-                # Sort dan batasi jumlah pesanan
-                MAX_ORDERS_DISPLAY = 50
-                orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False).head(MAX_ORDERS_DISPLAY)
-
-                # Tampilkan data per pesanan
-                for idx, order in orders_display_df.iterrows():
-                    with st.container(border=True):
-                        st.markdown(f"""
-                        **📦 Order ID:** `{order['order_id']}`  
-                        🕒 Waktu: {order['timestamp']}  
-                        👤 Pembeli: {order['customer_name']}  
-                        📞 Kontak: {order['contact']}  
-                        🛒 Produk: {order['product_name']} x {order['quantity']}  
-                        💰 Total Item: Rp {order['total_item_price']:,}  
-                        📌 Status: `{order['status']}`
-                        """)
-                        
-                        # Tombol WhatsApp
-                        wa_message = (
-                            f"Halo {order['customer_name']}, kami dari penjual produk {order['product_name']}.\n"
-                            f"Kami menerima pesanan Anda dengan ID {order['order_id']} sebanyak {order['quantity']} pcs.\n"
-                            f"Total: Rp {order['total_item_price']:,}.\n\n"
-                            f"Silakan konfirmasi ke kami jika ada hal yang ingin ditanyakan. Terima kasih!"
+                else:
+                    orders_display_df = pd.DataFrame(relevant_orders)
+                
+                    # Filter tanggal wajib dipilih, dengan rentang 3 bulan terakhir
+                    selected_date_range = st.date_input(
+                        "📆 Filter Rentang Tanggal Pesanan",
+                        value=(today.date(), today.date()),
+                        min_value=three_months_ago.date(),
+                        max_value=today.date()
+                    )
+                    
+                    if isinstance(selected_date_range, tuple) and len(selected_date_range) == 2:
+                        start_date, end_date = selected_date_range
+                        orders_display_df = orders_display_df[
+                            (orders_display_df['timestamp'].dt.date >= start_date) &
+                            (orders_display_df['timestamp'].dt.date <= end_date)
+                        ]
+                
+                    # Filter status
+                    filter_status = st.selectbox(
+                        "📌 Filter Status Pesanan",
+                        ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"]
+                    )
+                    if filter_status != "Semua":
+                        orders_display_df = orders_display_df[orders_display_df['status'] == filter_status]
+                
+                    # Tampilkan daftar
+                    MAX_ORDERS_DISPLAY = 50
+                    orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False).head(MAX_ORDERS_DISPLAY)
+                
+                    if orders_display_df.empty:
+                        st.info("Tidak ada pesanan yang sesuai dengan filter.")
+                    else:
+                        for idx, order in orders_display_df.iterrows():
+                            with st.container(border=True):
+                                st.write(f"📦 **Order ID:** `{order['order_id']}`")
+                                st.write(f"🕒 Waktu: {order['timestamp']}")
+                                st.write(f"👤 Pembeli: {order['customer_name']}")
+                                st.write(f"📞 Kontak: {order['contact']}")
+                                st.write(f"🛒 Produk: {order['product_name']} x {order['quantity']}")
+                                st.write(f"💰 Total Item: Rp {order['total_item_price']:,}")
+                                st.write(f"📌 Status: `{order['status']}`")
+                
+                                # Tombol WhatsApp
+                                wa_message = (
+                                    f"Halo {order['customer_name']}, kami dari penjual produk {order['product_name']}.\n"
+                                    f"Kami menerima pesanan Anda dengan ID {order['order_id']} sebanyak {order['quantity']} pcs.\n"
+                                    f"Total: Rp {order['total_item_price']:,}.\n\n"
+                                    f"Silakan konfirmasi ke kami jika ada hal yang ingin ditanyakan. Terima kasih!"
+                                )
+                                encoded = quote_plus(wa_message)
+                                wa_link = f"https://wa.me/{order['contact']}?text={encoded}"
+                                st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
+                
+                        # ===================== PERUBAHAN STATUS =====================
+                        st.divider()
+                        st.subheader("🔄 Perbarui Status Pesanan")
+                
+                        # Dropdown pilih pesanan
+                        selected_order_id = st.selectbox(
+                            "Pilih Pesanan",
+                            orders_display_df['order_id'].unique(),
+                            placeholder="Pilih Order ID..."
                         )
-                        encoded = quote_plus(wa_message)
-                        wa_link = f"https://wa.me/{order['contact']}?text={encoded}"
-                        st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
+                        new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
+                        if st.button("✅ Perbarui Status"):
+                            try:
+                                orders_ws = get_worksheet("Orders")
+                                if orders_ws:
+                                    cell = orders_ws.find(selected_order_id)
+                                    if cell:
+                                        orders_ws.update(f"F{cell.row}", [[new_status]])
+                                        st.success(f"Status pesanan `{selected_order_id}` diperbarui ke **{new_status}**.")
+                                        st.cache_data.clear()
+                                        st.experimental_rerun()
+                                    else:
+                                        st.error("❌ Pesanan tidak ditemukan.")
+                            except Exception as e:
+                                st.error(f"Gagal memperbarui status: {e}")
 
-                # ------------------ FORM PERUBAHAN STATUS ------------------
-                st.divider()
-                st.subheader("✏️ Ubah Status Pesanan")
-                selected_order_id = st.selectbox(
-                    "Pilih Pesanan",
-                    orders_display_df['order_id'].unique(),
-                    key="select_order_id"
-                )
-                new_status = st.selectbox(
-                    "Pilih Status Baru",
-                    ["Baru", "Diproses", "Selesai", "Dibatalkan"],
-                    key="select_status"
-                )
-                if st.button("✅ Perbarui Status Pesanan"):
-                    orders_ws = get_worksheet("Orders")
-                    if orders_ws:
-                        cell = orders_ws.find(selected_order_id)
-                        if cell:
-                            orders_ws.update(f"F{cell.row}", [[new_status]])  # Asumsikan kolom F = status
-                            st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
-                            st.cache_data.clear()
-                        else:
-                            st.error("Tidak dapat menemukan pesanan.")
-
-            except Exception as e:
-                st.error("Gagal memuat daftar pesanan.")
-                st.exception(e)
    
 #========================================================================================
         with st.expander("📦 Produk Anda"):
