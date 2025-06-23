@@ -628,17 +628,18 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
             except Exception as e:
                 st.warning(f"⛔ Pesanan {row['order_id']} tidak bisa diproses: {e}")
         return pd.DataFrame(relevant)
+        
+    # 3. Tampilan pesanan masuk
+    with st.expander("📋 Daftar Pesanan Masuk"):
+        df_orders = load_relevant_orders(vendor_id)
         jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
         if jumlah_baru > 0:
             st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
         else:
             st.info("✅ Tidak ada pesanan baru saat ini.")
-    # 3. Tampilan pesanan masuk
-    with st.expander("📋 Daftar Pesanan Masuk"):
-        df_orders = load_relevant_orders(vendor_id)
-        if df_orders.empty:
-            st.info("Belum ada pesanan yang masuk untuk Anda.")
-        else:
+        #if df_orders.empty:
+            #st.info("Belum ada pesanan yang masuk untuk Anda.")
+        #else:
             # Filter tanggal (maksimal 7 hari)
             today = now_jakarta()
             one_week_ago = today - pd.Timedelta(days=7)
