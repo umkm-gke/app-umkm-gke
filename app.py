@@ -605,22 +605,30 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
         st.stop()
 
     st.header(f"Dashboard: {st.session_state['vendor_name']}")
+
+    # Fungsi ambil semua data
     @st.cache_data(ttl=600)
     def get_all_orders():
         ws = get_worksheet("Orders")
-        df = pd.DataFrame(ws.get_all_records()) if ws else pd.DataFrame()
-        return ws, df
-    # 2. Load dan filter data pesanan
-    def load_relevant_orders(vendor_id):
-        ws_orders, orders_df = get_all_orders()
-        orders_df['timestamp'] = pd.to_datetime(orders_df['timestamp'], errors='coerce', utc=True).dt.tz_convert(jakarta_tz)
-    
+        if not ws:
+            return None, pd.DataFrame()
+        try:
+            df = pd.DataFrame(ws.get_all_records())
+            return ws, df
+        except Exception as e:
+            st.error(f"❌ Gagal mengambil data dari worksheet: {e}")
+            return None, pd.DataFrame()
+
+    # Fungsi filter pesanan vendor
+    def load_relevant_orders(df_orders, vendor_id):
+        df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce', utc=True).dt.tz_convert(jakarta_tz)
+
         today = now_jakarta()
         last_week = today - pd.Timedelta(days=7)
-        orders_df = orders_df[orders_df['timestamp'] >= last_week]
-    
+        df_orders = df_orders[df_orders['timestamp'] >= last_week]
+
         relevant = []
-        for _, row in orders_df.iterrows():
+        for _, row in df_orders.iterrows():
             try:
                 items = json.loads(row['order_details'])
                 for item in items:
@@ -640,53 +648,58 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                 st.warning(f"⛔ Pesanan {row['order_id']} tidak bisa diproses: {e}")
         return pd.DataFrame(relevant)
 
-        
+    # Ambil data
+    ws_orders, df_all = get_all_orders()
+    if df_all.empty:
+        st.warning("Tidak ada data pesanan ditemukan.")
+        st.stop()
+
     # 3. Tampilan pesanan masuk
     with st.expander("📋 Daftar Pesanan Masuk"):
-        df_orders = load_relevant_orders(vendor_id)
+        df_orders = load_relevant_orders(df_all, vendor_id)
         jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
+
         if jumlah_baru > 0:
             st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
         else:
             st.info("✅ Tidak ada pesanan baru saat ini.")
+
         if df_orders.empty:
             st.info("Belum ada pesanan yang masuk untuk Anda.")
         else:
             # Filter tanggal (maksimal 7 hari)
             today = now_jakarta()
             one_week_ago = today - pd.Timedelta(days=7)
-    
+
             selected_date_range = st.date_input(
                 "📆 Filter Rentang Tanggal Pesanan",
                 value=(today.date(), today.date()),
                 min_value=one_week_ago.date(),
                 max_value=today.date()
             )
-    
+
             if isinstance(selected_date_range, tuple) and len(selected_date_range) == 2:
                 start_date, end_date = selected_date_range
                 df_orders = df_orders[
                     (df_orders['timestamp'].dt.date >= start_date) &
                     (df_orders['timestamp'].dt.date <= end_date)
                 ]
-    
-            # Filter status (default: "Baru")
+
+            # Filter status
             filter_status = st.selectbox(
                 "📌 Filter Status Pesanan",
                 ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"],
-                index=1  # Default ke "Baru"
+                index=1
             )
             if filter_status != "Semua":
                 df_orders = df_orders[df_orders['status'] == filter_status]
-    
-            # Tampilkan pesanan
-            MAX_DISPLAY = 50
-            df_orders = df_orders.sort_values(by='timestamp', ascending=False).head(MAX_DISPLAY)
-    
+
+            df_orders = df_orders.sort_values(by='timestamp', ascending=False).head(50)
+
             if df_orders.empty:
                 st.info("Tidak ada pesanan sesuai filter.")
             else:
-                for idx, order in df_orders.iterrows():
+                for _, order in df_orders.iterrows():
                     with st.container(border=True):
                         st.write(f"📦 **Order ID:** `{order['order_id']}`")
                         st.write(f"🕒 Waktu: {order['timestamp']}")
@@ -695,8 +708,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         st.write(f"🛒 Produk: {order['product_name']} x {order['quantity']}")
                         st.write(f"💰 Total Item: Rp {order['total_item_price']:,}")
                         st.write(f"📌 Status: `{order['status']}`")
-    
-                        # Tombol WhatsApp
+
                         wa_message = (
                             f"Halo {order['customer_name']}, kami dari penjual produk {order['product_name']}.\n"
                             f"Kami menerima pesanan Anda dengan ID {order['order_id']} sebanyak {order['quantity']} pcs.\n"
@@ -705,63 +717,55 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         )
                         wa_link = f"https://wa.me/{order['contact']}?text={quote_plus(wa_message)}"
                         st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
-    
-    # 4. Modul Perubahan Status (hanya jika ada pesanan "Baru")
-    if not df_orders[df_orders["status"] == "Baru"].empty:
+
+    # 4. Modul Perubahan Status
+    df_vendor_orders = df_all[df_all["order_status"] == "Baru"].copy()
+    df_vendor_orders["is_relevant"] = False
+
+    for i, row in df_vendor_orders.iterrows():
+        try:
+            items = json.loads(row["order_details"])
+            for item in items:
+                if item.get("vendor_id") == vendor_id:
+                    df_vendor_orders.at[i, "is_relevant"] = True
+                    break
+        except:
+            continue
+
+    df_vendor_orders = df_vendor_orders[df_vendor_orders["is_relevant"]]
+
+    if not df_vendor_orders.empty:
         st.divider()
         st.subheader("🔄 Perbarui Status Pesanan")
-        ws_orders, df_all = get_all_orders()
-        
-        if df_all.empty:
-            st.warning("Tidak ada data pesanan ditemukan.")
-        else:
-            # Filter hanya pesanan "Baru" milik vendor ini
-            df_vendor_orders = df_all[df_all["order_status"] == "Baru"].copy()
-            df_vendor_orders["is_relevant"] = False
-    
-            for i, row in df_vendor_orders.iterrows():
-                try:
-                    items = json.loads(row["order_details"])
-                    for item in items:
-                        if item.get("vendor_id") == vendor_id:
-                            df_vendor_orders.at[i, "is_relevant"] = True
-                            break
-                except:
-                    continue
-    
-            df_vendor_orders = df_vendor_orders[df_vendor_orders["is_relevant"]]
-    
-            if df_vendor_orders.empty:
-                st.info("Tidak ada pesanan 'Baru' milik Anda.")
-            else:
-                order_id_list = sorted(df_vendor_orders["order_id"].astype(str).unique())
-                selected_order_id = st.selectbox(
-                    "Pilih Order ID untuk diubah",
-                    order_id_list,
-                    placeholder="Pilih Order ID..."
-                )
-    
-                new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
-    
-                if st.button("✅ Perbarui Status"):
-                    try:
-                        # Temukan baris di df_all (karena akan dihitung baris ke spreadsheet)
-                        index_in_df = df_all[df_all["order_id"].astype(str) == selected_order_id].index
-    
-                        if not index_in_df.empty:
-                            row_number = index_in_df[0] + 2  # +2 karena header baris 1, dan index dari 0
-                            update_range = f"F{row_number}"  # Kolom F = order_status
-    
-                            # Gunakan batch_update
-                            ws_orders.update(update_range, [[new_status]])
-    
-                            st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
-                            st.cache_data.clear()
-                            #st.rerun()
-                        else:
-                            st.error("❌ Order ID tidak ditemukan.")
-                    except Exception as e:
-                        st.error(f"❌ Gagal update status: {e}")
+
+        order_id_list = sorted(df_vendor_orders["order_id"].astype(str).unique())
+        selected_order_id = st.selectbox(
+            "Pilih Order ID untuk diubah",
+            order_id_list,
+            placeholder="Pilih Order ID..."
+        )
+
+        new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
+
+        if st.button("✅ Perbarui Status"):
+            try:
+                index_in_df = df_all[df_all["order_id"].astype(str) == selected_order_id].index
+
+                if not index_in_df.empty:
+                    row_number = index_in_df[0] + 2  # +2 karena header dan index mulai dari 0
+                    update_range = f"F{row_number}"  # Kolom F adalah order_status
+
+                    ws_orders.update(update_range, [[new_status]])
+
+                    st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error("❌ Order ID tidak ditemukan.")
+            except Exception as e:
+                st.error(f"❌ Gagal update status: {e}")
+    else:
+        st.info("Belum ada pesanan Baru")
 
 
 
