@@ -870,46 +870,46 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                 
                     submitted = st.form_submit_button("💾 Simpan Produk")
                 
-                if submitted:
-                    if not product_name or not description:
-                        st.warning("Nama produk dan deskripsi wajib diisi.")
-                    else:
-                        products_ws = get_worksheet("Products")
-                
-                        image_url = default_image  # Default pakai gambar lama
-                
-                        # Simpan gambar baru jika diupload
-                        if uploaded_file:
-                            os.makedirs("images", exist_ok=True)
-                            image_path = f"images/{uuid.uuid4().hex[:8]}.jpg"
-                            with open(image_path, "wb") as f:
-                                f.write(uploaded_file.read())
-                            image_url = image_path  # Update path gambar baru
-                            st.image(image_url, width=200, caption="Gambar Baru")
-                
-                        product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
-                        is_active_str = "true" if is_active else "false"
-                        new_row = [
-                            product_id, vendor_id, product_name, description, price,
-                            image_url, stock_quantity, is_active_str, kategori,
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        ]
-                
-                        if selected_product_id:
-                            # Update produk
-                            cell = products_ws.find(selected_product_id)
-                            if cell:
-                                products_ws.update(f"A{cell.row}:J{cell.row}", [new_row])
-                                st.success(f"Produk '{product_name}' berhasil diperbarui!")
-                            else:
-                                st.error("Produk tidak ditemukan.")
+                    if submitted:
+                        if not product_name or not description:
+                            st.warning("Nama produk dan deskripsi wajib diisi.")
                         else:
-                            # Tambah produk baru
-                            products_ws.append_row(new_row)
-                            st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
-                
-                        st.cache_data.clear()
-                        st.rerun()
+                            products_ws = get_worksheet("Products")
+                    
+                            image_url = default_image  # Default pakai gambar lama
+                    
+                            # Simpan gambar baru jika diupload
+                            if uploaded_file:
+                                os.makedirs("images", exist_ok=True)
+                                image_path = f"images/{uuid.uuid4().hex[:8]}.jpg"
+                                with open(image_path, "wb") as f:
+                                    f.write(uploaded_file.read())
+                                image_url = image_path  # Update path gambar baru
+                                st.image(image_url, width=200, caption="Gambar Baru")
+                    
+                            product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
+                            is_active_str = "true" if is_active else "false"
+                            new_row = [
+                                product_id, vendor_id, product_name, description, price,
+                                image_url, stock_quantity, is_active_str, kategori,
+                                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            ]
+                    
+                            if selected_product_id:
+                                # Update produk
+                                cell = products_ws.find(selected_product_id)
+                                if cell:
+                                    products_ws.update(f"A{cell.row}:J{cell.row}", [new_row])
+                                    st.success(f"Produk '{product_name}' berhasil diperbarui!")
+                                else:
+                                    st.error("Produk tidak ditemukan.")
+                            else:
+                                # Tambah produk baru
+                                products_ws.append_row(new_row)
+                                st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
+                    
+                            st.cache_data.clear()
+                            st.rerun()
     
             except Exception as e:
                 st.error("Gagal menampilkan form produk.")
