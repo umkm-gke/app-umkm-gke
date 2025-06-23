@@ -675,29 +675,29 @@ elif role == 'vendor':
                     #else:
                         #orders_display_df = orders_display_df.sort_values(by='timestamp', ascending=False)
         
-                    if orders_display_df.empty:
-                        st.info("Tidak ada pesanan yang sesuai dengan filter.")
-                    else:
-                        for idx, order in orders_display_df.iterrows():
-                            with st.container(border=True):
-                                st.write(f"📦 **Order ID:** `{order['order_id']}`")
-                                st.write(f"🕒 Waktu: {order['timestamp']}")
-                                st.write(f"👤 Pembeli: {order['customer_name']}")
-                                st.write(f"📞 Kontak: {order['contact']}")
-                                st.write(f"🛒 Produk: {order['product_name']} x {order['quantity']}")
-                                st.write(f"💰 Total Item: Rp {order['total_item_price']:,}")
-                                st.write(f"📌 Status: `{order['status']}`")
-                        
-                                # Tombol WhatsApp
-                                wa_message = (
-                                    f"Halo {order['customer_name']}, kami dari penjual produk {order['product_name']}.\n"
-                                    f"Kami menerima pesanan Anda dengan ID {order['order_id']} sebanyak {order['quantity']} pcs.\n"
-                                    f"Total: Rp {order['total_item_price']:,}.\n\n"
-                                    f"Silakan konfirmasi ke kami jika ada hal yang ingin ditanyakan. Terima kasih!"
-                                )
-                                encoded = quote_plus(wa_message)
-                                wa_link = f"https://wa.me/{order['contact']}?text={encoded}"
-                                st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
+                    #if orders_display_df.empty:
+                        #st.info("Tidak ada pesanan yang sesuai dengan filter.")
+                    #else:
+                    for idx, order in orders_display_df.iterrows():
+                        with st.container(border=True):
+                            st.write(f"📦 **Order ID:** `{order['order_id']}`")
+                            st.write(f"🕒 Waktu: {order['timestamp']}")
+                            st.write(f"👤 Pembeli: {order['customer_name']}")
+                            st.write(f"📞 Kontak: {order['contact']}")
+                            st.write(f"🛒 Produk: {order['product_name']} x {order['quantity']}")
+                            st.write(f"💰 Total Item: Rp {order['total_item_price']:,}")
+                            st.write(f"📌 Status: `{order['status']}`")
+                    
+                            # Tombol WhatsApp
+                            wa_message = (
+                                f"Halo {order['customer_name']}, kami dari penjual produk {order['product_name']}.\n"
+                                f"Kami menerima pesanan Anda dengan ID {order['order_id']} sebanyak {order['quantity']} pcs.\n"
+                                f"Total: Rp {order['total_item_price']:,}.\n\n"
+                                f"Silakan konfirmasi ke kami jika ada hal yang ingin ditanyakan. Terima kasih!"
+                            )
+                            encoded = quote_plus(wa_message)
+                            wa_link = f"https://wa.me/{order['contact']}?text={encoded}"
+                            st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
 
         
                         # Ubah status (optional)
