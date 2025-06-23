@@ -693,28 +693,44 @@ elif role == 'vendor':
                         # ===================== PERUBAHAN STATUS =====================
                         st.divider()
                         st.subheader("🔄 Perbarui Status Pesanan")
-                
-                        # Dropdown pilih pesanan
-                        selected_order_id = st.selectbox(
-                            "Pilih Pesanan",
-                            orders_display_df['order_id'].unique(),
-                            placeholder="Pilih Order ID..."
-                        )
-                        new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
-                        if st.button("✅ Perbarui Status"):
-                            try:
-                                orders_ws = get_worksheet("Orders")
-                                if orders_ws:
-                                    cell = orders_ws.find(selected_order_id)
-                                    if cell:
-                                        orders_ws.update(f"F{cell.row}", [[new_status]])
-                                        st.success(f"Status pesanan `{selected_order_id}` diperbarui ke **{new_status}**.")
-                                        st.cache_data.clear()
-                                        st.experimental_rerun()
-                                    else:
-                                        st.error("❌ Pesanan tidak ditemukan.")
-                            except Exception as e:
-                                st.error(f"Gagal memperbarui status: {e}")
+                        
+                        # Caching worksheet & data pesanan untuk performa
+                        @st.cache_data
+                        def get_cached_orders():
+                            ws = get_worksheet("Orders")
+                            data = ws.get_all_records() if ws else []
+                            return ws, pd.DataFrame(data)
+                        
+                        orders_ws, orders_df = get_cached_orders()
+                        
+                        if orders_df.empty:
+                            st.warning("Belum ada pesanan yang tersedia.")
+                        else:
+                            # Dropdown pilih pesanan
+                            selected_order_id = st.selectbox(
+                                "Pilih Pesanan",
+                                orders_df['order_id'].astype(str).unique(),  # pastikan string
+                                placeholder="Pilih Order ID..."
+                            )
+                        
+                            new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
+                        
+                            if st.button("✅ Perbarui Status"):
+                                if not selected_order_id:
+                                    st.error("Silakan pilih Order ID terlebih dahulu.")
+                                else:
+                                    try:
+                                        # Cari baris berdasarkan order_id sebagai string
+                                        cell = orders_ws.find(str(selected_order_id))
+                                        if cell:
+                                            orders_ws.update(f"F{cell.row}", [[new_status]])
+                                            st.success(f"✅ Status pesanan `{selected_order_id}` diperbarui ke **{new_status}**.")
+                                            st.cache_data.clear()
+                                            st.experimental_rerun()
+                                        else:
+                                            st.error("❌ Order ID tidak ditemukan di spreadsheet.")
+                                    except Exception as e:
+                                        st.error(f"Terjadi kesalahan saat memperbarui status: `{e}`")
 
    
 #========================================================================================
