@@ -699,7 +699,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
         st.divider()
         st.subheader("🔄 Perbarui Status Pesanan")
     
-        @st.cache_data
+        @st.cache_data(ttl=600)
         def get_all_orders():
             ws = get_worksheet("Orders")
             df = pd.DataFrame(ws.get_all_records()) if ws else pd.DataFrame()
@@ -710,54 +710,57 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
         if df_all.empty:
             st.warning("Tidak ada data pesanan ditemukan.")
         else:
-            # Ambil hanya pesanan status "Baru" milik vendor ini
-            relevant_order_ids = []
-            for _, row in df_all.iterrows():
+            # Filter hanya pesanan "Baru" milik vendor ini
+            df_vendor_orders = df_all[df_all["order_status"] == "Baru"].copy()
+            df_vendor_orders["is_relevant"] = False
+    
+            for i, row in df_vendor_orders.iterrows():
                 try:
-                    items = json.loads(row['order_details'])
+                    items = json.loads(row["order_details"])
                     for item in items:
-                        if item.get('vendor_id') == vendor_id and row['order_status'] == "Baru":
-                            relevant_order_ids.append(row['order_id'])
+                        if item.get("vendor_id") == vendor_id:
+                            df_vendor_orders.at[i, "is_relevant"] = True
                             break
-                except Exception as e:
+                except:
                     continue
     
-            if not relevant_order_ids:
+            df_vendor_orders = df_vendor_orders[df_vendor_orders["is_relevant"]]
+    
+            if df_vendor_orders.empty:
                 st.info("Tidak ada pesanan 'Baru' milik Anda.")
             else:
+                order_id_list = sorted(df_vendor_orders["order_id"].astype(str).unique())
                 selected_order_id = st.selectbox(
                     "Pilih Order ID untuk diubah",
-                    sorted(set(relevant_order_ids)),
+                    order_id_list,
                     placeholder="Pilih Order ID..."
                 )
     
                 new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
     
                 if st.button("✅ Perbarui Status"):
-                    if not selected_order_id:
-                        st.error("Pilih dulu Order ID-nya.")
-                    else:
-                        try:
-                            # Cari baris order_id langsung dari df_all, bukan pakai .find()
-                            order_row_index = df_all[df_all['order_id'] == selected_order_id].index
-                
-                            if not order_row_index.empty:
-                                row_num = order_row_index[0] + 2  # +2 karena df index mulai dari 0, dan header di baris 1
-                                range_to_update = f"F{row_num}"  # Kolom F untuk status
-                
-                                ws_orders.batch_update([{
-                                    "range": range_to_update,
-                                    "values": [[new_status]]
-                                }])
-                
-                                st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
-                                st.cache_data.clear()
-                                st.experimental_rerun()
-                
-                            else:
-                                st.error("❌ Order ID tidak ditemukan di data.")
-                        except Exception as e:
-                            st.error(f"❌ Gagal update status: {e}")
+                    try:
+                        # Temukan baris di df_all (karena akan dihitung baris ke spreadsheet)
+                        index_in_df = df_all[df_all["order_id"].astype(str) == selected_order_id].index
+    
+                        if not index_in_df.empty:
+                            row_number = index_in_df[0] + 2  # +2 karena header baris 1, dan index dari 0
+                            update_range = f"F{row_number}"  # Kolom F = order_status
+    
+                            # Gunakan batch_update
+                            ws_orders.batch_update([{
+                                "range": update_range,
+                                "values": [[new_status]]
+                            }])
+    
+                            st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
+                            st.cache_data.clear()
+                            st.experimental_rerun()
+                        else:
+                            st.error("❌ Order ID tidak ditemukan.")
+                    except Exception as e:
+                        st.error(f"❌ Gagal update status: {e}")
+
 
 
 #========================================================================================
