@@ -691,42 +691,43 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
 
     # 4. Modul Perubahan Status
-    st.divider()
-    st.subheader("🔄 Perbarui Status Pesanan")
-
-    @st.cache_data
-    def get_all_orders():
-        ws = get_worksheet("Orders")
-        df = pd.DataFrame(ws.get_all_records()) if ws else pd.DataFrame()
-        return ws, df
-
-    ws_orders, df_all = get_all_orders()
-
-    if df_all.empty:
-        st.warning("Tidak ada data pesanan ditemukan.")
-    else:
-        selected_order_id = st.selectbox(
-            "Pilih Order ID untuk diubah",
-            df_all['order_id'].astype(str).unique(),
-            placeholder="Pilih Order ID..."
-        )
-        new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
-
-        if st.button("✅ Perbarui Status"):
-            if not selected_order_id:
-                st.error("Pilih dulu Order ID-nya.")
-            else:
-                try:
-                    cell = ws_orders.find(str(selected_order_id))
-                    if cell:
-                        ws_orders.update(f"F{cell.row}", [[new_status]])
-                        st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
-                        st.cache_data.clear()
-                        st.experimental_rerun()  # Auto-refresh
-                    else:
-                        st.error("Order ID tidak ditemukan.")
-                except Exception as e:
-                    st.error(f"Gagal update status: {e}")
+    if not orders_display_df[orders_display_df["status"] == "Baru"].empty:
+        st.divider()
+        st.subheader("🔄 Perbarui Status Pesanan")
+    
+        @st.cache_data
+        def get_all_orders():
+            ws = get_worksheet("Orders")
+            df = pd.DataFrame(ws.get_all_records()) if ws else pd.DataFrame()
+            return ws, df
+    
+        ws_orders, df_all = get_all_orders()
+    
+        if df_all.empty:
+            st.warning("Tidak ada data pesanan ditemukan.")
+        else:
+            selected_order_id = st.selectbox(
+                "Pilih Order ID untuk diubah",
+                df_all['order_id'].astype(str).unique(),
+                placeholder="Pilih Order ID..."
+            )
+            new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
+    
+            if st.button("✅ Perbarui Status"):
+                if not selected_order_id:
+                    st.error("Pilih dulu Order ID-nya.")
+                else:
+                    try:
+                        cell = ws_orders.find(str(selected_order_id))
+                        if cell:
+                            ws_orders.update(f"F{cell.row}", [[new_status]])
+                            st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
+                            st.cache_data.clear()
+                            st.experimental_rerun()  # Auto-refresh
+                        else:
+                            st.error("Order ID tidak ditemukan.")
+                    except Exception as e:
+                        st.error(f"Gagal update status: {e}")
 
 #========================================================================================
         with st.expander("📦 Produk Anda"):
