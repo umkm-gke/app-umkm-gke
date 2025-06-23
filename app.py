@@ -805,7 +805,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                                 products_ws.delete_rows(cell.row)
                                 st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
                                 st.cache_data.clear()
-                                st.rerun()
+                                #st.rerun()
                             else:
                                 st.error("Produk tidak ditemukan.")
                 else:
@@ -909,7 +909,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                                 st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
                     
                             st.cache_data.clear()
-                            st.rerun()
+                            #st.rerun()
     
             except Exception as e:
                 st.error("Gagal menampilkan form produk.")
