@@ -395,7 +395,7 @@ if role == 'guest':
                     if st.button("Hapus", key=f"del_{i}"):
                         cart.pop(i)
                         st.session_state.cart = cart
-                        st.rerun()
+                        #st.rerun()
     
             total_price += item['price'] * item['quantity']
             vendor_id = item['vendor_id']
@@ -608,14 +608,13 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
 
     # 2. Load dan filter data pesanan
     def load_relevant_orders(vendor_id):
-        orders_df = get_data("Orders")
-        orders_df['timestamp'] = pd.to_datetime(orders_df['timestamp'], errors='coerce')
-        orders_df['timestamp'] = orders_df['timestamp'].dt.tz_localize("UTC").dt.tz_convert(jakarta_tz)
-
+        ws_orders, orders_df = get_all_orders()
+        orders_df['timestamp'] = pd.to_datetime(orders_df['timestamp'], errors='coerce', utc=True).dt.tz_convert(jakarta_tz)
+    
         today = now_jakarta()
         last_week = today - pd.Timedelta(days=7)
         orders_df = orders_df[orders_df['timestamp'] >= last_week]
-
+    
         relevant = []
         for _, row in orders_df.iterrows():
             try:
@@ -636,6 +635,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
             except Exception as e:
                 st.warning(f"⛔ Pesanan {row['order_id']} tidak bisa diproses: {e}")
         return pd.DataFrame(relevant)
+
         
     # 3. Tampilan pesanan masuk
     with st.expander("📋 Daftar Pesanan Masuk"):
@@ -756,14 +756,11 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                             update_range = f"F{row_number}"  # Kolom F = order_status
     
                             # Gunakan batch_update
-                            ws_orders.batch_update([{
-                                "range": update_range,
-                                "values": [[new_status]]
-                            }])
+                            ws_orders.update(update_range, [[new_status]])
     
                             st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                             st.cache_data.clear()
-                            st.rerun()
+                            #st.rerun()
                         else:
                             st.error("❌ Order ID tidak ditemukan.")
                     except Exception as e:
@@ -1138,7 +1135,7 @@ elif role == 'admin':
                 vendors_ws.update_cell(row_idx, 7, str(new_status))
                 st.success(f"Status vendor {selected_vendor_id} berhasil diperbarui ke: {'Aktif' if new_status else 'Nonaktif'}")
                 st.cache_data.clear()
-                st.rerun()
+                #st.rerun()
 
     with st.expander("🔍 Cari Vendor untuk Reset Password"):
         search_term = st.text_input("Cari berdasarkan username atau nama vendor")
@@ -1174,7 +1171,7 @@ elif role == 'admin':
                                 vendors_ws.update_cell(cell.row, password_col_index, hashed_new_pw)
                                 get_data.clear()  # Clear cache data get_data saja
                                 st.success(f"Password untuk '{selected_username}' berhasil direset.")
-                                st.rerun()
+                                #st.rerun()
                             else:
                                 st.error("Gagal menemukan akun vendor.")
 
