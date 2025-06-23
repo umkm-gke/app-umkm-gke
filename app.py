@@ -637,9 +637,9 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
             st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
         else:
             st.info("✅ Tidak ada pesanan baru saat ini.")
-        #if df_orders.empty:
-            #st.info("Belum ada pesanan yang masuk untuk Anda.")
-        #else:
+        if df_orders.empty:
+            st.info("Belum ada pesanan yang masuk untuk Anda.")
+        else:
             # Filter tanggal (maksimal 7 hari)
             today = now_jakarta()
             one_week_ago = today - pd.Timedelta(days=7)
