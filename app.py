@@ -871,158 +871,158 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
 
  # ------------------ UPDATE DATA VENDOR ------------------
     
-        with st.expander("✏️ Update Data Toko"):
-            def is_valid_image_url(url: str) -> bool:
-                return url.lower().startswith("http") and url.lower().endswith((".jpg", ".jpeg", ".png"))
-            
-            try:
-                vendor_id = st.session_state.vendor_id
-                vendors_df = get_data("Vendors")
-                vendors_ws = get_worksheet("Vendors")
+    with st.expander("✏️ Update Data Toko"):
+        def is_valid_image_url(url: str) -> bool:
+            return url.lower().startswith("http") and url.lower().endswith((".jpg", ".jpeg", ".png"))
         
-                vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc[0]
-        
-                updated_bank = st.text_input("Info Rekening Bank", value=vendor_info.get("bank_account", ""))
-                updated_qris = st.text_input(
-                    "Link Gambar QRIS",
-                    value=vendor_info.get("qris_url", ""),
-                    placeholder="https://i.imgur.com/qriscontoh.png"
-                )
-        
-                if st.button("💾 Simpan Perubahan"):
-                    if updated_qris and not is_valid_image_url(updated_qris):
-                        st.error("Link QRIS harus berupa URL gambar dengan ekstensi .jpg, .jpeg, atau .png")
-                    else:
-                        try:
-                            cell = vendors_ws.find(vendor_id)
-                            row = cell.row
-        
-                            # Update kolom bank_account dan qris_url (pastikan kolom sesuai dengan struktur GSheet Anda)
-                            vendors_ws.update_cell(row, 8, updated_bank)  # kolom H
-                            vendors_ws.update_cell(row, 9, updated_qris)  # kolom I
-        
-                            st.success("Data berhasil diperbarui.")
-                            #st.experimental_rerun()
-                        except Exception as e:
-                            st.error("Gagal memperbarui data.")
-                            st.write(e)
-        
-            except Exception as e:
-                st.error("Gagal memuat data vendor.")
-                st.write(e)
+        try:
+            vendor_id = st.session_state.vendor_id
+            vendors_df = get_data("Vendors")
+            vendors_ws = get_worksheet("Vendors")
+    
+            vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc[0]
+    
+            updated_bank = st.text_input("Info Rekening Bank", value=vendor_info.get("bank_account", ""))
+            updated_qris = st.text_input(
+                "Link Gambar QRIS",
+                value=vendor_info.get("qris_url", ""),
+                placeholder="https://i.imgur.com/qriscontoh.png"
+            )
+    
+            if st.button("💾 Simpan Perubahan"):
+                if updated_qris and not is_valid_image_url(updated_qris):
+                    st.error("Link QRIS harus berupa URL gambar dengan ekstensi .jpg, .jpeg, atau .png")
+                else:
+                    try:
+                        cell = vendors_ws.find(vendor_id)
+                        row = cell.row
+    
+                        # Update kolom bank_account dan qris_url (pastikan kolom sesuai dengan struktur GSheet Anda)
+                        vendors_ws.update_cell(row, 8, updated_bank)  # kolom H
+                        vendors_ws.update_cell(row, 9, updated_qris)  # kolom I
+    
+                        st.success("Data berhasil diperbarui.")
+                        #st.experimental_rerun()
+                    except Exception as e:
+                        st.error("Gagal memperbarui data.")
+                        st.write(e)
+    
+        except Exception as e:
+            st.error("Gagal memuat data vendor.")
+            st.write(e)
 
  # ------------------ LAPORAN KEUANGAN VENDOR ------------------
-        with st.expander("💰 Laporan Keuangan"):
-            try:
-                orders_df = get_data("Orders")
-                vendor_id = st.session_state.get("vendor_id")
-        
-                import json
-                transactions = []
-        
-                # Ambil semua transaksi selesai dari vendor
-                for _, row in orders_df.iterrows():
-                    if row['order_status'] == "Selesai":
-                        try:
-                            items = json.loads(row['order_details'])
-                            for item in items:
-                                if item.get('vendor_id') == vendor_id:
-                                    transactions.append({
-                                        "order_id": row['order_id'],
-                                        "product_name": item.get("product_name"),
-                                        "quantity": item.get("quantity"),
-                                        "price": item.get("price"),
-                                        "total": item.get("price") * item.get("quantity"),
-                                        "timestamp": row["timestamp"],
-                                        "customer_name": row.get("customer_name", ""),
-                                        "customer_contact": row.get("customer_contact", "")
-                                    })
-                        except Exception as e:
-                            st.warning(f"Transaksi tidak valid: {e}")
-        
-                if not transactions:
-                    st.info("Belum ada transaksi selesai yang masuk.")
-                else:
-                    df_financial = pd.DataFrame(transactions)
-                    df_financial['timestamp'] = pd.to_datetime(df_financial['timestamp'])
-        
-                    # Filter tanggal
-                    min_date = df_financial['timestamp'].min().date()
-                    max_date = df_financial['timestamp'].max().date()
-                    date_range = st.date_input(
-                        "Filter Tanggal Transaksi",
-                        value=(min_date, max_date),
-                        min_value=min_date,
-                        max_value=max_date
-                    )
-        
-                    if len(date_range) == 2:
-                        start_date, end_date = date_range
-                        df_financial = df_financial[(df_financial['timestamp'].dt.date >= start_date) &
-                                                    (df_financial['timestamp'].dt.date <= end_date)]
-        
-                    # Filter produk
-                    produk_list = df_financial['product_name'].unique().tolist()
-                    produk_pilih = st.selectbox("Filter berdasarkan produk:", ["Semua"] + produk_list)
-        
-                    if produk_pilih != "Semua":
-                        df_financial = df_financial[df_financial['product_name'] == produk_pilih]
-        
-                    # Tampilkan total pendapatan
-                    total_income = df_financial['total'].sum()
-                    st.metric("💵 Total Pendapatan", f"Rp {total_income:,.0f}")
-        
-                    if not df_financial.empty:
-                        # Tabel detail transaksi
-                        with st.expander("📄 Detail Transaksi"):
-                            df_display = df_financial.sort_values(by="timestamp", ascending=False)[
-                                ["timestamp", "order_id", "customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
-                            ].rename(columns={
-                                "timestamp": "Tanggal & Waktu",
-                                "order_id": "ID Pesanan",
-                                "customer_name": "Nama Pembeli",
-                                "customer_contact": "Kontak Pembeli",
-                                "product_name": "Nama Produk",
-                                "quantity": "Jumlah",
-                                "price": "Harga Satuan",
-                                "total": "Total"
-                            })
-                        
-                            st.dataframe(df_display, use_container_width=False)
-
-                        
-                        # Download Excel
-                        
-                        df_to_save = df_financial.sort_values(by="timestamp", ascending=False)[
+    with st.expander("💰 Laporan Keuangan"):
+        try:
+            orders_df = get_data("Orders")
+            vendor_id = st.session_state.get("vendor_id")
+    
+            import json
+            transactions = []
+    
+            # Ambil semua transaksi selesai dari vendor
+            for _, row in orders_df.iterrows():
+                if row['order_status'] == "Selesai":
+                    try:
+                        items = json.loads(row['order_details'])
+                        for item in items:
+                            if item.get('vendor_id') == vendor_id:
+                                transactions.append({
+                                    "order_id": row['order_id'],
+                                    "product_name": item.get("product_name"),
+                                    "quantity": item.get("quantity"),
+                                    "price": item.get("price"),
+                                    "total": item.get("price") * item.get("quantity"),
+                                    "timestamp": row["timestamp"],
+                                    "customer_name": row.get("customer_name", ""),
+                                    "customer_contact": row.get("customer_contact", "")
+                                })
+                    except Exception as e:
+                        st.warning(f"Transaksi tidak valid: {e}")
+    
+            if not transactions:
+                st.info("Belum ada transaksi selesai yang masuk.")
+            else:
+                df_financial = pd.DataFrame(transactions)
+                df_financial['timestamp'] = pd.to_datetime(df_financial['timestamp'])
+    
+                # Filter tanggal
+                min_date = df_financial['timestamp'].min().date()
+                max_date = df_financial['timestamp'].max().date()
+                date_range = st.date_input(
+                    "Filter Tanggal Transaksi",
+                    value=(min_date, max_date),
+                    min_value=min_date,
+                    max_value=max_date
+                )
+    
+                if len(date_range) == 2:
+                    start_date, end_date = date_range
+                    df_financial = df_financial[(df_financial['timestamp'].dt.date >= start_date) &
+                                                (df_financial['timestamp'].dt.date <= end_date)]
+    
+                # Filter produk
+                produk_list = df_financial['product_name'].unique().tolist()
+                produk_pilih = st.selectbox("Filter berdasarkan produk:", ["Semua"] + produk_list)
+    
+                if produk_pilih != "Semua":
+                    df_financial = df_financial[df_financial['product_name'] == produk_pilih]
+    
+                # Tampilkan total pendapatan
+                total_income = df_financial['total'].sum()
+                st.metric("💵 Total Pendapatan", f"Rp {total_income:,.0f}")
+    
+                if not df_financial.empty:
+                    # Tabel detail transaksi
+                    with st.expander("📄 Detail Transaksi"):
+                        df_display = df_financial.sort_values(by="timestamp", ascending=False)[
                             ["timestamp", "order_id", "customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
                         ].rename(columns={
-                                "timestamp": "Tanggal & Waktu",
-                                "order_id": "ID Pesanan",
-                                "customer_name": "Nama Pembeli",
-                                "customer_contact": "Kontak Pembeli",
-                                "product_name": "Nama Produk",
-                                "quantity": "Jumlah",
-                                "price": "Harga Satuan",
-                                "total": "Total"
-                            })
-                        towrite = io.BytesIO()
-                        with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
-                            df_to_save.to_excel(writer, index=False, sheet_name='Laporan Keuangan')
-                            
-                        towrite.seek(0)
-                        vendor_name = st.session_state.get("vendor_name", "Vendor")
-                        st.download_button(
-                            label="⬇️ Download Laporan Excel",
-                            data=towrite,
-                            file_name = f"Laporan Keuangan {vendor_name}.xlsx".replace(" ", "_"),
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
-                    else:
-                        st.info("Tidak ada data transaksi sesuai filter yang dipilih.")
-        
-            except Exception as e:
-                st.error("Gagal memuat laporan keuangan.")
-                st.write(e)
+                            "timestamp": "Tanggal & Waktu",
+                            "order_id": "ID Pesanan",
+                            "customer_name": "Nama Pembeli",
+                            "customer_contact": "Kontak Pembeli",
+                            "product_name": "Nama Produk",
+                            "quantity": "Jumlah",
+                            "price": "Harga Satuan",
+                            "total": "Total"
+                        })
+                    
+                        st.dataframe(df_display, use_container_width=False)
+
+                    
+                    # Download Excel
+                    
+                    df_to_save = df_financial.sort_values(by="timestamp", ascending=False)[
+                        ["timestamp", "order_id", "customer_name", "customer_contact", "product_name", "quantity", "price", "total"]
+                    ].rename(columns={
+                            "timestamp": "Tanggal & Waktu",
+                            "order_id": "ID Pesanan",
+                            "customer_name": "Nama Pembeli",
+                            "customer_contact": "Kontak Pembeli",
+                            "product_name": "Nama Produk",
+                            "quantity": "Jumlah",
+                            "price": "Harga Satuan",
+                            "total": "Total"
+                        })
+                    towrite = io.BytesIO()
+                    with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
+                        df_to_save.to_excel(writer, index=False, sheet_name='Laporan Keuangan')
+                        
+                    towrite.seek(0)
+                    vendor_name = st.session_state.get("vendor_name", "Vendor")
+                    st.download_button(
+                        label="⬇️ Download Laporan Excel",
+                        data=towrite,
+                        file_name = f"Laporan Keuangan {vendor_name}.xlsx".replace(" ", "_"),
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                else:
+                    st.info("Tidak ada data transaksi sesuai filter yang dipilih.")
+    
+        except Exception as e:
+            st.error("Gagal memuat laporan keuangan.")
+            st.write(e)
 
 
 # =================================================================
