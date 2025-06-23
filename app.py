@@ -632,44 +632,41 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
     # 3. Tampilan pesanan masuk
     with st.expander("📋 Daftar Pesanan Masuk"):
         df_orders = load_relevant_orders(vendor_id)
-        if relevant_orders:
-            orders_display_df = pd.DataFrame(relevant_orders)
-            if not orders_display_df[orders_display_df["status"] == "Baru"].empty:
-        else:
+    
+        if df_orders.empty:
             st.info("Belum ada pesanan yang masuk untuk Anda.")
-
         else:
-            # Filter tanggal
+            # Filter tanggal (maksimal 7 hari)
             today = now_jakarta()
             one_week_ago = today - pd.Timedelta(days=7)
-
+    
             selected_date_range = st.date_input(
                 "📆 Filter Rentang Tanggal Pesanan",
                 value=(today.date(), today.date()),
                 min_value=one_week_ago.date(),
                 max_value=today.date()
             )
-
+    
             if isinstance(selected_date_range, tuple) and len(selected_date_range) == 2:
                 start_date, end_date = selected_date_range
                 df_orders = df_orders[
                     (df_orders['timestamp'].dt.date >= start_date) &
                     (df_orders['timestamp'].dt.date <= end_date)
                 ]
-
-            # Filter status default: "Baru"
+    
+            # Filter status (default: "Baru")
             filter_status = st.selectbox(
                 "📌 Filter Status Pesanan",
                 ["Semua", "Baru", "Diproses", "Selesai", "Dibatalkan"],
-                index=1
+                index=1  # Default ke "Baru"
             )
             if filter_status != "Semua":
                 df_orders = df_orders[df_orders['status'] == filter_status]
-
+    
             # Tampilkan pesanan
             MAX_DISPLAY = 50
             df_orders = df_orders.sort_values(by='timestamp', ascending=False).head(MAX_DISPLAY)
-
+    
             if df_orders.empty:
                 st.info("Tidak ada pesanan sesuai filter.")
             else:
@@ -682,7 +679,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         st.write(f"🛒 Produk: {order['product_name']} x {order['quantity']}")
                         st.write(f"💰 Total Item: Rp {order['total_item_price']:,}")
                         st.write(f"📌 Status: `{order['status']}`")
-
+    
                         # Tombol WhatsApp
                         wa_message = (
                             f"Halo {order['customer_name']}, kami dari penjual produk {order['product_name']}.\n"
@@ -692,9 +689,9 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         )
                         wa_link = f"https://wa.me/{order['contact']}?text={quote_plus(wa_message)}"
                         st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
-
-    # 4. Modul Perubahan Status
-    if not orders_display_df[orders_display_df["status"] == "Baru"].empty:
+    
+    # 4. Modul Perubahan Status (hanya jika ada pesanan "Baru")
+    if not df_orders[df_orders["status"] == "Baru"].empty:
         st.divider()
         st.subheader("🔄 Perbarui Status Pesanan")
     
@@ -726,7 +723,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                             ws_orders.update(f"F{cell.row}", [[new_status]])
                             st.success(f"Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                             st.cache_data.clear()
-                            st.experimental_rerun()  # Auto-refresh
+                            st.experimental_rerun()  # Auto-refresh tampilan
                         else:
                             st.error("Order ID tidak ditemukan.")
                     except Exception as e:
