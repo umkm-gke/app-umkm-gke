@@ -818,20 +818,19 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
         # ------------------ TAMBAH / EDIT PRODUK ------------------
         with st.expander("➕ Tambah atau Edit Produk"):
             try:
+                # Ambil data produk seperti biasa
                 products_df = get_data("Products")
                 if 'category' not in products_df.columns:
                     products_df['category'] = ""
                 my_products = products_df[products_df['vendor_id'] == vendor_id]
                 existing_ids = my_products['product_id'].tolist()
-    
-                # Pilihan produk di luar form
+                
                 selected_product_id = st.selectbox(
                     "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
                     [""] + existing_ids,
                     key="selected_product_id"
                 )
-    
-                # Ambil data produk jika ada
+                
                 if selected_product_id:
                     product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
                     default_name = product_data['product_name']
@@ -847,8 +846,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                     default_stock = 0
                     default_active = True
                     default_image = ""
-    
-                # Form input
+                
                 with st.form("product_form", clear_on_submit=True):
                     product_name = st.text_input("Nama Produk", value=default_name)
                     description = st.text_area("Deskripsi", value=default_desc)
@@ -856,41 +854,47 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                     stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=default_stock)
                     is_active = st.checkbox("Tampilkan Produk?", value=default_active)
                     kategori_list = ["Makanan", "Minuman", "Rumah Tangga", "Kesehatan", "Bayi", "Mainan", "Lainnya"]
-                    kategori = st.selectbox("Kategori Produk", options=kategori_list, index=0 if not selected_product_id else kategori_list.index(product_data['category']) if product_data['category'] in kategori_list else len(kategori_list)-1)
-    
-    
-                    if default_image:
+                    kategori = st.selectbox(
+                        "Kategori Produk",
+                        options=kategori_list,
+                        index=0 if not selected_product_id else (kategori_list.index(product_data['category']) if product_data['category'] in kategori_list else len(kategori_list) - 1)
+                    )
+                
+                    # Tampilkan gambar jika ada dan file ada di disk
+                    if default_image and os.path.isfile(default_image):
                         st.image(default_image, width=200, caption="Gambar Produk Saat Ini")
-    
+                    elif default_image:
+                        st.warning("Gambar produk tidak ditemukan di server.")
+                
                     uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
-                    image_url = default_image
-    
+                
                     submitted = st.form_submit_button("💾 Simpan Produk")
-    
+                
                 if submitted:
                     if not product_name or not description:
                         st.warning("Nama produk dan deskripsi wajib diisi.")
                     else:
-    
                         products_ws = get_worksheet("Products")
-    
+                
+                        image_url = default_image  # Default pakai gambar lama
+                
                         # Simpan gambar baru jika diupload
                         if uploaded_file:
                             os.makedirs("images", exist_ok=True)
-                            image_url = f"images/{uuid.uuid4().hex[:8]}.jpg"
-                            with open(image_url, "wb") as f:
+                            image_path = f"images/{uuid.uuid4().hex[:8]}.jpg"
+                            with open(image_path, "wb") as f:
                                 f.write(uploaded_file.read())
+                            image_url = image_path  # Update path gambar baru
                             st.image(image_url, width=200, caption="Gambar Baru")
-    
+                
                         product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
-                        # Convert is_active to string explicitly
                         is_active_str = "true" if is_active else "false"
                         new_row = [
                             product_id, vendor_id, product_name, description, price,
                             image_url, stock_quantity, is_active_str, kategori,
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         ]
-
+                
                         if selected_product_id:
                             # Update produk
                             cell = products_ws.find(selected_product_id)
@@ -903,9 +907,9 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                             # Tambah produk baru
                             products_ws.append_row(new_row)
                             st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
-    
+                
                         st.cache_data.clear()
-                        st.rerun()
+                        st.experimental_rerun()
     
             except Exception as e:
                 st.error("Gagal menampilkan form produk.")
