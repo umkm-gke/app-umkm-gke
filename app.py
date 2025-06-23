@@ -335,9 +335,17 @@ if role == 'guest':
                             st.markdown('<div class="product-card">', unsafe_allow_html=True)
             
                             # Gambar produk
-                            image_url = product.get('image_url', '').strip()
-                            img_src = image_url if image_url else "https://via.placeholder.com/200"
-                            st.image(img_src, use_container_width=True)
+                            image_obj = product.get('image_url', '')
+                            try:
+                                if hasattr(image_obj, "read"):  # uploaded file / BytesIO
+                                    st.image(image_obj, use_container_width=True)
+                                elif isinstance(image_obj, str) and image_obj.strip():
+                                    st.image(image_obj.strip(), use_container_width=True)
+                                else:
+                                    st.image("https://via.placeholder.com/200", use_container_width=True)
+                            except Exception as e:
+                                st.warning("⚠️ Gagal memuat gambar produk. Menampilkan placeholder.")
+                                st.image("https://via.placeholder.com/200", use_container_width=True)
             
                             # Informasi produk
                             st.markdown(f"**{product['product_name'][:30]}**")
