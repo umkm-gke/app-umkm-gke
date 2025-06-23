@@ -870,7 +870,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                 if submitted:
                     if not product_name or not description:
                         st.warning("Nama produk dan deskripsi wajib diisi.")
-                        st.stop()
+                    else:
     
                         products_ws = get_worksheet("Products")
     
