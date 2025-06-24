@@ -186,136 +186,124 @@ with st.sidebar:
         reset_password_vendor()
     if role in ['vendor','admin']:
         login_form()  # prevent ghost sessions
-# =================================================================
-# --- HALAMAN PEMBELI (Guest) ---
-# =================================================================
-if st.session_state.role=='guest':
-    if menu_selection == "Belanja":
-        st.markdown("""### <img src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png" width="25"/> Katalog Produk
-        """, unsafe_allow_html=True)
-        st.markdown("_Temukan produk terbaik dari UMKM GKE_")
+# ========================
+# --- HALAMAN BELANJA ---
+# ========================
+if st.session_state.role == 'guest' and menu_selection == "Belanja":
+    st.markdown("### <img src='https://cdn-icons-png.flaticon.com/512/1170/1170678.png' width='25'/> Katalog Produk", unsafe_allow_html=True)
+    st.markdown("_Temukan produk terbaik dari UMKM GKE_")
 
-        # 1. Load dan proses data
+    # 1. Ambil data dan validasi
+    try:
         products_df = get_data("Products")
         vendors_df = get_data("Vendors")
         orders_df = get_data("Orders")
+    except Exception as e:
+        st.error("❌ Gagal memuat data. Silakan coba beberapa saat lagi.")
+        st.stop()
 
-        # Tambah kolom jika belum ada
-        if 'category' not in products_df.columns:
-            products_df['category'] = ""
+    # Pastikan kolom kategori dan status tersedia
+    products_df['category'] = products_df.get('category', "")
+    products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
+    vendors_df['is_active'] = vendors_df['is_active'].apply(lambda x: str(x).lower() == 'true')
 
-        # Konversi is_active jadi boolean
-        products_df['is_active'] = products_df['is_active'].apply(lambda x: str(x).lower() == 'true')
-        vendors_df['is_active'] = vendors_df['is_active'].apply(lambda x: str(x).lower() == 'true')
+    # 2. Hitung penjualan
+    sales = {}
+    for det in orders_df.get('order_details', []).dropna():
+        try:
+            for item in json.loads(det):
+                pid, qty = item['product_id'], int(item.get('quantity', 1))
+                sales[pid] = sales.get(pid, 0) + qty
+        except:
+            continue
 
-        # Hitung sold_count dari order_details
-        sales={}
-        for det in orders_df.order_details.dropna():
-            try:
-                for i in json.loads(det):
-                    pid, qty = i['product_id'], int(i.get('quantity',1))
-                    sales[pid] = sales.get(pid,0)+qty
-            except:
-                continue
+    # 3. Gabung data produk & vendor
+    merged = products_df.merge(
+        vendors_df[['vendor_id', 'vendor_name', 'is_active']],
+        on='vendor_id', how='left', suffixes=('', '_v')
+    )
+    merged['sold_count'] = merged['product_id'].map(sales).fillna(0).astype(int)
+    active_products = merged[merged['is_active'] & merged['is_active_v']]
 
-        merged = products_df.merge(vendors_df[['vendor_id','vendor_name','is_active']],
-                                   on='vendor_id', how='left', suffixes=('','_v'))
-        merged['sold_count'] = merged.product_id.map(sales).fillna(0).astype(int)
-        active = merged[merged.is_active & merged.is_active_v]
-        if active.empty:
-            st.warning("Tidak ada produk aktif.")
-            st.stop()
-        active = active.sort_values('sold_count', ascending=False)
+    if active_products.empty:
+        st.warning("Tidak ada produk aktif yang bisa ditampilkan.")
+        st.stop()
 
-        # 2. Sidebar filter
-        st.sidebar.header("🔍 Filter Pencarian")
+    active_products = active_products.sort_values("sold_count", ascending=False)
 
-        vendor_list = active_products['vendor_name'].dropna().unique().tolist()
-        selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
+    # 4. Sidebar Filter
+    st.sidebar.header("🔍 Filter Pencarian")
+    vendor_list = sorted(active_products['vendor_name'].dropna().unique().tolist())
+    selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
 
-        kategori_list = sorted(active_products['category'].dropna().unique().tolist())
-        selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
+    kategori_list = sorted(active_products['category'].dropna().unique().tolist())
+    selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
 
-        search_query = st.sidebar.text_input("Cari Nama Produk")
+    search_query = st.sidebar.text_input("Cari Nama Produk")
 
-        # 3. Terapkan filter
-        filtered = active_products.copy()
+    # 5. Terapkan filter
+    filtered = active_products.copy()
+    if selected_vendor != "Semua":
+        filtered = filtered[filtered['vendor_name'] == selected_vendor]
+    if selected_kategori != "Semua":
+        filtered = filtered[filtered['category'] == selected_kategori]
+    if search_query:
+        filtered = filtered[filtered['product_name'].str.contains(search_query, case=False, na=False)]
 
-        if selected_vendor != "Semua":
-            filtered = filtered[filtered['vendor_name'] == selected_vendor]
-        if selected_kategori != "Semua":
-            filtered = filtered[filtered['category'] == selected_kategori]
-        if search_query:
-            filtered = filtered[filtered['product_name'].str.contains(search_query, case=False, na=False)]
+    # 6. Tampilkan hasil produk
+    if filtered.empty:
+        st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
+    else:
+        st.markdown("---")
+        st.markdown("""
+        <style>
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 8px 10px;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .product-card .stImage { margin-bottom: 8px; }
+        .product-card .stButton > button { width: 100%; margin-top: 8px; }
+        .product-card .stCaption, .product-card .stMarkdown { margin-bottom: 4px; }
+        </style>
+        """, unsafe_allow_html=True)
 
-        # 4. Tampilkan hasil
-        if filtered.empty:
-            st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
-        else:
-            st.markdown("---")
-            #cols = st.columns(4)  # 4 produk per baris
-            #for index, product in filtered.iterrows():
-                #col = cols[index % 4]
-            st.markdown("""
-            <style>
-            .product-card {
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                padding: 8px 10px;
-                height: 100%;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-            }
-            .product-card .stImage {
-                margin-bottom: 8px;
-            }
-            .product-card .stButton > button {
-                width: 100%;
-                margin-top: 8px;
-            }
-            .product-card .stCaption, .product-card .stMarkdown {
-                margin-bottom: 4px;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-            rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
-            for row in rows:
-                cols = st.columns(4)
-                for col, (_, product) in zip(cols, row.iterrows()):
-                    with col:
-                        with st.container():
-                            st.markdown('<div class="product-card">', unsafe_allow_html=True)
-            
-                            # Gambar produk
-                            image_obj = product.get('image_url', '')
-                            try:
-                                if hasattr(image_obj, "read"):  # uploaded file / BytesIO
-                                    st.image(image_obj, use_container_width=True)
-                                elif isinstance(image_obj, str) and image_obj.strip():
-                                    st.image(image_obj.strip(), use_container_width=True)
-                                else:
-                                    st.image("https://via.placeholder.com/200", use_container_width=True)
-                            except Exception as e:
-                                st.warning("⚠️ Gagal memuat gambar produk. Menampilkan placeholder.")
+        rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
+        for row in rows:
+            cols = st.columns(4)
+            for col, (_, product) in zip(cols, row.iterrows()):
+                with col:
+                    with st.container():
+                        st.markdown('<div class="product-card">', unsafe_allow_html=True)
+                        image_url = product.get('image_url', '')
+                        try:
+                            if hasattr(image_url, "read"):
+                                st.image(image_url, use_container_width=True)
+                            elif isinstance(image_url, str) and image_url.strip():
+                                st.image(image_url.strip(), use_container_width=True)
+                            else:
                                 st.image("https://via.placeholder.com/200", use_container_width=True)
-            
-                            # Informasi produk
-                            st.markdown(f"**{product['product_name'][:30]}**")
-                            st.caption(f"Kategori: {product.get('category', '-')}")
-                            st.caption(f"🧑 {product['vendor_name']}")
-                            st.markdown(f"💰 Rp {int(product['price']):,}")
-                            st.caption(f"✅ Terjual: {product['sold_count']:,}")
-            
-                            # Deskripsi
-                            desc = product.get('description', '')
-                            st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
-            
-                            # Tombol beli
-                            if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                                add_to_cart(product)
-                            st.markdown('</div>', unsafe_allow_html=True)
+                        except:
+                            st.image("https://via.placeholder.com/200", use_container_width=True)
+
+                        st.markdown(f"**{product['product_name'][:30]}**")
+                        st.caption(f"Kategori: {product.get('category', '-')}")
+                        st.caption(f"🧑 {product['vendor_name']}")
+                        st.markdown(f"💰 Rp {int(product['price']):,}")
+                        st.caption(f"✅ Terjual: {product['sold_count']:,}")
+
+                        desc = product.get('description', '')
+                        st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
+
+                        if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                            add_to_cart(product)
+
+                        st.markdown('</div>', unsafe_allow_html=True)
 
     if 'cart' not in st.session_state:
         st.session_state.cart = []
