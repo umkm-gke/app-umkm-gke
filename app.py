@@ -620,33 +620,40 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
             return None, pd.DataFrame()
 
     # Fungsi filter pesanan vendor
-    def load_relevant_orders(df_orders, vendor_id):
-        df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce', utc=True).dt.tz_convert(jakarta_tz)
-
+    def load_relevant_orders(df_orders_all, vendor_id):
+        df_orders_all['timestamp'] = pd.to_datetime(df_orders_all['timestamp'], errors='coerce', utc=True).dt.tz_convert(jakarta_tz)
         today = now_jakarta()
         last_week = today - pd.Timedelta(days=7)
-        df_orders = df_orders[df_orders['timestamp'] >= last_week]
-
-        relevant = []
-        for _, row in df_orders.iterrows():
+        df_orders_all = df_orders_all[df_orders_all['timestamp'] >= last_week]
+    
+        grouped = []
+    
+        for _, row in df_orders_all.iterrows():
             try:
                 items = json.loads(row['order_details'])
+                relevant_items = []
                 for item in items:
                     if item.get('vendor_id') == vendor_id:
-                        relevant.append({
-                            "order_id": row['order_id'],
+                        relevant_items.append({
                             "product_name": item.get('product_name'),
                             "quantity": item.get('quantity'),
                             "price": item.get('price'),
-                            "total_item_price": item.get('price') * item.get('quantity'),
-                            "customer_name": row['customer_name'],
-                            "contact": row['customer_contact'],
-                            "status": row['order_status'],
-                            "timestamp": row['timestamp']
+                            "total_item_price": item.get('quantity') * item.get('price')
                         })
+                if relevant_items:
+                    grouped.append({
+                        "order_id": row['order_id'],
+                        "items": relevant_items,
+                        "customer_name": row['customer_name'],
+                        "contact": row['customer_contact'],
+                        "status": row['order_status'],
+                        "timestamp": row['timestamp']
+                    })
             except Exception as e:
-                st.warning(f"⛔ Pesanan {row['order_id']} tidak bisa diproses: {e}")
-        return pd.DataFrame(relevant)
+                st.warning(f"⛔ Order ID {row['order_id']} gagal diproses: {e}")
+    
+        return pd.DataFrame(grouped)
+
 
     # Ambil data
     ws_orders, df_all = get_all_orders()
@@ -705,19 +712,29 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         st.write(f"🕒 Waktu: {order['timestamp']}")
                         st.write(f"👤 Pembeli: {order['customer_name']}")
                         st.write(f"📞 Kontak: {order['contact']}")
-                        st.write(f"🛒 Produk: {order['product_name']} x {order['quantity']}")
-                        st.write(f"💰 Total Item: Rp {order['total_item_price']:,}")
                         st.write(f"📌 Status: `{order['status']}`")
-
+                
+                        st.markdown("#### 🛒 Produk Dipesan:")
+                        total_all = 0
+                        for item in order['items']:
+                            st.write(f"- {item['product_name']} x {item['quantity']} @ Rp {item['price']:,} = Rp {item['total_item_price']:,}")
+                            total_all += item['total_item_price']
+                
+                        st.write(f"💰 **Total Produk dari Anda:** Rp {total_all:,}")
+                
+                        # Tombol WA
+                        product_summary = "\n".join([
+                            f"- {i['product_name']} x {i['quantity']} = Rp {i['total_item_price']:,}"
+                            for i in order['items']
+                        ])
                         wa_message = (
-                            f"Halo {order['customer_name']}, kami dari penjual produk {order['product_name']}.\n"
-                            f"Kami menerima pesanan Anda dengan ID {order['order_id']} sebanyak {order['quantity']} pcs.\n"
-                            f"Total: Rp {order['total_item_price']:,}.\n\n"
-                            f"Silakan konfirmasi ke kami jika ada hal yang ingin ditanyakan. Terima kasih!"
+                            f"Halo {order['customer_name']}, kami dari tim penjual.\n"
+                            f"Kami menerima pesanan Anda dengan ID {order['order_id']}:\n{product_summary}\n"
+                            f"\nTotal: Rp {total_all:,}\n\n"
+                            f"Silakan hubungi kami jika ada pertanyaan. Terima kasih!"
                         )
                         wa_link = f"https://wa.me/{order['contact']}?text={quote_plus(wa_message)}"
                         st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
-
     # 4. Modul Perubahan Status
     df_vendor_orders = df_all[df_all["order_status"] == "Baru"].copy()
     df_vendor_orders["is_relevant"] = False
