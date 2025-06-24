@@ -1,22 +1,19 @@
 import streamlit as st
 import pandas as pd
-import uuid
+import uuid, json, os, io, re, logging
 from datetime import datetime
-import json
 from urllib.parse import quote_plus
-import bcrypt # Diperlukan untuk hashing password pendaftaran
-import os
-import io
-import re
-from urllib.parse import quote_plus
-
+import bcrypt
 from g_sheets import get_data, get_worksheet
 from auth import login_form, logout
-
 from streamlit_option_menu import option_menu
 
+# Logging setup
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+
+# Timezone Jakarta
 try:
-    from zoneinfo import ZoneInfo  # Python 3.9+
+    from zoneinfo import ZoneInfo
     jakarta_tz = ZoneInfo("Asia/Jakarta")
 except ImportError:
     import pytz
@@ -31,61 +28,44 @@ def format_jakarta(dt, fmt="%Y-%m-%d %H:%M:%S"):
     else:
         dt = dt.astimezone(jakarta_tz)
     return dt.strftime(fmt)
-    
-# --- KONFIGURASI HALAMAN ---
+
+# Page & session setup
 st.set_page_config(page_title="Marketplace Gading Kirana", layout="wide")
+session_defaults = {'role':'guest','logged_in':False,'is_admin':False,'cart':[], 'action_log': {}}
+for k,v in session_defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
-# --- INISIALISASI SESSION STATE (BAGIAN YANG DIPERBAIKI) ---
-if 'role' not in st.session_state:
-    st.session_state['role'] = 'guest'
-if 'logged_in' not in st.session_state:
-    st.session_state['logged_in'] = False
-
-role = st.session_state['role']
 def set_role_after_login():
-    if st.session_state.get('logged_in'):
-        if st.session_state.get('is_admin', False):
-            st.session_state['role'] = 'admin'
-        else:
-            st.session_state['role'] = 'vendor'
+    if st.session_state.logged_in:
+        st.session_state.role = 'admin' if st.session_state.is_admin else 'vendor'
     else:
-        st.session_state['role'] = 'guest'
-
+        st.session_state.role = 'guest'
 set_role_after_login()
 
-# --- FUNGSI BANTU ---
-def add_to_cart(product: dict) -> None:
-    """
-    Menambahkan produk ke keranjang belanja di session state.
+def check_rate_limit(action, limit=5, period=60):
+    now = datetime.utcnow().timestamp()
+    hist = st.session_state.action_log.get(action, [])
+    hist = [t for t in hist if now-t < period]
+    if len(hist) >= limit:
+        return False
+    hist.append(now)
+    st.session_state.action_log[action] = hist
+    return True
 
-    Jika produk sudah ada di keranjang, jumlahnya ditambah 1.
-    Jika belum ada, produk baru ditambahkan dengan quantity 1.
-
-    Args:
-        product (dict): Data produk dengan setidaknya keys
-            'product_id', 'product_name', 'price', dan 'vendor_id'.
-    """
-    # Inisialisasi keranjang jika belum ada
-    if 'cart' not in st.session_state:
-        st.session_state.cart = []
-
-    # Cek apakah produk sudah ada di keranjang
-    for item in st.session_state.cart:
+def add_to_cart(product):
+    if not check_rate_limit("add_to_cart", 10, 60):
+        st.warning("Terlalu banyak aksi dalam waktu singkat. Tunggu sebentar.")
+        return
+    cart = st.session_state.cart
+    for item in cart:
         if item['product_id'] == product['product_id']:
             item['quantity'] += 1
-            st.toast(f"Jumlah {product['product_name']} ditambah!", icon="🛒")
+            st.toast(f"Jumlah {product['product_name']} meningkat", icon="🛒")
             return
-
-    # Produk baru, tambahkan ke keranjang
-    new_item = {
-        'product_id': product['product_id'],
-        'product_name': product['product_name'],
-        'price': product['price'],
-        'vendor_id': product['vendor_id'],
-        'quantity': 1
-    }
-    st.session_state.cart.append(new_item)
-    st.toast(f"{product['product_name']} ditambahkan ke keranjang!", icon="✅")
+    cart.append({'product_id':product['product_id'],'product_name':product['product_name'],
+                 'price':product['price'],'vendor_id':product['vendor_id'],'quantity':1})
+    st.toast(f"{product['product_name']} ditambahkan ke keranjang", icon="✅")
 
 
 # --- TAMPILAN UTAMA ---
@@ -164,25 +144,15 @@ def reset_password_vendor():
 
 # --- NAVIGASI ---
 with st.sidebar:
-
-    role = st.session_state.get("role", "guest")
-    
-    # Ambil data vendor untuk cek jumlah pending (untuk admin)
-    vendors_df = get_data("Vendors") if role != 'admin' else pd.DataFrame()
-    jumlah_pending = 0
-    if not vendors_df.empty:
-        jumlah_pending = vendors_df[vendors_df['status'].str.lower() == 'pending'].shape[0]
-
-    # Menu sesuai role
-    if role == 'admin':
-        menu_items = [f"Verifikasi Pendaftar ({jumlah_pending})" if jumlah_pending > 0 else "Verifikasi Pendaftar"]
-        icons = ["shield-lock"]
-    elif role == 'vendor':
-        menu_items = ["Portal Penjual"]
-        icons = ["box-seam"]
-    else:
-        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual", "Reset Password"]
-        icons = ["shop", "cart", "person-plus"]
+    role = st.session_state.role
+    vendors = get_data("Vendors") if role!='admin' else pd.DataFrame()
+    pending = (vendors.status.str.lower()=='pending').sum() if not vendors.empty else 0
+    menu = (["Verifikasi Pendaftar" + (f" ({pending})" if pending else "")] if role=='admin'
+            else ["Portal Penjual"] if role=='vendor'
+            else ["Belanja","Keranjang","Daftar sebagai Penjual","Reset Password"])
+    ic = (["shield-lock"] if role=='admin'
+          else ["box-seam"] if role=='vendor'
+          else ["shop","cart","person-plus"])
 
     # TAMPILAN NAVIGASI
     menu_selection = option_menu(
@@ -212,12 +182,14 @@ with st.sidebar:
             },
         }
     )
-    if menu_selection == "Reset Password":
+    if menu_selection=="Reset Password" and role=='guest':
         reset_password_vendor()
+    if role in ['vendor','admin']:
+        login_form()  # prevent ghost sessions
 # =================================================================
 # --- HALAMAN PEMBELI (Guest) ---
 # =================================================================
-if role == 'guest':
+if st.session_state.role=='guest':
     if menu_selection == "Belanja":
         st.markdown("""### <img src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png" width="25"/> Katalog Produk
         """, unsafe_allow_html=True)
@@ -237,41 +209,23 @@ if role == 'guest':
         vendors_df['is_active'] = vendors_df['is_active'].apply(lambda x: str(x).lower() == 'true')
 
         # Hitung sold_count dari order_details
-        product_sales = {}
-        if "order_details" in orders_df.columns:
-            for details in orders_df["order_details"].dropna():
-                try:
-                    items = json.loads(details)
-                    for item in items:
-                        pid = item["product_id"]
-                        qty = int(item.get("quantity", 1))
-                        product_sales[pid] = product_sales.get(pid, 0) + qty
-                except json.JSONDecodeError:
-                    continue
+        sales={}
+        for det in orders_df.order_details.dropna():
+            try:
+                for i in json.loads(det):
+                    pid, qty = i['product_id'], int(i.get('quantity',1))
+                    sales[pid] = sales.get(pid,0)+qty
+            except:
+                continue
 
-        # Gabungkan produk dengan vendor, tambahkan sold_count
-        merged_df = pd.merge(
-            products_df,
-            vendors_df[['vendor_id', 'vendor_name', 'is_active']],
-            on='vendor_id',
-            how='left',
-            suffixes=('', '_vendor')
-        )
-        merged_df['is_active_vendor'] = merged_df['is_active_vendor'].fillna(False)
-        merged_df['sold_count'] = merged_df['product_id'].map(product_sales).fillna(0).astype(int)
-
-        # Filter produk aktif dari vendor aktif
-        active_products = merged_df[
-            (merged_df['is_active']) &
-            (merged_df['is_active_vendor'])
-        ].copy()
-
-        if active_products.empty:
-            st.warning("🚫 Tidak ada produk aktif dari vendor aktif.")
+        merged = products_df.merge(vendors_df[['vendor_id','vendor_name','is_active']],
+                                   on='vendor_id', how='left', suffixes=('','_v'))
+        merged['sold_count'] = merged.product_id.map(sales).fillna(0).astype(int)
+        active = merged[merged.is_active & merged.is_active_v]
+        if active.empty:
+            st.warning("Tidak ada produk aktif.")
             st.stop()
-
-        # Urutkan berdasarkan sold_count
-        active_products = active_products.sort_values(by='sold_count', ascending=False)
+        active = active.sort_values('sold_count', ascending=False)
 
         # 2. Sidebar filter
         st.sidebar.header("🔍 Filter Pencarian")
@@ -369,7 +323,7 @@ if role == 'guest':
 #================================================
     elif menu_selection == "Keranjang":
         st.header("🛒 Keranjang Belanja Anda")
-        cart = st.session_state.get("cart", [])
+        cart = st.session_state.cart
     
         if not cart:
             st.info("Keranjang Anda masih kosong. Yuk, mulai belanja!")
@@ -527,7 +481,6 @@ if role == 'guest':
         
             password = st.text_input("Password", type="password")
             confirm_password = st.text_input("Konfirmasi Password", type="password")
-        
             submitted = st.form_submit_button("Daftar Sekarang")
         
             # ==== VALIDASI ====
@@ -974,7 +927,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         vendors_ws.update_cell(row, 9, updated_qris)  # kolom I
     
                         st.success("Data berhasil diperbarui.")
-                        #st.experimental_rerun()
+                        st.cache_data.clear()
                     except Exception as e:
                         st.error("Gagal memperbarui data.")
                         st.write(e)
