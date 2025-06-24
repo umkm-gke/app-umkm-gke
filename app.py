@@ -566,8 +566,8 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
         st.warning("Silakan login sebagai vendor untuk mengakses Portal Penjual.")
         login_form()
         st.stop()
-    else:
-        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
+    #else:
+        #st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
         #logout()
 
 
