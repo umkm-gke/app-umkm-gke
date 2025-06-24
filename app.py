@@ -736,6 +736,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         wa_link = f"https://wa.me/{order['contact']}?text={quote_plus(wa_message)}"
                         st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
     # 4. Modul Perubahan Status
+    with st.expander("🔄 Pembaruan Status Pesanan"):
     df_vendor_orders = df_all[df_all["order_status"] == "Baru"].copy()
     df_vendor_orders["is_relevant"] = False
     
@@ -752,8 +753,8 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
     df_vendor_orders = df_vendor_orders[df_vendor_orders["is_relevant"]]
     
     if not df_vendor_orders.empty:
-        st.divider()
-        st.subheader("🔄 Perbarui Status Beberapa Pesanan")
+        #st.divider()
+        #st.subheader("🔄 Perbarui Status Beberapa Pesanan")
     
         df_vendor_orders_display = df_vendor_orders[["order_id", "customer_name", "order_status"]].copy()
         df_vendor_orders_display["Pilih"] = False  # kolom checkbox
