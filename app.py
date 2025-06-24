@@ -720,7 +720,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                             st.write(f"- {item['product_name']} x {item['quantity']} @ Rp {item['price']:,} = Rp {item['total_item_price']:,}")
                             total_all += item['total_item_price']
                 
-                        st.write(f"💰 **Total Produk dari Anda:** Rp {total_all:,}")
+                        st.write(f"💰 **Total Harga yang Dipesan:** Rp {total_all:,}")
                 
                         # Tombol WA
                         product_summary = "\n".join([
