@@ -198,6 +198,7 @@ with st.sidebar:
         reset_password_vendor()
     if role in ['vendor','admin']:
         login_form()  # prevent ghost sessions
+        st.stop()
 # ========================
 # --- HALAMAN BELANJA ---
 # ========================
