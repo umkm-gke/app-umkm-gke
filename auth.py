@@ -60,10 +60,11 @@ def login_form():
             else:
                 st.error("❌ Username atau password salah.")
 
-def logout():
+def logout(key="logout_button"):
     """Menangani logika logout."""
-    if st.sidebar.button("Logout"):
-        for key in list(st.session_state.keys()):
-            if key in ['logged_in', 'vendor_id', 'vendor_name', 'is_admin', 'role']:
-                del st.session_state[key]
+    if st.sidebar.button("Logout", key=key):
+        for k in list(st.session_state.keys()):
+            if k in ['logged_in', 'vendor_id', 'vendor_name', 'is_admin', 'role']:
+                del st.session_state[k]
         st.rerun()
+
