@@ -563,7 +563,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
     # 1. Cek autentikasi
     if not st.session_state.get('logged_in') or st.session_state.get('role') != 'vendor':
         st.warning("Silakan login sebagai vendor untuk mengakses Portal Penjual.")
-        login_form()
+        #login_form()
         #st.stop()
     #else:
         #st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
