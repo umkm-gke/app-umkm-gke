@@ -738,7 +738,7 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
     # 4. Modul Perubahan Status
     df_vendor_orders = df_all[df_all["order_status"] == "Baru"].copy()
     df_vendor_orders["is_relevant"] = False
-
+    
     for i, row in df_vendor_orders.iterrows():
         try:
             items = json.loads(row["order_details"])
@@ -748,43 +748,50 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                     break
         except:
             continue
-
+    
     df_vendor_orders = df_vendor_orders[df_vendor_orders["is_relevant"]]
-
+    
     if not df_vendor_orders.empty:
         st.divider()
-        st.subheader("🔄 Perbarui Status Pesanan")
+        st.subheader("🔄 Perbarui Status Beberapa Pesanan")
     
-        order_id_list = sorted(df_vendor_orders["order_id"].astype(str).unique())
-        selected_order_id = st.selectbox(
-            "Pilih Order ID untuk diubah",
-            order_id_list,
-            placeholder="Pilih Order ID..."
-        )
+        st.markdown("Centang pesanan yang ingin Anda ubah statusnya:")
+    
+        selected_rows = []
+        for i, row in df_vendor_orders.iterrows():
+            with st.container(border=True):
+                is_selected = st.checkbox(
+                    f"Order ID: {row['order_id']} - {row['customer_name']} - Status: {row['order_status']}",
+                    key=f"chk_{row['order_id']}"
+                )
+                if is_selected:
+                    selected_rows.append((row['order_id'], row.name))  # Simpan order_id & index di df_all
     
         new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
     
         if st.button("✅ Perbarui Status"):
-            try:
-                orders_ws = get_worksheet("Orders")  # DAPATKAN ULANG worksheet TANPA CACHE
+            if not selected_rows:
+                st.warning("Pilih setidaknya satu pesanan untuk diperbarui.")
+            else:
+                try:
+                    orders_ws = get_worksheet("Orders")
+                    success_count = 0
     
-                cell = orders_ws.find(selected_order_id)
-                row = cell.row
-                col = 6  # Kolom F = order_status
+                    for order_id, df_index in selected_rows:
+                        try:
+                            row_number = df_all.index.get_loc(df_index) + 2  # +2 karena header
+                            orders_ws.update_cell(row_number, 6, new_status)
+                            success_count += 1
+                        except Exception as err:
+                            st.warning(f"❌ Gagal update pesanan {order_id}: {err}")
     
-                orders_ws.update_cell(row, col, new_status)
-    
-                st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
-                st.cache_data.clear()
-            except Exception as e:
-                st.error("❌ Gagal update status.")
-                st.exception(e)
-
-
+                    st.success(f"✅ Berhasil memperbarui {success_count} pesanan ke status **{new_status}**.")
+                    st.cache_data.clear()
+                except Exception as e:
+                    st.error("❌ Gagal memperbarui status pesanan.")
+                    st.exception(e)
     else:
-        st.info("Belum ada pesanan Baru")
-
-
+        st.info("Belum Ada Pesanan Baru")
 
 #========================================================================================
     with st.expander("📦 Produk Anda"):
