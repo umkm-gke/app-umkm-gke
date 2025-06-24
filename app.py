@@ -558,7 +558,7 @@ with st.sidebar:
 # =================================================================
 # --- HALAMAN PORTAL PENJUAL ---
 # =================================================================
-#elif role == 'vendor' and menu_selection == "Portal Penjual":
+if role == 'vendor' and menu_selection == "Portal Penjual":
 
     # 1. Cek autentikasi
     if not st.session_state.get('logged_in') or st.session_state.get('role') != 'vendor':
