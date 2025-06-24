@@ -147,7 +147,7 @@ with st.sidebar:
     role = st.session_state.role
     vendors = get_data("Vendors") if role!='admin' else pd.DataFrame()
     pending = (vendors.status.str.lower()=='pending').sum() if not vendors.empty else 0
-    menu = (["Verifikasi Pendaftar" + (f" ({pending})" if pending else "")] if role=='admin'
+    menu_items = (["Verifikasi Pendaftar" + (f" ({pending})" if pending else "")] if role=='admin'
             else ["Portal Penjual"] if role=='vendor'
             else ["Belanja","Keranjang","Daftar sebagai Penjual","Reset Password"])
     ic = (["shield-lock"] if role=='admin'
