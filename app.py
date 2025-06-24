@@ -366,7 +366,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                     if st.button("Hapus", key=f"del_{i}"):
                         cart.pop(i)
                         st.session_state.cart = cart
-                        #st.rerun()
+                        st.rerun()
     
             total_price += item['price'] * item['quantity']
             vendor_id = item['vendor_id']
