@@ -339,222 +339,222 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.session_state.cart = []
 
 #================================================
-    elif menu_selection == "Keranjang":
-        st.header("🛒 Keranjang Belanja Anda")
-        cart = st.session_state.cart
-    
-        if not cart:
-            st.info("Keranjang Anda masih kosong. Yuk, mulai belanja!")
-            st.stop()
-    
-        total_price = 0
-        vendors_in_cart = {}
-    
-        # Tampilkan isi keranjang
-        for i, item in enumerate(cart):
-            with st.container(border=True):
-                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-                with col1:
-                    st.subheader(item['product_name'])
-                    st.write(f"Rp {item['price']:,}")
-                with col2:
-                    new_quantity = st.number_input("Jumlah", min_value=1, value=item['quantity'], key=f"qty_{i}")
-                    cart[i]['quantity'] = new_quantity
-                with col3:
-                    subtotal = item['price'] * item['quantity']
-                    st.metric("Subtotal", f"Rp {subtotal:,}")
-                with col4:
-                    if st.button("Hapus", key=f"del_{i}"):
-                        cart.pop(i)
-                        st.session_state.cart = cart
-                        #st.rerun()
-    
-            total_price += item['price'] * item['quantity']
-            vendor_id = item['vendor_id']
-            vendors_in_cart[vendor_id] = vendors_in_cart.get(vendor_id, 0) + subtotal
-    
-        st.session_state.cart = cart  # update after quantity change
-        st.header(f"Total Belanja: Rp {total_price:,}")
-    
-        # Metode pembayaran global (satu untuk semua vendor)
-        st.subheader("🧾 Pilih Metode Pembayaran")
-        payment_method = st.radio("Metode Pembayaran", ["Tunai", "Transfer Bank", "QRIS"], index=1, horizontal=True)
+elif menu_selection == "Keranjang":
+    st.header("🛒 Keranjang Belanja Anda")
+    cart = st.session_state.cart
 
-        def is_valid_wa_number(number):
-            return re.fullmatch(r"62\d{10,11}", number) is not None
-            
-        # Form Checkout
-        st.subheader("📝 Lanjutkan Pemesanan")
-        with st.form("checkout_form"):
-            customer_name = st.text_input("Nama Anda")
-            customer_contact = st.text_input(
-                "Wajib diisi No WhatsApp Anda (Untuk konfirmasi pesanan)",
-                placeholder="Contoh: 6281234567890 (11–12 digit)",
-                max_chars=13,
-                key="whatsapp_input_v3"
-            )
-            order_note = st.text_input("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, Tanpa sambal.")
-            submit_order = st.form_submit_button("Buat Pesanan Sekarang")
-    
-            if submit_order:
-                if not customer_name or not customer_contact:
-                    st.warning("Nama dan Nomor HP tidak boleh kosong.")
+    if not cart:
+        st.info("Keranjang Anda masih kosong. Yuk, mulai belanja!")
+        st.stop()
+
+    total_price = 0
+    vendors_in_cart = {}
+
+    # Tampilkan isi keranjang
+    for i, item in enumerate(cart):
+        with st.container(border=True):
+            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+            with col1:
+                st.subheader(item['product_name'])
+                st.write(f"Rp {item['price']:,}")
+            with col2:
+                new_quantity = st.number_input("Jumlah", min_value=1, value=item['quantity'], key=f"qty_{i}")
+                cart[i]['quantity'] = new_quantity
+            with col3:
+                subtotal = item['price'] * item['quantity']
+                st.metric("Subtotal", f"Rp {subtotal:,}")
+            with col4:
+                if st.button("Hapus", key=f"del_{i}"):
+                    cart.pop(i)
+                    st.session_state.cart = cart
+                    #st.rerun()
+
+        total_price += item['price'] * item['quantity']
+        vendor_id = item['vendor_id']
+        vendors_in_cart[vendor_id] = vendors_in_cart.get(vendor_id, 0) + subtotal
+
+    st.session_state.cart = cart  # update after quantity change
+    st.header(f"Total Belanja: Rp {total_price:,}")
+
+    # Metode pembayaran global (satu untuk semua vendor)
+    st.subheader("🧾 Pilih Metode Pembayaran")
+    payment_method = st.radio("Metode Pembayaran", ["Tunai", "Transfer Bank", "QRIS"], index=1, horizontal=True)
+
+    def is_valid_wa_number(number):
+        return re.fullmatch(r"62\d{10,11}", number) is not None
+        
+    # Form Checkout
+    st.subheader("📝 Lanjutkan Pemesanan")
+    with st.form("checkout_form"):
+        customer_name = st.text_input("Nama Anda")
+        customer_contact = st.text_input(
+            "Wajib diisi No WhatsApp Anda (Untuk konfirmasi pesanan)",
+            placeholder="Contoh: 6281234567890 (11–12 digit)",
+            max_chars=13,
+            key="whatsapp_input_v3"
+        )
+        order_note = st.text_input("Catatan untuk Penjual (Opsional)", placeholder="Contoh: Kirim sore hari, Tanpa sambal.")
+        submit_order = st.form_submit_button("Buat Pesanan Sekarang")
+
+        if submit_order:
+            if not customer_name or not customer_contact:
+                st.warning("Nama dan Nomor HP tidak boleh kosong.")
+                st.stop()
+            elif not is_valid_wa_number(customer_contact):
+                st.error("❌ Nomor WhatsApp tidak valid. Gunakan format 628xxxxxxxxxx (11–12 digit angka saja).")
+                st.stop()
+
+            with st.spinner("Memproses pesanan..."):
+                orders_ws = get_worksheet("Orders")
+                vendors_df = get_data("Vendors")
+
+                if orders_ws is None or vendors_df.empty:
+                    st.error("Gagal memproses pesanan. Coba lagi.")
                     st.stop()
-                elif not is_valid_wa_number(customer_contact):
-                    st.error("❌ Nomor WhatsApp tidak valid. Gunakan format 628xxxxxxxxxx (11–12 digit angka saja).")
-                    st.stop()
+
+                order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
+                order_details_json = json.dumps(cart)
+                timestamp = format_jakarta(now_jakarta())
+                orders_ws.append_row([
+                    order_id, customer_name, customer_contact,
+                    order_details_json, total_price, "Baru", timestamp
+                ])
+
+                st.success(f"Pesanan Anda ({order_id}) berhasil dibuat!")
+                st.balloons()
+
+                st.subheader("Rincian Tagihan & Konfirmasi Pesanan")
+                st.info("Silakan lakukan pembayaran ke masing-masing penjual dan konfirmasi pesanan.")
+
+                for vendor_id, amount in vendors_in_cart.items():
+                    vendor_info_df = vendors_df[vendors_df['vendor_id'] == vendor_id]
+                    if vendor_info_df.empty:
+                        continue
+
+                    vendor_info = vendor_info_df.iloc[0]
+                    items = [f"{item['quantity']}x {item['product_name']}" for item in cart if item['vendor_id'] == vendor_id]
+                    payment_info = ""
+
+                    st.write("---")
+                    st.write(f"**Penjual: {vendor_info['vendor_name']}**")
+                    st.write(f"**Total Tagihan: Rp {amount:,}**")
+
+                    if payment_method == "Transfer Bank":
+                        bank_info = vendor_info.get("bank_account", "")
+                        st.write(f"**Transfer ke Rekening:** {bank_info or 'Belum tersedia'}")
+                        payment_info = f"Metode: Transfer Bank\nRekening: {bank_info}"
+
+                    elif payment_method == "QRIS":
+                        qris_url = vendor_info.get("qris_url", "")
+                        if isinstance(qris_url, str) and qris_url.lower().startswith("http") and qris_url.lower().endswith(('.jpg', '.jpeg', '.png')):
+                            st.image(qris_url, caption="Atau scan QRIS", width=250)
+                            payment_info = "Metode: QRIS (lihat gambar)"
+                        else:
+                            st.warning("QRIS belum tersedia.")
+                            payment_info = "Metode: QRIS (belum tersedia)"
+
+                    else:
+                        st.info("Pembayaran dilakukan saat barang diterima.")
+                        payment_info = "Metode: Tunai saat barang diterima"
+
+                    message = (
+                        f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
+                        f"Pesanan saya:\n{', '.join(items)}\n\n"
+                        f"Total: Rp {amount:,}\n"
+                        f"{payment_info}\n\nTerima kasih!"
+                    )
+                    if order_note:
+                        message += f"\n\nCatatan: {order_note}"
+                    encoded_message = quote_plus(message)
+                    whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
+                    st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
+
+                # Kosongkan keranjang setelah selesai
+                st.session_state.cart = []
+
+
+elif menu_selection == "Daftar sebagai Penjual":
+    st.header("✍️ Pendaftaran Penjual Baru")
+    st.write("Isi formulir di bawah ini untuk mulai berjualan di platform kami.")
+
+    with st.form("vendor_registration_form", clear_on_submit=True):
+        st.subheader("📝 Formulir Pendaftaran Penjual")
+        st.caption("Silakan isi data di bawah ini untuk mulai berjualan di platform kami.")
     
-                with st.spinner("Memproses pesanan..."):
-                    orders_ws = get_worksheet("Orders")
+        vendor_name = st.text_input("Nama Toko / UMKM Anda")
+        username = st.text_input("Username (untuk login)")
+        whatsapp_number = st.text_input("Nomor WhatsApp (format: 628xxxxxxxxxx)")
+    
+        # ✅ Input Transfer Bank (WAJIB)
+        bank_account = st.text_input(
+            "Info Rekening Bank (WAJIB)",
+            placeholder="Contoh: BCA - 1234567890 a.n. Toko ABC"
+        )
+    
+        # ✅ Input QRIS (OPSIONAL) + Validasi
+        qris_url = st.text_input(
+            "Link Gambar QRIS (Opsional)",
+            placeholder="Contoh: https://i.imgur.com/namafile.png"
+        )
+    
+        password = st.text_input("Password", type="password")
+        confirm_password = st.text_input("Konfirmasi Password", type="password")
+        submitted = st.form_submit_button("Daftar Sekarang")
+    
+        # ==== VALIDASI ====
+        def is_valid_image_url(url):
+            valid_extensions = [".jpg", ".jpeg", ".png"]
+            return url.lower().startswith("http") and any(url.lower().endswith(ext) for ext in valid_extensions)
+    
+        if submitted:
+            if not all([vendor_name, username, whatsapp_number, bank_account, password, confirm_password]):
+                st.warning("Semua kolom wajib diisi, kecuali QRIS.")
+            elif password != confirm_password:
+                st.error("Password dan konfirmasi password tidak cocok.")
+            elif qris_url and not is_valid_image_url(qris_url):
+                st.error("Link QRIS harus berupa URL gambar dengan format .jpg, .jpeg, atau .png.")
+            else:
+                with st.spinner("Mendaftarkan akun Anda..."):
                     vendors_df = get_data("Vendors")
     
-                    if orders_ws is None or vendors_df.empty:
-                        st.error("Gagal memproses pesanan. Coba lagi.")
-                        st.stop()
+                    if not vendors_df.empty and username in vendors_df['username'].values:
+                        st.error("Username ini sudah digunakan. Silakan pilih yang lain.")
+                    else:
+                        vendors_ws = get_worksheet("Vendors")
+                        if vendors_ws:
+                            vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
+                            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
-                    order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
-                    order_details_json = json.dumps(cart)
-                    timestamp = format_jakarta(now_jakarta())
-                    orders_ws.append_row([
-                        order_id, customer_name, customer_contact,
-                        order_details_json, total_price, "Baru", timestamp
-                    ])
+                            new_vendor_row = [
+                                vendor_id,
+                                vendor_name,
+                                username,
+                                hashed_password,
+                                whatsapp_number,
+                                "pending",      # status
+                                "false",        # default saat daftar
+                                bank_account,
+                                qris_url or ""  # jika kosong, isi dengan string kosong
+                            ]
     
-                    st.success(f"Pesanan Anda ({order_id}) berhasil dibuat!")
-                    st.balloons()
+                            vendors_ws.append_row(new_vendor_row)
     
-                    st.subheader("Rincian Tagihan & Konfirmasi Pesanan")
-                    st.info("Silakan lakukan pembayaran ke masing-masing penjual dan konfirmasi pesanan.")
-    
-                    for vendor_id, amount in vendors_in_cart.items():
-                        vendor_info_df = vendors_df[vendors_df['vendor_id'] == vendor_id]
-                        if vendor_info_df.empty:
-                            continue
-    
-                        vendor_info = vendor_info_df.iloc[0]
-                        items = [f"{item['quantity']}x {item['product_name']}" for item in cart if item['vendor_id'] == vendor_id]
-                        payment_info = ""
-    
-                        st.write("---")
-                        st.write(f"**Penjual: {vendor_info['vendor_name']}**")
-                        st.write(f"**Total Tagihan: Rp {amount:,}**")
-    
-                        if payment_method == "Transfer Bank":
-                            bank_info = vendor_info.get("bank_account", "")
-                            st.write(f"**Transfer ke Rekening:** {bank_info or 'Belum tersedia'}")
-                            payment_info = f"Metode: Transfer Bank\nRekening: {bank_info}"
-    
-                        elif payment_method == "QRIS":
-                            qris_url = vendor_info.get("qris_url", "")
-                            if isinstance(qris_url, str) and qris_url.lower().startswith("http") and qris_url.lower().endswith(('.jpg', '.jpeg', '.png')):
-                                st.image(qris_url, caption="Atau scan QRIS", width=250)
-                                payment_info = "Metode: QRIS (lihat gambar)"
-                            else:
-                                st.warning("QRIS belum tersedia.")
-                                payment_info = "Metode: QRIS (belum tersedia)"
-    
+                            st.success(
+                                f"Pendaftaran berhasil, {vendor_name}! "
+                                "Akun Anda sedang menunggu persetujuan admin. "
+                                "Kami akan menghubungi Anda setelah disetujui."
+                            )
+                            st.balloons()
+                            st.cache_data.clear()
                         else:
-                            st.info("Pembayaran dilakukan saat barang diterima.")
-                            payment_info = "Metode: Tunai saat barang diterima"
+                            st.error("Gagal terhubung ke database. Coba lagi nanti.")
     
-                        message = (
-                            f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
-                            f"Pesanan saya:\n{', '.join(items)}\n\n"
-                            f"Total: Rp {amount:,}\n"
-                            f"{payment_info}\n\nTerima kasih!"
-                        )
-                        if order_note:
-                            message += f"\n\nCatatan: {order_note}"
-                        encoded_message = quote_plus(message)
-                        whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
-                        st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
-    
-                    # Kosongkan keranjang setelah selesai
-                    st.session_state.cart = []
+        # Bantuan untuk vendor gaptek
+        st.info("Jika kesulitan mengunggah QRIS, Anda dapat mengirimkannya ke Admin melalui WhatsApp: 62812XXXXXXX")
 
-
-    elif menu_selection == "Daftar sebagai Penjual":
-        st.header("✍️ Pendaftaran Penjual Baru")
-        st.write("Isi formulir di bawah ini untuk mulai berjualan di platform kami.")
-    
-        with st.form("vendor_registration_form", clear_on_submit=True):
-            st.subheader("📝 Formulir Pendaftaran Penjual")
-            st.caption("Silakan isi data di bawah ini untuk mulai berjualan di platform kami.")
-        
-            vendor_name = st.text_input("Nama Toko / UMKM Anda")
-            username = st.text_input("Username (untuk login)")
-            whatsapp_number = st.text_input("Nomor WhatsApp (format: 628xxxxxxxxxx)")
-        
-            # ✅ Input Transfer Bank (WAJIB)
-            bank_account = st.text_input(
-                "Info Rekening Bank (WAJIB)",
-                placeholder="Contoh: BCA - 1234567890 a.n. Toko ABC"
-            )
-        
-            # ✅ Input QRIS (OPSIONAL) + Validasi
-            qris_url = st.text_input(
-                "Link Gambar QRIS (Opsional)",
-                placeholder="Contoh: https://i.imgur.com/namafile.png"
-            )
-        
-            password = st.text_input("Password", type="password")
-            confirm_password = st.text_input("Konfirmasi Password", type="password")
-            submitted = st.form_submit_button("Daftar Sekarang")
-        
-            # ==== VALIDASI ====
-            def is_valid_image_url(url):
-                valid_extensions = [".jpg", ".jpeg", ".png"]
-                return url.lower().startswith("http") and any(url.lower().endswith(ext) for ext in valid_extensions)
-        
-            if submitted:
-                if not all([vendor_name, username, whatsapp_number, bank_account, password, confirm_password]):
-                    st.warning("Semua kolom wajib diisi, kecuali QRIS.")
-                elif password != confirm_password:
-                    st.error("Password dan konfirmasi password tidak cocok.")
-                elif qris_url and not is_valid_image_url(qris_url):
-                    st.error("Link QRIS harus berupa URL gambar dengan format .jpg, .jpeg, atau .png.")
-                else:
-                    with st.spinner("Mendaftarkan akun Anda..."):
-                        vendors_df = get_data("Vendors")
-        
-                        if not vendors_df.empty and username in vendors_df['username'].values:
-                            st.error("Username ini sudah digunakan. Silakan pilih yang lain.")
-                        else:
-                            vendors_ws = get_worksheet("Vendors")
-                            if vendors_ws:
-                                vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
-                                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        
-                                new_vendor_row = [
-                                    vendor_id,
-                                    vendor_name,
-                                    username,
-                                    hashed_password,
-                                    whatsapp_number,
-                                    "pending",      # status
-                                    "false",        # default saat daftar
-                                    bank_account,
-                                    qris_url or ""  # jika kosong, isi dengan string kosong
-                                ]
-        
-                                vendors_ws.append_row(new_vendor_row)
-        
-                                st.success(
-                                    f"Pendaftaran berhasil, {vendor_name}! "
-                                    "Akun Anda sedang menunggu persetujuan admin. "
-                                    "Kami akan menghubungi Anda setelah disetujui."
-                                )
-                                st.balloons()
-                                st.cache_data.clear()
-                            else:
-                                st.error("Gagal terhubung ke database. Coba lagi nanti.")
-        
-            # Bantuan untuk vendor gaptek
-            st.info("Jika kesulitan mengunggah QRIS, Anda dapat mengirimkannya ke Admin melalui WhatsApp: 62812XXXXXXX")
-
-    with st.sidebar:
-            st.markdown("### 🔐 Login Vendor / Admin")
-            login_form()
+with st.sidebar:
+        st.markdown("### 🔐 Login Vendor / Admin")
+        login_form()
 
 # =================================================================
 # --- HALAMAN PORTAL PENJUAL ---
