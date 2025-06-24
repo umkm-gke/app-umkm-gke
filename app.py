@@ -761,6 +761,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
         
                         st.success(f"✅ Berhasil memperbarui {success_count} pesanan ke status **{new_status}**.")
                         st.cache_data.clear()
+                        st.rerun()
                     except Exception as e:
                         st.error("❌ Gagal memperbarui status pesanan.")
                         st.exception(e)
