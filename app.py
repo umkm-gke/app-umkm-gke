@@ -552,6 +552,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Daftar sebagai Penj
         st.info("Jika kesulitan mengunggah QRIS, Anda dapat mengirimkannya ke Admin melalui WhatsApp: 62812XXXXXXX")
 
 with st.sidebar:
+    if not st.session_state.get("logged_in"):
         st.markdown("### 🔐 Login Vendor / Admin")
         login_form()
 
