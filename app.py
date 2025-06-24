@@ -1092,7 +1092,7 @@ elif role == 'admin':
             st.warning("Silakan login sebagai admin untuk mengakses Verifikasi Pendaftar.")
             login_form()
             st.error("Halaman ini hanya dapat diakses oleh admin.")
-            st.stop()
+            #st.stop()
         else:
             st.sidebar.success(f"Login sebagai: **Administrator**")
             #logout()  # ❗️Panggilan hanya satu kali, aman
