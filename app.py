@@ -20,6 +20,13 @@ def resize_with_transparent_padding(image: Image.Image, target_size=(225, 225)) 
     new_img.paste(image, paste_position)
     return new_img
 
+def logout():
+    if st.sidebar.button("Logout", key="logout_button"):
+        for key in list(st.session_state.keys()):
+            if key in ['logged_in', 'vendor_id', 'vendor_name', 'is_admin', 'role']:
+                del st.session_state[key]
+        st.rerun()
+
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
