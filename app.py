@@ -7,6 +7,18 @@ import bcrypt
 from g_sheets import get_data, get_worksheet
 from auth import login_form, logout
 from streamlit_option_menu import option_menu
+from PIL import Image
+
+def resize_with_transparent_padding(image: Image.Image, target_size=(225, 225)) -> Image.Image:
+    image = image.convert("RGBA")
+    image.thumbnail(target_size, Image.LANCZOS)  # Resize, no crop
+    new_img = Image.new("RGBA", target_size, (255, 255, 255, 0))  # Transparent background
+    paste_position = (
+        (target_size[0] - image.width) // 2,
+        (target_size[1] - image.height) // 2
+    )
+    new_img.paste(image, paste_position)
+    return new_img
 
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -828,10 +840,21 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                     )
                 
                     # Tampilkan gambar jika ada dan file ada di disk
-                    if default_image and os.path.isfile(default_image):
-                        st.image(default_image, width=200, caption="Gambar Produk Saat Ini")
-                    elif default_image:
-                        st.warning("Gambar produk tidak ditemukan di server.")
+                    try:
+                        if default_image:
+                            if default_image.startswith("http"):
+                                st.image(default_image, width=225, caption="Gambar Produk Saat Ini")
+                            elif os.path.isfile(default_image):
+                                st.image(default_image, width=225, caption="Gambar Produk Saat Ini")
+                            else:
+                                raise FileNotFoundError
+                        else:
+                            raise FileNotFoundError
+                    except Exception as e:
+                        st.warning("⚠️ Gambar tidak ditemukan. Menampilkan gambar default.")
+                        st.image("https://placehold.co/225x225.png?text=No+Image&font=roboto", width=225)
+                        st.caption(f"Error: {e}")
+
                 
                     uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
                 
@@ -848,11 +871,15 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                             # Simpan gambar baru jika diupload
                             if uploaded_file:
                                 os.makedirs("images", exist_ok=True)
-                                image_path = f"images/{uuid.uuid4().hex[:8]}.jpg"
-                                with open(image_path, "wb") as f:
-                                    f.write(uploaded_file.read())
+                                image = Image.open(uploaded_file)
+                                resized_image = resize_with_transparent_padding(image)
+                            
+                                image_filename = f"{uuid.uuid4().hex[:8]}.png"
+                                image_path = os.path.join("images", image_filename)
+                                resized_image.save(image_path, format="PNG")
+                            
                                 image_url = image_path  # Update path gambar baru
-                                st.image(image_url, width=200, caption="Gambar Baru")
+                                st.image(image_path, width=225, caption="Gambar Baru (225x225 PNG)")
                     
                             product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
                             is_active_str = "true" if is_active else "false"
