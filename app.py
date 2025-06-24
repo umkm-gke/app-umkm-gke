@@ -339,7 +339,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.session_state.cart = []
 
 #================================================
-    elif menu_selection == "Keranjang":
+    elif menu_selection == "Keranjang" and role == 'guest':
         st.header("🛒 Keranjang Belanja Anda")
         cart = st.session_state.cart
     
@@ -473,7 +473,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                     st.session_state.cart = []
     
     
-    elif menu_selection == "Daftar sebagai Penjual":
+    elif menu_selection == "Daftar sebagai Penjual" and role == 'guest':
         st.header("✍️ Pendaftaran Penjual Baru")
         st.write("Isi formulir di bawah ini untuk mulai berjualan di platform kami.")
     
