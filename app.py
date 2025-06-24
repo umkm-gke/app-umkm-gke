@@ -737,33 +737,32 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
     if not df_vendor_orders.empty:
         st.divider()
         st.subheader("🔄 Perbarui Status Pesanan")
-
+    
         order_id_list = sorted(df_vendor_orders["order_id"].astype(str).unique())
         selected_order_id = st.selectbox(
             "Pilih Order ID untuk diubah",
             order_id_list,
             placeholder="Pilih Order ID..."
         )
-
+    
         new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
-
+    
         if st.button("✅ Perbarui Status"):
             try:
-                index_in_df = df_all[df_all["order_id"].astype(str) == selected_order_id].index
-        
-                if not index_in_df.empty:
-                    row_number = index_in_df[0] + 2  # +2 karena header baris 1
-                    col_number = 6  # Kolom F adalah kolom ke-6
-        
-                    ws_orders.update_cell(row_number, col_number, new_status)
-        
-                    st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
-                    st.cache_data.clear()
-                    # st.rerun()
-                else:
-                    st.error("❌ Order ID tidak ditemukan.")
+                orders_ws = get_worksheet("Orders")  # DAPATKAN ULANG worksheet TANPA CACHE
+    
+                cell = orders_ws.find(selected_order_id)
+                row = cell.row
+                col = 6  # Kolom F = order_status
+    
+                orders_ws.update_cell(row, col, new_status)
+    
+                st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
+                st.cache_data.clear()
             except Exception as e:
-                st.error(f"❌ Gagal update status: {e}")
+                st.error("❌ Gagal update status.")
+                st.exception(e)
+
 
     else:
         st.info("Belum ada pesanan Baru")
