@@ -198,7 +198,7 @@ with st.sidebar:
         reset_password_vendor()
     if role in ['vendor','admin']:
         login_form()  # prevent ghost sessions
-        st.stop()
+        
 # ========================
 # --- HALAMAN BELANJA ---
 # ========================
@@ -545,13 +545,14 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
 elif role == 'vendor' and menu_selection == "Portal Penjual":
 
     # 1. Cek autentikasi
-    if not st.session_state.get('logged_in') or st.session_state.get('is_admin', False):
+    if not st.session_state.get('logged_in') or st.session_state.get('role') != 'vendor':
         st.warning("Silakan login sebagai vendor untuk mengakses Portal Penjual.")
         login_form()
         st.stop()
     else:
         st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'Guest')}**")
         logout()
+
 
     vendor_id = st.session_state.get('vendor_id')
     if not vendor_id and not st.session_state.get('is_admin', False):
