@@ -636,27 +636,33 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
     # 3. Tampilan pesanan masuk
     with st.expander("📋 Daftar Pesanan Masuk"):
         df_orders = load_relevant_orders(df_all, vendor_id)
-        jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
-
-        if jumlah_baru > 0:
-            st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
-        else:
+    
+        if df_orders.empty or "status" not in df_orders.columns:
+            jumlah_baru = 0
             st.info("✅ Tidak ada pesanan baru saat ini.")
-
-        if df_orders.empty:
+            df_orders = pd.DataFrame(columns=["order_id", "customer_name", "customer_contact", "order_details", "total", "status", "timestamp"])
             st.info("Belum ada pesanan yang masuk untuk Anda.")
         else:
-            # Filter tanggal (maksimal 7 hari)
+            # Konversi timestamp
+            df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce')
+    
+            jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
+            if jumlah_baru > 0:
+                st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
+            else:
+                st.info("✅ Tidak ada pesanan baru saat ini.")
+    
+            # Filter tanggal
             today = now_jakarta()
             one_week_ago = today - pd.Timedelta(days=7)
-
+    
             selected_date_range = st.date_input(
                 "📆 Filter Rentang Tanggal Pesanan",
                 value=(today.date(), today.date()),
                 min_value=one_week_ago.date(),
                 max_value=today.date()
             )
-
+    
             if isinstance(selected_date_range, tuple) and len(selected_date_range) == 2:
                 start_date, end_date = selected_date_range
                 df_orders = df_orders[
