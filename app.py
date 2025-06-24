@@ -49,7 +49,7 @@ for k,v in session_defaults.items():
         st.session_state[k] = v
 
 def set_role_after_login():
-    if st.session_state.logged_in:
+    if st.session_state.get("logged_in"):
         st.session_state.role = 'admin' if st.session_state.is_admin else 'vendor'
     else:
         st.session_state.role = 'guest'
@@ -156,15 +156,28 @@ def reset_password_vendor():
 
 # --- NAVIGASI ---
 with st.sidebar:
-    role = st.session_state.role
-    vendors = get_data("Vendors") if role!='admin' else pd.DataFrame()
-    pending = (vendors.status.str.lower()=='pending').sum() if not vendors.empty else 0
-    menu_items = (["Verifikasi Pendaftar" + (f" ({pending})" if pending else "")] if role=='admin'
-            else ["Portal Penjual"] if role=='vendor'
-            else ["Belanja","Keranjang","Daftar sebagai Penjual","Reset Password"])
-    icons = (["shield-lock"] if role=='admin'
-          else ["box-seam"] if role=='vendor'
-          else ["shop","cart","person-plus"])
+    # Safe default: guest
+    role = st.session_state.get("role", "guest")
+
+    # Ambil data vendor hanya jika bukan admin
+    vendors = get_data("Vendors") if role != 'admin' else pd.DataFrame()
+
+    # Hitung pending approval
+    if not vendors.empty and 'status' in vendors.columns:
+        pending = (vendors['status'].str.lower() == 'pending').sum()
+    else:
+        pending = 0
+
+    # Definisi menu dan ikon sesuai role
+    if role == 'admin':
+        menu_items = [f"Verifikasi Pendaftar ({pending})"] if pending else ["Verifikasi Pendaftar"]
+        icons = ["shield-lock"]
+    elif role == 'vendor':
+        menu_items = ["Portal Penjual"]
+        icons = ["box-seam"]
+    else:
+        menu_items = ["Belanja", "Keranjang", "Daftar sebagai Penjual", "Reset Password"]
+        icons = ["shop", "cart", "person-plus", "key"]
 
     # TAMPILAN NAVIGASI
     menu_selection = option_menu(
@@ -194,10 +207,14 @@ with st.sidebar:
             },
         }
     )
-    if menu_selection=="Reset Password" and role=='guest':
+    # Logout tombol ditampilkan jika login
+    if st.session_state.get("logged_in"):
+        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
+        logout()
+
+    # Khusus guest & klik reset password
+    if menu_selection == "Reset Password" and role == 'guest':
         reset_password_vendor()
-    if role in ['vendor','admin']:
-        login_form()  # prevent ghost sessions
         
 # ========================
 # --- HALAMAN BELANJA ---
