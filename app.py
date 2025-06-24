@@ -150,7 +150,7 @@ with st.sidebar:
     menu_items = (["Verifikasi Pendaftar" + (f" ({pending})" if pending else "")] if role=='admin'
             else ["Portal Penjual"] if role=='vendor'
             else ["Belanja","Keranjang","Daftar sebagai Penjual","Reset Password"])
-    ic = (["shield-lock"] if role=='admin'
+    icons = (["shield-lock"] if role=='admin'
           else ["box-seam"] if role=='vendor'
           else ["shop","cart","person-plus"])
 
