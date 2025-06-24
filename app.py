@@ -41,6 +41,9 @@ def format_jakarta(dt, fmt="%Y-%m-%d %H:%M:%S"):
         dt = dt.astimezone(jakarta_tz)
     return dt.strftime(fmt)
 
+def is_valid_wa_number(number: str) -> bool:
+            return re.fullmatch(r"62\d{10,11}", number) is not None
+
 # Page & session setup
 st.set_page_config(page_title="Marketplace Gading Kirana", layout="wide")
 session_defaults = {'role':'guest','logged_in':False,'is_admin':False,'cart':[], 'action_log': {}}
@@ -378,9 +381,6 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
         # Metode pembayaran global (satu untuk semua vendor)
         st.subheader("🧾 Pilih Metode Pembayaran")
         payment_method = st.radio("Metode Pembayaran", ["Tunai", "Transfer Bank", "QRIS"], index=1, horizontal=True)
-    
-        def is_valid_wa_number(number):
-            return re.fullmatch(r"62\d{10,11}", number) is not None
             
         # Form Checkout
         st.subheader("📝 Lanjutkan Pemesanan")
@@ -482,8 +482,12 @@ elif st.session_state.role == 'guest' and menu_selection == "Daftar sebagai Penj
     
         vendor_name = st.text_input("Nama Toko / UMKM Anda")
         username = st.text_input("Username (untuk login)")
-        whatsapp_number = st.text_input("Nomor WhatsApp (format: 628xxxxxxxxxx)")
-    
+        whatsapp_number = st.text_input(
+        "Nomor WhatsApp (format: 628xxxxxxxxxx)",
+        max_chars=13,
+        placeholder="Contoh: 6281234567890"
+        )
+        
         # ✅ Input Transfer Bank (WAJIB)
         bank_account = st.text_input(
             "Info Rekening Bank (WAJIB)",
@@ -508,6 +512,8 @@ elif st.session_state.role == 'guest' and menu_selection == "Daftar sebagai Penj
         if submitted:
             if not all([vendor_name, username, whatsapp_number, bank_account, password, confirm_password]):
                 st.warning("Semua kolom wajib diisi, kecuali QRIS.")
+            elif not is_valid_wa_number(whatsapp_number):
+                st.error("❌ Nomor WhatsApp tidak valid. Gunakan format 628xxxxxxxxxx (12–13 digit angka saja).")
             elif password != confirm_password:
                 st.error("Password dan konfirmasi password tidak cocok.")
             elif qris_url and not is_valid_image_url(qris_url):
