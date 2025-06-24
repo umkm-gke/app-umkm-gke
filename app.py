@@ -750,20 +750,21 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
         if st.button("✅ Perbarui Status"):
             try:
                 index_in_df = df_all[df_all["order_id"].astype(str) == selected_order_id].index
-
+        
                 if not index_in_df.empty:
-                    row_number = index_in_df[0] + 2  # +2 karena header dan index mulai dari 0
-                    update_range = f"F{row_number}"  # Kolom F adalah order_status
-
-                    ws_orders.update(update_range, [[new_status]])
-
+                    row_number = index_in_df[0] + 2  # +2 karena header baris 1
+                    col_number = 6  # Kolom F adalah kolom ke-6
+        
+                    ws_orders.update_cell(row_number, col_number, new_status)
+        
                     st.success(f"✅ Status pesanan `{selected_order_id}` berhasil diubah ke **{new_status}**.")
                     st.cache_data.clear()
-                    st.rerun()
+                    # st.rerun()
                 else:
                     st.error("❌ Order ID tidak ditemukan.")
             except Exception as e:
                 st.error(f"❌ Gagal update status: {e}")
+
     else:
         st.info("Belum ada pesanan Baru")
 
