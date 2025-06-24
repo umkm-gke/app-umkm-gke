@@ -737,64 +737,64 @@ elif role == 'vendor' and menu_selection == "Portal Penjual":
                         st.link_button("📲 Hubungi Pembeli via WhatsApp", wa_link)
     # 4. Modul Perubahan Status
     with st.expander("🔄 Pembaruan Status Pesanan"):
-    df_vendor_orders = df_all[df_all["order_status"] == "Baru"].copy()
-    df_vendor_orders["is_relevant"] = False
-    
-    for i, row in df_vendor_orders.iterrows():
-        try:
-            items = json.loads(row["order_details"])
-            for item in items:
-                if item.get("vendor_id") == vendor_id:
-                    df_vendor_orders.at[i, "is_relevant"] = True
-                    break
-        except:
-            continue
-    
-    df_vendor_orders = df_vendor_orders[df_vendor_orders["is_relevant"]]
-    
-    if not df_vendor_orders.empty:
-        #st.divider()
-        #st.subheader("🔄 Perbarui Status Beberapa Pesanan")
-    
-        df_vendor_orders_display = df_vendor_orders[["order_id", "customer_name", "order_status"]].copy()
-        df_vendor_orders_display["Pilih"] = False  # kolom checkbox
-    
-        edited_df = st.data_editor(
-            df_vendor_orders_display,
-            column_config={"Pilih": st.column_config.CheckboxColumn("Pilih")},
-            hide_index=True,
-            num_rows="dynamic",
-            use_container_width=True,
-        )
-    
-        selected_orders = edited_df[edited_df["Pilih"] == True]
-    
-        new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
-    
-        if st.button("✅ Perbarui Status"):
-            if selected_orders.empty:
-                st.warning("Silakan centang minimal satu pesanan.")
-            else:
-                try:
-                    orders_ws = get_worksheet("Orders")
-                    success_count = 0
-    
-                    for order_id in selected_orders["order_id"]:
-                        try:
-                            df_index = df_all[df_all["order_id"] == order_id].index[0]
-                            row_number = df_index + 2  # +2 karena header
-                            orders_ws.update_cell(row_number, 6, new_status)
-                            success_count += 1
-                        except Exception as err:
-                            st.warning(f"❌ Gagal update pesanan {order_id}: {err}")
-    
-                    st.success(f"✅ Berhasil memperbarui {success_count} pesanan ke status **{new_status}**.")
-                    st.cache_data.clear()
-                except Exception as e:
-                    st.error("❌ Gagal memperbarui status pesanan.")
-                    st.exception(e)
-    else:
-        st.info("Belum ada pesanan 'Baru'")
+        df_vendor_orders = df_all[df_all["order_status"] == "Baru"].copy()
+        df_vendor_orders["is_relevant"] = False
+        
+        for i, row in df_vendor_orders.iterrows():
+            try:
+                items = json.loads(row["order_details"])
+                for item in items:
+                    if item.get("vendor_id") == vendor_id:
+                        df_vendor_orders.at[i, "is_relevant"] = True
+                        break
+            except:
+                continue
+        
+        df_vendor_orders = df_vendor_orders[df_vendor_orders["is_relevant"]]
+        
+        if not df_vendor_orders.empty:
+            #st.divider()
+            #st.subheader("🔄 Perbarui Status Beberapa Pesanan")
+        
+            df_vendor_orders_display = df_vendor_orders[["order_id", "customer_name", "order_status"]].copy()
+            df_vendor_orders_display["Pilih"] = False  # kolom checkbox
+        
+            edited_df = st.data_editor(
+                df_vendor_orders_display,
+                column_config={"Pilih": st.column_config.CheckboxColumn("Pilih")},
+                hide_index=True,
+                num_rows="dynamic",
+                use_container_width=True,
+            )
+        
+            selected_orders = edited_df[edited_df["Pilih"] == True]
+        
+            new_status = st.selectbox("Status Baru", ["Baru", "Diproses", "Selesai", "Dibatalkan"])
+        
+            if st.button("✅ Perbarui Status"):
+                if selected_orders.empty:
+                    st.warning("Silakan centang minimal satu pesanan.")
+                else:
+                    try:
+                        orders_ws = get_worksheet("Orders")
+                        success_count = 0
+        
+                        for order_id in selected_orders["order_id"]:
+                            try:
+                                df_index = df_all[df_all["order_id"] == order_id].index[0]
+                                row_number = df_index + 2  # +2 karena header
+                                orders_ws.update_cell(row_number, 6, new_status)
+                                success_count += 1
+                            except Exception as err:
+                                st.warning(f"❌ Gagal update pesanan {order_id}: {err}")
+        
+                        st.success(f"✅ Berhasil memperbarui {success_count} pesanan ke status **{new_status}**.")
+                        st.cache_data.clear()
+                    except Exception as e:
+                        st.error("❌ Gagal memperbarui status pesanan.")
+                        st.exception(e)
+        else:
+            st.info("Belum ada pesanan 'Baru'")
 
 
 #========================================================================================
