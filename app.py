@@ -847,7 +847,9 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                 st.info("Anda belum memiliki produk.")
             else:
                 st.dataframe(my_products)
-    
+        except Exception as e:
+            st.error("Gagal memuat data produk.")
+            st.write(e)
         # ------------------ TAMBAH / EDIT PRODUK ------------------
             with st.expander("➕ Tambah atau Edit Produk"):
                 try:
@@ -1004,9 +1006,6 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                 else:
                     st.caption("Belum ada produk yang bisa dihapus.")
     
-        except Exception as e:
-            st.error("Gagal memuat data produk.")
-            st.write(e)
  # ------------------ UPDATE DATA VENDOR ------------------
     
     with st.expander("✏️ Update Data Toko"):
