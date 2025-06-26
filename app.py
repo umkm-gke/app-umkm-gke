@@ -942,21 +942,28 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                             if uploaded_file:
                                 image = Image.open(uploaded_file)
                             
-                                # Resize tanpa crop (padding putih atau transparan)
-                                resized_image = resize_with_padding(image, background=(255, 255, 255, 0))  # atau (255,255,255,255) untuk putih penuh
+                                # Resize tanpa crop
+                                resized_image = resize_with_padding(image, target_size=(225, 225), background=(255, 255, 255, 255))  # putih
                             
-                                # Format bisa ditentukan berdasarkan ekstensi asli jika mau
+                                # Tentukan format
                                 file_ext = uploaded_file.name.split('.')[-1].lower()
-                                file_format = "PNG" if file_ext in ["png"] else "JPEG"
+                                file_format = "PNG" if file_ext == "png" else "JPEG"
+                            
+                                # Jika JPEG, konversi ke RGB (JPEG tidak mendukung alpha channel)
+                                if file_format == "JPEG" and resized_image.mode == "RGBA":
+                                    resized_image = resized_image.convert("RGB")
                             
                                 public_id = f"{vendor_id}_{uuid.uuid4().hex[:8]}"
                                 uploaded_url = upload_to_cloudinary(resized_image, public_id=public_id, format=file_format)
+                            
                                 if uploaded_url:
                                     image_url = uploaded_url
                                     st.image(image_url, width=225, caption="Gambar Baru (225x225)")
+                                    st.text(f"URL disimpan: {image_url}")
                                 else:
-                                    st.warning("Gagal mengupload gambar ke Cloudinary. Menggunakan gambar lama.")
-                                    image_url = default_image  # fallback jika upload gagal
+                                    st.warning("Gagal upload ke Cloudinary. Menggunakan gambar lama.")
+                                    image_url = default_image
+
 
 
                     
