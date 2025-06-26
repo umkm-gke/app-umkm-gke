@@ -509,6 +509,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                         message = (
                             f"Halo {vendor_name}, saya *{customer_name}* ingin konfirmasi pesanan **{order_id}**.\n\n"
                             f"🛒 Pesanan:\n- " + "\n- ".join(items) + f"\n\n"
+                            f"Note: {product_note}\n\n"
                             f"💰 Total: Rp {amount:,}\n"
                             f"📌 {payment_info}"
                         )
@@ -748,6 +749,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                         for item in order['items']:
                             st.write(f"- {item['product_name']} x {item['quantity']} @ Rp {item['price']:,} = Rp {item['total_item_price']:,}")
                             total_all += item['total_item_price']
+                            st.write(f"Note: {product_note})
                 
                         st.write(f"💰 **Total Harga yang Dipesan:** Rp {total_all:,}")
                 
