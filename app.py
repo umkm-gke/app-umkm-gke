@@ -480,7 +480,14 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                         bank_info = str(vendor_info["bank_account"]).strip() if "bank_account" in vendor_info else ""
                         wa_number = str(vendor_info.get("whatsapp_number", "") if isinstance(vendor_info, dict) else vendor_info["whatsapp_number"]).strip()
                     
-                        items = [f"{item['quantity']}x {item['product_name']}" for item in cart if item['vendor_id'] == vendor_id]
+                        items = []
+                        for item in cart:
+                            if item['vendor_id'] == vendor_id:
+                                item_line = f"{item['quantity']}x {item['product_name']}"
+                                if item.get("note"):
+                                    item_line += f" (Catatan: {item['note']})"
+                                items.append(item_line)
+
                         payment_info = ""
                     
                         st.markdown(f"### 🏪 {vendor_name}")
@@ -511,13 +518,13 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                         # Pesan WhatsApp otomatis
                         message = (
                             f"Halo {vendor_name}, saya *{customer_name}* ingin konfirmasi pesanan **{order_id}**.\n\n"
-                            f"🛒 Pesanan:\n- " + "\n- ".join(items) + f"\n\n"
-                            f"Note: {product_note}\n\n"
+                            f"🛒 Pesanan:\n- " + "\n- ".join(items) + "\n\n"
                             f"💰 Total: Rp {amount:,}\n"
                             f"📌 {payment_info}"
                         )
                         if order_note:
                             message += f"\n📝 Catatan: {order_note}"
+
                         encoded_message = quote_plus(message)
                         whatsapp_url = f"https://wa.me/{wa_number}?text={encoded_message}"
                     
