@@ -849,143 +849,143 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                 st.dataframe(my_products)
     
         # ------------------ TAMBAH / EDIT PRODUK ------------------
-        try:
             with st.expander("➕ Tambah atau Edit Produk"):
-                # Ambil data produk seperti biasa
-                products_df = get_data("Products")
-                if 'category' not in products_df.columns:
-                    products_df['category'] = ""
-                my_products = products_df[products_df['vendor_id'] == vendor_id]
-                existing_ids = my_products['product_id'].tolist()
-                
-                selected_product_id = st.selectbox(
-                    "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
-                    [""] + existing_ids,
-                    key="selected_product_id"
-                )
-                
-                if selected_product_id:
-                    product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
-                    default_name = product_data['product_name']
-                    default_desc = product_data['description']
-                    default_price = int(product_data['price'])
-                    default_stock = int(product_data['stock_quantity'])
-                    default_active = product_data['is_active']
-                    default_image = product_data['image_url']
-                else:
-                    default_name = ""
-                    default_desc = ""
-                    default_price = 0
-                    default_stock = 0
-                    default_active = True
-                    default_image = ""
-                
-                with st.form("product_form", clear_on_submit=True):
-                    product_name = st.text_input("Nama Produk", value=default_name)
-                    description = st.text_area("Deskripsi", value=default_desc)
-                    price = st.number_input("Harga", min_value=0, value=default_price)
-                    stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=default_stock)
-                    is_active = st.checkbox("Tampilkan Produk?", value=default_active)
-                    kategori_list = ["Makanan", "Minuman", "Rumah Tangga", "Kesehatan", "Bayi", "Mainan", "Lainnya"]
-                    kategori = st.selectbox(
-                        "Kategori Produk",
-                        options=kategori_list,
-                        index=0 if not selected_product_id else (kategori_list.index(product_data['category']) if product_data['category'] in kategori_list else len(kategori_list) - 1)
-                    )
-                
-                    # Tampilkan gambar jika ada dan file ada di disk
-                    def cloudinary_resize_url(original_url, width=225, height=225):
-                        parts = original_url.split("/upload/")
-                        if len(parts) != 2:
-                            return original_url  # fallback jika bukan URL Cloudinary
-                        return parts[0] + f"/upload/w_{width},h_{height},c_fit/" + parts[1]
+                try:
+                    # Ambil data produk seperti biasa
+                    products_df = get_data("Products")
+                    if 'category' not in products_df.columns:
+                        products_df['category'] = ""
+                    my_products = products_df[products_df['vendor_id'] == vendor_id]
+                    existing_ids = my_products['product_id'].tolist()
                     
-                    try:
-                        if default_image:
-                            if default_image.startswith("http"):
-                                resized_image_url = cloudinary_resize_url(default_image)
-                                st.image(resized_image_url, width=225, caption="Gambar Produk Saat Ini")
-                            elif os.path.isfile(default_image):
-                                st.image(default_image, width=225, caption="Gambar Produk Saat Ini")
+                    selected_product_id = st.selectbox(
+                        "Pilih Produk untuk Diedit (kosongkan jika ingin tambah produk baru)",
+                        [""] + existing_ids,
+                        key="selected_product_id"
+                    )
+                    
+                    if selected_product_id:
+                        product_data = my_products[my_products['product_id'] == selected_product_id].iloc[0]
+                        default_name = product_data['product_name']
+                        default_desc = product_data['description']
+                        default_price = int(product_data['price'])
+                        default_stock = int(product_data['stock_quantity'])
+                        default_active = product_data['is_active']
+                        default_image = product_data['image_url']
+                    else:
+                        default_name = ""
+                        default_desc = ""
+                        default_price = 0
+                        default_stock = 0
+                        default_active = True
+                        default_image = ""
+                    
+                    with st.form("product_form", clear_on_submit=True):
+                        product_name = st.text_input("Nama Produk", value=default_name)
+                        description = st.text_area("Deskripsi", value=default_desc)
+                        price = st.number_input("Harga", min_value=0, value=default_price)
+                        stock_quantity = st.number_input("Jumlah Stok", min_value=0, value=default_stock)
+                        is_active = st.checkbox("Tampilkan Produk?", value=default_active)
+                        kategori_list = ["Makanan", "Minuman", "Rumah Tangga", "Kesehatan", "Bayi", "Mainan", "Lainnya"]
+                        kategori = st.selectbox(
+                            "Kategori Produk",
+                            options=kategori_list,
+                            index=0 if not selected_product_id else (kategori_list.index(product_data['category']) if product_data['category'] in kategori_list else len(kategori_list) - 1)
+                        )
+                    
+                        # Tampilkan gambar jika ada dan file ada di disk
+                        def cloudinary_resize_url(original_url, width=225, height=225):
+                            parts = original_url.split("/upload/")
+                            if len(parts) != 2:
+                                return original_url  # fallback jika bukan URL Cloudinary
+                            return parts[0] + f"/upload/w_{width},h_{height},c_fit/" + parts[1]
+                        
+                        try:
+                            if default_image:
+                                if default_image.startswith("http"):
+                                    resized_image_url = cloudinary_resize_url(default_image)
+                                    st.image(resized_image_url, width=225, caption="Gambar Produk Saat Ini")
+                                elif os.path.isfile(default_image):
+                                    st.image(default_image, width=225, caption="Gambar Produk Saat Ini")
+                                else:
+                                    raise FileNotFoundError
                             else:
                                 raise FileNotFoundError
-                        else:
-                            raise FileNotFoundError
-                    except Exception as e:
-                        st.warning("⚠️ Gambar tidak ditemukan. Menampilkan gambar default.")
-                        st.image("https://placehold.co/225x225.png?text=No+Image&font=roboto", width=225)
-                        st.caption(f"Error: {e}")
-
-
-                
-                    uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
-                
-                    submitted = st.form_submit_button("💾 Simpan Produk")
-                
-                    if submitted:
-                        if not product_name or not description:
-                            st.warning("Nama produk dan deskripsi wajib diisi.")
-                        else:
-                            products_ws = get_worksheet("Products")
-                    
-                            image_url = default_image  # Default pakai gambar lama
-                    
-                            # Simpan gambar baru jika diupload
-                            if uploaded_file:
-                                image = Image.open(uploaded_file)
-                            
-                                # Resize tanpa crop
-                                resized_image = resize_with_padding(image, target_size=(225, 225), background=(255, 255, 255, 255))  # putih
-                            
-                                # Tentukan format
-                                file_ext = uploaded_file.name.split('.')[-1].lower()
-                                file_format = "PNG" if file_ext == "png" else "JPEG"
-                            
-                                # Jika JPEG, konversi ke RGB (JPEG tidak mendukung alpha channel)
-                                if file_format == "JPEG" and resized_image.mode == "RGBA":
-                                    resized_image = resized_image.convert("RGB")
-                            
-                                public_id = f"{vendor_id}_{uuid.uuid4().hex[:8]}"
-                                uploaded_url = upload_to_cloudinary(resized_image, public_id=public_id, format=file_format)
-                            
-                                if uploaded_url:
-                                    image_url = uploaded_url
-                                    st.image(image_url, width=225, caption="Gambar Baru (225x225)")
-                                    st.text(f"URL disimpan: {image_url}")
-                                else:
-                                    st.warning("Gagal upload ke Cloudinary. Menggunakan gambar lama.")
-                                    image_url = default_image
-
-
-
-                    
-                            product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
-                            is_active_str = "true" if is_active else "false"
-                            new_row = [
-                                product_id, vendor_id, product_name, description, price,
-                                image_url, stock_quantity, is_active_str, kategori,
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            ]
-                    
-                            if selected_product_id:
-                                # Update produk
-                                cell = products_ws.find(selected_product_id)
-                                if cell:
-                                    products_ws.update(f"A{cell.row}:J{cell.row}", [new_row])
-                                    st.success(f"Produk '{product_name}' berhasil diperbarui!")
-                                else:
-                                    st.error("Produk tidak ditemukan.")
-                            else:
-                                # Tambah produk baru
-                                products_ws.append_row(new_row)
-                                st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
-                    
-                            st.cache_data.clear()
-                            #st.rerun()
+                        except Exception as e:
+                            st.warning("⚠️ Gambar tidak ditemukan. Menampilkan gambar default.")
+                            st.image("https://placehold.co/225x225.png?text=No+Image&font=roboto", width=225)
+                            st.caption(f"Error: {e}")
     
-        except Exception as e:
-            st.error("Gagal menampilkan form produk.")
-            st.write(e)
+    
+                    
+                        uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
+                    
+                        submitted = st.form_submit_button("💾 Simpan Produk")
+                    
+                        if submitted:
+                            if not product_name or not description:
+                                st.warning("Nama produk dan deskripsi wajib diisi.")
+                            else:
+                                products_ws = get_worksheet("Products")
+                        
+                                image_url = default_image  # Default pakai gambar lama
+                        
+                                # Simpan gambar baru jika diupload
+                                if uploaded_file:
+                                    image = Image.open(uploaded_file)
+                                
+                                    # Resize tanpa crop
+                                    resized_image = resize_with_padding(image, target_size=(225, 225), background=(255, 255, 255, 255))  # putih
+                                
+                                    # Tentukan format
+                                    file_ext = uploaded_file.name.split('.')[-1].lower()
+                                    file_format = "PNG" if file_ext == "png" else "JPEG"
+                                
+                                    # Jika JPEG, konversi ke RGB (JPEG tidak mendukung alpha channel)
+                                    if file_format == "JPEG" and resized_image.mode == "RGBA":
+                                        resized_image = resized_image.convert("RGB")
+                                
+                                    public_id = f"{vendor_id}_{uuid.uuid4().hex[:8]}"
+                                    uploaded_url = upload_to_cloudinary(resized_image, public_id=public_id, format=file_format)
+                                
+                                    if uploaded_url:
+                                        image_url = uploaded_url
+                                        st.image(image_url, width=225, caption="Gambar Baru (225x225)")
+                                        st.text(f"URL disimpan: {image_url}")
+                                    else:
+                                        st.warning("Gagal upload ke Cloudinary. Menggunakan gambar lama.")
+                                        image_url = default_image
+    
+    
+    
+                        
+                                product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
+                                is_active_str = "true" if is_active else "false"
+                                new_row = [
+                                    product_id, vendor_id, product_name, description, price,
+                                    image_url, stock_quantity, is_active_str, kategori,
+                                    datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                ]
+                        
+                                if selected_product_id:
+                                    # Update produk
+                                    cell = products_ws.find(selected_product_id)
+                                    if cell:
+                                        products_ws.update(f"A{cell.row}:J{cell.row}", [new_row])
+                                        st.success(f"Produk '{product_name}' berhasil diperbarui!")
+                                    else:
+                                        st.error("Produk tidak ditemukan.")
+                                else:
+                                    # Tambah produk baru
+                                    products_ws.append_row(new_row)
+                                    st.success(f"Produk baru '{product_name}' berhasil ditambahkan!")
+                        
+                                st.cache_data.clear()
+                                #st.rerun()
+        
+                except Exception as e:
+                    st.error("Gagal menampilkan form produk.")
+                    st.write(e)
         # ------------------ HAPUS PRODUK ------------------
         with st.expander("🗑️ Hapus Produk"):
             if not my_products.empty:
