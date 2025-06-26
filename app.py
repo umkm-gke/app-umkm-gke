@@ -657,10 +657,12 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
     def load_relevant_orders(df_orders_all, vendor_id):
         df_orders_all['timestamp'] = pd.to_datetime(df_orders_all['timestamp'], errors='coerce')
         # Jika belum ada timezone, tetapkan Jakarta
-        if df_orders['timestamp'].dt.tz is None:
-            df_orders['timestamp'] = df_orders['timestamp'].dt.tz_localize(jakarta_tz)
-        else:
-            df_orders['timestamp'] = df_orders['timestamp'].dt.tz_convert(jakarta_tz)
+        try:
+            df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce').dt.tz_localize(jakarta_tz)
+        except TypeError:
+            # Jika sudah tz-aware, tinggal dikonversi ke zona Jakarta
+            df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce').dt.tz_convert(jakarta_tz)
+
 
         today = now_jakarta()
         last_week = today - pd.Timedelta(days=7)
@@ -714,10 +716,12 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
             # Konversi timestamp
             df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce')
             # Jika belum ada timezone, tetapkan Jakarta
-            if df_orders['timestamp'].dt.tz is None:
-                df_orders['timestamp'] = df_orders['timestamp'].dt.tz_localize(jakarta_tz)
-            else:
-                df_orders['timestamp'] = df_orders['timestamp'].dt.tz_convert(jakarta_tz)
+            def ensure_jakarta_timezone(series):
+            try:
+                return pd.to_datetime(series, errors='coerce').dt.tz_localize(jakarta_tz)
+            except TypeError:
+                return pd.to_datetime(series, errors='coerce').dt.tz_convert(jakarta_tz)
+
 
 
     
