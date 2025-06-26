@@ -485,7 +485,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                             if item['vendor_id'] == vendor_id:
                                 item_line = f"{item['quantity']}x {item['product_name']}"
                                 if item.get("note"):
-                                    item_line += f" {item['note']}"
+                                    item_line += f" ({item['note']})"
                                 items.append(item_line)
 
                         payment_info = ""
@@ -759,7 +759,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                         for item in order['items']:
                             line = f"- {item['product_name']} x {item['quantity']} @ Rp {item['price']:,} = Rp {item['total_item_price']:,}"
                             if item.get("note"):
-                                line += f" (Catatan: {item['note']})"
+                                line += f" (Note: {item['note']})"
                             st.write(line)
                             total_all += item['total_item_price']
                         st.write(f"💰 **Total Harga yang Dipesan:** Rp {total_all:,}")
