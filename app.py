@@ -987,23 +987,23 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                     st.error("Gagal menampilkan form produk.")
                     st.write(e)
         # ------------------ HAPUS PRODUK ------------------
-        with st.expander("🗑️ Hapus Produk"):
-            if not my_products.empty:
-                delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
-                if st.button("Hapus Produk Ini"):
-                    products_ws = get_worksheet("Products")
-                    if products_ws:
-                        cell = products_ws.find(delete_id)
-                        if cell:
-                            products_ws.delete_rows(cell.row)
-                            st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
-                            st.cache_data.clear()
-                            #st.rerun()
-                        else:
-                            st.error("Produk tidak ditemukan.")
-            else:
-                st.caption("Belum ada produk yang bisa dihapus.")
-
+            with st.expander("🗑️ Hapus Produk"):
+                if not my_products.empty:
+                    delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
+                    if st.button("Hapus Produk Ini"):
+                        products_ws = get_worksheet("Products")
+                        if products_ws:
+                            cell = products_ws.find(delete_id)
+                            if cell:
+                                products_ws.delete_rows(cell.row)
+                                st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
+                                st.cache_data.clear()
+                                #st.rerun()
+                            else:
+                                st.error("Produk tidak ditemukan.")
+                else:
+                    st.caption("Belum ada produk yang bisa dihapus.")
+    
         except Exception as e:
             st.error("Gagal memuat data produk.")
             st.write(e)
