@@ -829,7 +829,6 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
 
 #========================================================================================
     with st.expander("📦 Produk Anda"):
-
         try:
             # Ambil data produk milik vendor
             products_df = get_data("Products")
@@ -850,8 +849,8 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                 st.dataframe(my_products)
     
         # ------------------ TAMBAH / EDIT PRODUK ------------------
-        with st.expander("➕ Tambah atau Edit Produk"):
-            try:
+        try:
+            with st.expander("➕ Tambah atau Edit Produk"):
                 # Ambil data produk seperti biasa
                 products_df = get_data("Products")
                 if 'category' not in products_df.columns:
@@ -984,9 +983,9 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                             st.cache_data.clear()
                             #st.rerun()
     
-            except Exception as e:
-                st.error("Gagal menampilkan form produk.")
-                st.write(e)
+        except Exception as e:
+            st.error("Gagal menampilkan form produk.")
+            st.write(e)
         # ------------------ HAPUS PRODUK ------------------
         with st.expander("🗑️ Hapus Produk"):
             if not my_products.empty:
