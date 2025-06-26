@@ -80,6 +80,9 @@ def format_jakarta(dt, fmt="%Y-%m-%d %H:%M:%S"):
         dt = dt.astimezone(jakarta_tz)
     return dt.strftime(fmt)
 
+# Timestamp global
+timestamp = format_jakarta(now_jakarta())
+
 def is_valid_wa_number(number: str) -> bool:
             return re.fullmatch(r"62\d{10,11}", number) is not None
 
@@ -509,7 +512,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                         message = (
                             f"Halo {vendor_name}, saya *{customer_name}* ingin konfirmasi pesanan **{order_id}**.\n\n"
                             f"🛒 Pesanan:\n- " + "\n- ".join(items) + f"\n\n"
-                            f"Note: {product_note}\n\n"
+                            f"Note: {note}\n\n"
                             f"💰 Total: Rp {amount:,}\n"
                             f"📌 {payment_info}"
                         )
@@ -749,7 +752,9 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                         for item in order['items']:
                             st.write(f"- {item['product_name']} x {item['quantity']} @ Rp {item['price']:,} = Rp {item['total_item_price']:,}")
                             total_all += item['total_item_price']
-                            st.write(f"Note: {product_note}")
+                            if item.get("note"):  # hanya tampilkan jika ada
+                                st.write(f"Note: {item['note']}")
+
                 
                         st.write(f"💰 **Total Harga yang Dipesan:** Rp {total_all:,}")
                 
