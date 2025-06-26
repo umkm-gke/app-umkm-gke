@@ -8,17 +8,47 @@ from g_sheets import get_data, get_worksheet
 from auth import login_form, logout
 from streamlit_option_menu import option_menu
 from PIL import Image
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
 
-def resize_with_transparent_padding(image: Image.Image, target_size=(225, 225)) -> Image.Image:
-    image = image.convert("RGBA")
-    image.thumbnail(target_size, Image.LANCZOS)  # Resize, no crop
-    new_img = Image.new("RGBA", target_size, (255, 255, 255, 0))  # Transparent background
+# Configuration       
+cloudinary.config( 
+    cloud_name = "dehimmmo1", 
+    api_key = "452435813679954", 
+    api_secret = "UfXZPc7SQ_wl8jT5rC7LiZEZzdo", # Click 'View API Keys' above to copy your API secret
+    secure=True
+)
+def resize_with_padding(image: Image.Image, target_size=(225, 225), background=(255, 255, 255, 0)) -> Image.Image:
+    """
+    Resize image ke target_size tanpa crop. 
+    Tambah padding jika rasio berbeda. Bisa latar putih (RGB) atau transparan (RGBA).
+    """
+    image = image.convert("RGBA")  # Supaya bisa transparan atau full warna
+    image.thumbnail(target_size, Image.LANCZOS)
+
+    new_img = Image.new("RGBA", target_size, background)
     paste_position = (
         (target_size[0] - image.width) // 2,
         (target_size[1] - image.height) // 2
     )
-    new_img.paste(image, paste_position)
+    new_img.paste(image, paste_position, image)
     return new_img
+
+def upload_to_cloudinary(pil_image: Image.Image, public_id=None, format="PNG"):
+    buffered = io.BytesIO()
+    pil_image.save(buffered, format=format)
+    buffered.seek(0)
+
+    response = cloudinary.uploader.upload(
+        buffered,
+        resource_type="image",
+        public_id=public_id,
+        folder="produk",  # folder di cloudinary
+        overwrite=True,
+        format=format.lower()  # untuk URL extension
+    )
+    return response["secure_url"]
 
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -902,16 +932,23 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                     
                             # Simpan gambar baru jika diupload
                             if uploaded_file:
-                                os.makedirs("images", exist_ok=True)
                                 image = Image.open(uploaded_file)
-                                resized_image = resize_with_transparent_padding(image)
                             
-                                image_filename = f"{uuid.uuid4().hex[:8]}.png"
-                                image_path = os.path.join("images", image_filename)
-                                resized_image.save(image_path, format="PNG")
+                                # Resize tanpa crop (padding putih atau transparan)
+                                resized_image = resize_with_padding(image, background=(255, 255, 255, 0))  # atau (255,255,255,255) untuk putih penuh
                             
-                                image_url = image_path  # Update path gambar baru
-                                st.image(image_path, width=225, caption="Gambar Baru (225x225 PNG)")
+                                # Format bisa ditentukan berdasarkan ekstensi asli jika mau
+                                file_ext = uploaded_file.name.split('.')[-1].lower()
+                                file_format = "PNG" if file_ext in ["png"] else "JPEG"
+                            
+                                public_id = f"{vendor_id}_{uuid.uuid4().hex[:8]}"
+                                image_url = upload_to_cloudinary(resized_image, public_id=public_id, format=file_format)
+                            
+                                if image_url:
+                                    st.image(image_url, width=225, caption="Gambar Baru (225x225)")
+                                else:
+                                    st.warning("Gagal mengupload gambar ke Cloudinary.")
+
                     
                             product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
                             is_active_str = "true" if is_active else "false"
