@@ -408,7 +408,9 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                         cart.pop(i)
                         st.session_state.cart = cart
                         st.rerun()
-    
+                product_note = st.text_input("Catatan Produk (opsional)", value=item.get("note", ""), key=f"note_{i}")
+                cart[i]["note"] = product_note
+                
             total_price += item['price'] * item['quantity']
             vendor_id = item['vendor_id']
             vendors_in_cart[vendor_id] = vendors_in_cart.get(vendor_id, 0) + subtotal
