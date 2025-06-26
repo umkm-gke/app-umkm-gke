@@ -472,9 +472,9 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                     
                         vendor_info = vendor_info_df.iloc[0]
                         vendor_name = vendor_info['vendor_name']
-                        qris_url = vendor_info.get("qris_url", "").strip()
-                        bank_info = vendor_info.get("bank_account", "").strip()
-                        wa_number = vendor_info.get("whatsapp_number", "").strip()
+                        qris_url = str(vendor_info["qris_url"]).strip() if "qris_url" in vendor_info else ""
+                        bank_info = str(vendor_info["bank_account"]).strip() if "bank_account" in vendor_info else ""
+                        wa_number = str(vendor_info.get("whatsapp_number", "") if isinstance(vendor_info, dict) else vendor_info["whatsapp_number"]).strip()
                     
                         items = [f"{item['quantity']}x {item['product_name']}" for item in cart if item['vendor_id'] == vendor_id]
                         payment_info = ""
