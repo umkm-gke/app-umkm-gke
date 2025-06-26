@@ -36,6 +36,10 @@ def resize_with_padding(image: Image.Image, target_size=(225, 225), background=(
     return new_img
 
 def upload_to_cloudinary(pil_image: Image.Image, public_id=None, format="PNG"):
+    # Konversi ke RGB jika target format JPEG (tidak mendukung alpha channel)
+    if format.upper() == "JPEG" and pil_image.mode == "RGBA":
+        pil_image = pil_image.convert("RGB")
+
     buffered = io.BytesIO()
     pil_image.save(buffered, format=format)
     buffered.seek(0)
@@ -49,7 +53,7 @@ def upload_to_cloudinary(pil_image: Image.Image, public_id=None, format="PNG"):
             overwrite=True,
             format=format.lower()
         )
-        return response.get("secure_url")  # aman
+        return response.get("secure_url")
     except Exception as e:
         print("Upload error:", e)
         return None
