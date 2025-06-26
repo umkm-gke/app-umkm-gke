@@ -464,48 +464,61 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                     st.subheader("Rincian Tagihan & Konfirmasi Pesanan")
                     st.info("Silakan lakukan pembayaran ke masing-masing penjual dan konfirmasi pesanan.")
     
+                    # Loop untuk masing-masing vendor
                     for vendor_id, amount in vendors_in_cart.items():
                         vendor_info_df = vendors_df[vendors_df['vendor_id'] == vendor_id]
                         if vendor_info_df.empty:
                             continue
-    
+                    
                         vendor_info = vendor_info_df.iloc[0]
+                        vendor_name = vendor_info['vendor_name']
+                        qris_url = vendor_info.get("qris_url", "").strip()
+                        bank_info = vendor_info.get("bank_account", "").strip()
+                        wa_number = vendor_info.get("whatsapp_number", "").strip()
+                    
                         items = [f"{item['quantity']}x {item['product_name']}" for item in cart if item['vendor_id'] == vendor_id]
                         payment_info = ""
-    
-                        st.write("---")
-                        st.write(f"**Penjual: {vendor_info['vendor_name']}**")
-                        st.write(f"**Total Tagihan: Rp {amount:,}**")
-    
+                    
+                        st.markdown(f"### 🏪 {vendor_name}")
+                        st.markdown(f"💰 **Total Tagihan: Rp {amount:,}**")
+                    
                         if payment_method == "Transfer Bank":
-                            bank_info = vendor_info.get("bank_account", "")
-                            st.write(f"**Transfer ke Rekening:** {bank_info or 'Belum tersedia'}")
-                            payment_info = f"Metode: Transfer Bank\nRekening: {bank_info}"
-    
+                            if bank_info:
+                                st.markdown(f"🏦 **Transfer ke Rekening:** `{bank_info}`")
+                                st.info("Setelah transfer, konfirmasikan ke penjual melalui tombol WhatsApp di bawah.")
+                                payment_info = f"Transfer ke Rekening: {bank_info}"
+                            else:
+                                st.warning("⚠️ Penjual belum menyediakan informasi rekening.")
+                                payment_info = "Metode: Transfer Bank (rekening tidak tersedia)"
+                    
                         elif payment_method == "QRIS":
-                            qris_url = vendor_info.get("qris_url", "")
-                            if isinstance(qris_url, str) and qris_url.lower().startswith("http") and qris_url.lower().endswith(('.jpg', '.jpeg', '.png')):
-                                st.image(qris_url, caption="Atau scan QRIS", width=250)
+                            if qris_url.lower().startswith("http") and qris_url.lower().endswith(('.jpg', '.jpeg', '.png')):
+                                st.image(qris_url, caption="Scan QRIS Penjual", width=250)
+                                st.info("Setelah scan dan bayar, klik tombol WhatsApp di bawah untuk konfirmasi.")
                                 payment_info = "Metode: QRIS (lihat gambar)"
                             else:
-                                st.warning("QRIS belum tersedia.")
+                                st.warning("⚠️ QRIS belum tersedia dari penjual ini.")
                                 payment_info = "Metode: QRIS (belum tersedia)"
-    
+                    
                         else:
-                            st.info("Pembayaran dilakukan saat barang diterima.")
+                            st.success("📦 Pembayaran dilakukan saat barang diterima (COD).")
                             payment_info = "Metode: Tunai saat barang diterima"
-    
+                    
+                        # Pesan WhatsApp otomatis
                         message = (
-                            f"Halo {vendor_info['vendor_name']}, saya {customer_name} ingin konfirmasi pesanan {order_id}.\n\n"
-                            f"Pesanan saya:\n{', '.join(items)}\n\n"
-                            f"Total: Rp {amount:,}\n"
-                            f"{payment_info}\n\nTerima kasih!"
+                            f"Halo {vendor_name}, saya *{customer_name}* ingin konfirmasi pesanan **{order_id}**.\n\n"
+                            f"🛒 Pesanan:\n- " + "\n- ".join(items) + f"\n\n"
+                            f"💰 Total: Rp {amount:,}\n"
+                            f"📌 {payment_info}"
                         )
                         if order_note:
-                            message += f"\n\nCatatan: {order_note}"
+                            message += f"\n📝 Catatan: {order_note}"
                         encoded_message = quote_plus(message)
-                        whatsapp_url = f"https://wa.me/{vendor_info['whatsapp_number']}?text={encoded_message}"
-                        st.link_button(f"💬 Konfirmasi ke {vendor_info['vendor_name']} via WhatsApp", whatsapp_url)
+                        whatsapp_url = f"https://wa.me/{wa_number}?text={encoded_message}"
+                    
+                        st.link_button(f"💬 Konfirmasi ke {vendor_name} via WhatsApp", whatsapp_url)
+                        st.markdown("---")
+
     
                     # Kosongkan keranjang setelah selesai
                     st.session_state.cart = []
