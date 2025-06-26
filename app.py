@@ -535,45 +535,32 @@ elif st.session_state.role == 'guest' and menu_selection == "Daftar sebagai Penj
         vendor_name = st.text_input("Nama Toko / UMKM Anda")
         username = st.text_input("Username (untuk login)")
         whatsapp_number = st.text_input(
-        "Nomor WhatsApp (format: 628xxxxxxxxxx)",
-        max_chars=13,
-        placeholder="Contoh: 6281234567890"
+            "Nomor WhatsApp (format: 628xxxxxxxxxx)",
+            max_chars=13,
+            placeholder="Contoh: 6281234567890"
         )
-        
-        # ✅ Input Transfer Bank (WAJIB)
+    
         bank_account = st.text_input(
             "Info Rekening Bank (WAJIB)",
             placeholder="Contoh: BCA - 1234567890 a.n. Toko ABC"
         )
     
-        # ✅ Input QRIS (OPSIONAL) + Validasi
-        qris_url = st.text_input(
-            "Link Gambar QRIS (Opsional)",
-            placeholder="Contoh: https://i.imgur.com/namafile.png"
-        )
+        uploaded_qris = st.file_uploader("Upload Gambar QRIS (Opsional)", type=["jpg", "jpeg", "png"])
     
         password = st.text_input("Password", type="password")
         confirm_password = st.text_input("Konfirmasi Password", type="password")
         submitted = st.form_submit_button("Daftar Sekarang")
     
-        # ==== VALIDASI ====
-        def is_valid_image_url(url):
-            valid_extensions = [".jpg", ".jpeg", ".png"]
-            return url.lower().startswith("http") and any(url.lower().endswith(ext) for ext in valid_extensions)
-    
         if submitted:
             if not all([vendor_name, username, whatsapp_number, bank_account, password, confirm_password]):
                 st.warning("Semua kolom wajib diisi, kecuali QRIS.")
             elif not is_valid_wa_number(whatsapp_number):
-                st.error("❌ Nomor WhatsApp tidak valid. Gunakan format 628xxxxxxxxxx (12–13 digit angka saja).")
+                st.error("❌ Nomor WhatsApp tidak valid. Gunakan format 628xxxxxxxxxx.")
             elif password != confirm_password:
                 st.error("Password dan konfirmasi password tidak cocok.")
-            elif qris_url and not is_valid_image_url(qris_url):
-                st.error("Link QRIS harus berupa URL gambar dengan format .jpg, .jpeg, atau .png.")
             else:
                 with st.spinner("Mendaftarkan akun Anda..."):
                     vendors_df = get_data("Vendors")
-    
                     if not vendors_df.empty and username in vendors_df['username'].values:
                         st.error("Username ini sudah digunakan. Silakan pilih yang lain.")
                     else:
@@ -582,20 +569,27 @@ elif st.session_state.role == 'guest' and menu_selection == "Daftar sebagai Penj
                             vendor_id = f"VEND-{uuid.uuid4().hex[:6].upper()}"
                             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
+                            qris_url = ""
+                            if uploaded_qris:
+                                try:
+                                    image = Image.open(uploaded_qris).convert("RGB")
+                                    qris_url = upload_to_cloudinary(image, public_id=f"QRIS_{vendor_id}", format="JPEG")
+                                    st.success("✅ QRIS berhasil diunggah.")
+                                except Exception as e:
+                                    st.warning(f"Gagal upload gambar QRIS: {e}")
+    
                             new_vendor_row = [
                                 vendor_id,
                                 vendor_name,
                                 username,
                                 hashed_password,
                                 whatsapp_number,
-                                "pending",      # status
-                                "false",        # default saat daftar
+                                "pending",
+                                "false",
                                 bank_account,
-                                qris_url or ""  # jika kosong, isi dengan string kosong
+                                qris_url
                             ]
-    
                             vendors_ws.append_row(new_vendor_row)
-    
                             st.success(
                                 f"Pendaftaran berhasil, {vendor_name}! "
                                 "Akun Anda sedang menunggu persetujuan admin. "
@@ -606,9 +600,8 @@ elif st.session_state.role == 'guest' and menu_selection == "Daftar sebagai Penj
                         else:
                             st.error("Gagal terhubung ke database. Coba lagi nanti.")
     
-        # Bantuan untuk vendor gaptek
-        st.info("Jika kesulitan mengunggah QRIS, Anda dapat mengirimkannya ke Admin melalui WhatsApp: 62812XXXXXXX")
-
+        # Bantuan vendor
+        st.info("❓ Kesulitan upload QRIS? Kirim saja ke Admin via WhatsApp: 62812XXXXXXX")
 with st.sidebar:
     if not st.session_state.get("logged_in"):
         st.markdown("### 🔐 Login Vendor / Admin")
@@ -855,28 +848,6 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                 st.info("Anda belum memiliki produk.")
             else:
                 st.dataframe(my_products)
-
-        # ------------------ HAPUS PRODUK ------------------
-            with st.expander("🗑️ Hapus Produk"):
-                if not my_products.empty:
-                    delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
-                    if st.button("Hapus Produk Ini"):
-                        products_ws = get_worksheet("Products")
-                        if products_ws:
-                            cell = products_ws.find(delete_id)
-                            if cell:
-                                products_ws.delete_rows(cell.row)
-                                st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
-                                st.cache_data.clear()
-                                #st.rerun()
-                            else:
-                                st.error("Produk tidak ditemukan.")
-                else:
-                    st.caption("Belum ada produk yang bisa dihapus.")
-    
-        except Exception as e:
-            st.error("Gagal memuat data produk.")
-            st.write(e)
     
         # ------------------ TAMBAH / EDIT PRODUK ------------------
         with st.expander("➕ Tambah atau Edit Produk"):
@@ -1016,13 +987,30 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
             except Exception as e:
                 st.error("Gagal menampilkan form produk.")
                 st.write(e)
+        # ------------------ HAPUS PRODUK ------------------
+        with st.expander("🗑️ Hapus Produk"):
+            if not my_products.empty:
+                delete_id = st.selectbox("Pilih Produk yang Ingin Dihapus", my_products['product_id'].tolist())
+                if st.button("Hapus Produk Ini"):
+                    products_ws = get_worksheet("Products")
+                    if products_ws:
+                        cell = products_ws.find(delete_id)
+                        if cell:
+                            products_ws.delete_rows(cell.row)
+                            st.success(f"Produk dengan ID {delete_id} berhasil dihapus.")
+                            st.cache_data.clear()
+                            #st.rerun()
+                        else:
+                            st.error("Produk tidak ditemukan.")
+            else:
+                st.caption("Belum ada produk yang bisa dihapus.")
 
+        except Exception as e:
+            st.error("Gagal memuat data produk.")
+            st.write(e)
  # ------------------ UPDATE DATA VENDOR ------------------
     
     with st.expander("✏️ Update Data Toko"):
-        def is_valid_image_url(url: str) -> bool:
-            return url.lower().startswith("http") and url.lower().endswith((".jpg", ".jpeg", ".png"))
-        
         try:
             vendor_id = st.session_state.vendor_id
             vendors_df = get_data("Vendors")
@@ -1031,29 +1019,37 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
             vendor_info = vendors_df[vendors_df['vendor_id'] == vendor_id].iloc[0]
     
             updated_bank = st.text_input("Info Rekening Bank", value=vendor_info.get("bank_account", ""))
-            updated_qris = st.text_input(
-                "Link Gambar QRIS",
-                value=vendor_info.get("qris_url", ""),
-                placeholder="https://i.imgur.com/qriscontoh.png"
-            )
+    
+            st.caption("QRIS saat ini (jika tersedia):")
+            if vendor_info.get("qris_url"):
+                st.image(vendor_info.get("qris_url"), width=200)
+    
+            uploaded_qris = st.file_uploader("Upload Gambar QRIS Baru (opsional)", type=["jpg", "jpeg", "png"])
     
             if st.button("💾 Simpan Perubahan"):
-                if updated_qris and not is_valid_image_url(updated_qris):
-                    st.error("Link QRIS harus berupa URL gambar dengan ekstensi .jpg, .jpeg, atau .png")
-                else:
+                updated_qris_url = vendor_info.get("qris_url", "")
+    
+                if uploaded_qris:
                     try:
-                        cell = vendors_ws.find(vendor_id)
-                        row = cell.row
-    
-                        # Update kolom bank_account dan qris_url (pastikan kolom sesuai dengan struktur GSheet Anda)
-                        vendors_ws.update_cell(row, 8, updated_bank)  # kolom H
-                        vendors_ws.update_cell(row, 9, updated_qris)  # kolom I
-    
-                        st.success("Data berhasil diperbarui.")
-                        st.cache_data.clear()
+                        img = Image.open(uploaded_qris).convert("RGB")
+                        public_id = f"QRIS_{vendor_id}"
+                        updated_qris_url = upload_to_cloudinary(img, public_id=public_id, format="JPEG")
+                        st.success("✅ QRIS berhasil diunggah.")
                     except Exception as e:
-                        st.error("Gagal memperbarui data.")
-                        st.write(e)
+                        st.warning(f"Gagal upload QRIS: {e}")
+    
+                try:
+                    cell = vendors_ws.find(vendor_id)
+                    row = cell.row
+    
+                    vendors_ws.update_cell(row, 8, updated_bank)      # kolom H: bank_account
+                    vendors_ws.update_cell(row, 9, updated_qris_url)  # kolom I: qris_url
+    
+                    st.success("✅ Data berhasil diperbarui.")
+                    st.cache_data.clear()
+                except Exception as e:
+                    st.error("Gagal memperbarui data.")
+                    st.write(e)
     
         except Exception as e:
             st.error("Gagal memuat data vendor.")
