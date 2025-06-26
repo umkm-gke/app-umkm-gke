@@ -699,11 +699,11 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                 st.warning(f"⛔ Order ID {row['order_id']} gagal diproses: {e}")
     
         return pd.DataFrame(grouped)
-    jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
-    if jumlah_baru > 0:
-        st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
-    else:
-        st.info("✅ Tidak ada pesanan baru saat ini.")
+        jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
+        if jumlah_baru > 0:
+            st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
+        else:
+            st.info("✅ Tidak ada pesanan baru saat ini.")
         
     if st.button("🔄 Muat Ulang Data"):
         st.cache_data.clear()
