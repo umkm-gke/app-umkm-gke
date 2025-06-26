@@ -655,7 +655,8 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
 
     # Fungsi filter pesanan vendor
     def load_relevant_orders(df_orders_all, vendor_id):
-        df_orders_all['timestamp'] = pd.to_datetime(df_orders_all['timestamp'], errors='coerce', utc=True).dt.tz_convert(jakarta_tz)
+        df_orders_all['timestamp'] = pd.to_datetime(df_orders_all['timestamp'], errors='coerce')
+        df_orders_all['timestamp'] = df_orders_all['timestamp'].dt.tz_localize(jakarta_tz, ambiguous='NaT', nonexistent='shift_forward')
         today = now_jakarta()
         last_week = today - pd.Timedelta(days=7)
         df_orders_all = df_orders_all[df_orders_all['timestamp'] >= last_week]
@@ -707,6 +708,8 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
         else:
             # Konversi timestamp
             df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce')
+            df_orders['timestamp'] = df_orders['timestamp'].dt.tz_localize(jakarta_tz, ambiguous='NaT', nonexistent='shift_forward')
+
     
             jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
             if jumlah_baru > 0:
