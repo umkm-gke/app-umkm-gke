@@ -700,6 +700,9 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
     
         return pd.DataFrame(grouped)
 
+    if st.button("🔄 Muat Ulang Data"):
+    st.cache_data.clear()
+    st.rerun()
 
     # Ambil data
     ws_orders, df_all = get_all_orders()
