@@ -1234,43 +1234,42 @@ elif role == 'admin':
                 st.cache_data.clear()
                 #st.rerun()
 
-    with st.expander("🔍 Cari Vendor untuk Reset Password"):
-        search_term = st.text_input("Cari berdasarkan username atau nama vendor")
-        
-        if search_term:
-            filtered_vendors = vendors_df[
-                vendors_df['username'].str.contains(search_term, case=False, na=False) |
-                vendors_df['vendor_name'].str.contains(search_term, case=False, na=False)
-            ]
-        
-            if filtered_vendors.empty:
-                st.warning("Vendor tidak ditemukan.")
-            else:
-                selected_username = st.selectbox(
-                    "Pilih Vendor",
-                    filtered_vendors['username'].tolist()
-                )
-        
-                if selected_username:
-                    vendor_row = filtered_vendors[filtered_vendors['username'] == selected_username].iloc[0]
-                    st.markdown(f"**{vendor_row['vendor_name']}** (`{vendor_row['username']}`) - Status: {vendor_row['status']}")
-        
-                    new_password = st.text_input("Password Baru", type="password", key=f"reset_pass_{selected_username}")
-        
-                    if st.button("Setel Ulang Password", key=f"btn_reset_{selected_username}"):
-                        if not new_password:
-                            st.error("Password baru tidak boleh kosong.")
-                        else:
-                            hashed_new_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                            password_col_index = vendors_df.columns.get_loc('password_hash') + 1
-                            cell = vendors_ws.find(selected_username)
-                            if cell:
-                                vendors_ws.update_cell(cell.row, password_col_index, hashed_new_pw)
-                                get_data.clear()  # Clear cache data get_data saja
-                                st.success(f"Password untuk '{selected_username}' berhasil direset.")
-                                #st.rerun()
-                            else:
-                                st.error("Gagal menemukan akun vendor.")
-
+    with st.expander("🛡️ Persetujuan Reset Password Vendor"):
+        vendors_df = get_data("Vendors")
+        vendors_ws = get_worksheet("Vendors")
+    
+        reset_pending = vendors_df[vendors_df['reset_status'].str.lower() == "pending"]
+    
+        if reset_pending.empty:
+            st.info("Tidak ada permintaan reset password.")
         else:
-            st.info("Masukkan nama atau username vendor untuk mencari.")
+            for i, row in reset_pending.iterrows():
+                st.markdown("---")
+                st.markdown(f"**{row['vendor_name']}** (`{row['username']}`)")
+                st.caption(f"📱 {row['whatsapp_number']}")
+    
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button(f"✅ Setujui Reset - {row['username']}", key=f"approve_{row['username']}"):
+                        cell = vendors_ws.find(row['username'])
+                        if cell:
+                            # Update password_hash
+                            pw_col = vendors_df.columns.get_loc('password_hash') + 1
+                            new_pw_col = vendors_df.columns.get_loc('new_password_hash') + 1
+                            reset_col = vendors_df.columns.get_loc('reset_status') + 1
+    
+                            new_hashed_pw = row['new_password_hash']
+                            vendors_ws.update_cell(cell.row, pw_col, new_hashed_pw)
+                            vendors_ws.update_cell(cell.row, new_pw_col, "")  # kosongkan
+                            vendors_ws.update_cell(cell.row, reset_col, "approved")
+    
+                            st.cache_data.clear()
+                            st.success(f"Password untuk {row['username']} berhasil direset.")
+                            st.rerun()
+                with col2:
+                    if st.button(f"❌ Tolak - {row['username']}", key=f"reject_{row['username']}"):
+                        reset_col = vendors_df.columns.get_loc('reset_status') + 1
+                        vendors_ws.update_cell(cell.row, reset_col, "rejected")
+                        st.warning(f"Permintaan reset '{row['username']}' ditolak.")
+                        st.rerun()
+
