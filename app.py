@@ -254,6 +254,23 @@ with st.sidebar:
     # Logout tombol ditampilkan jika login
     if st.session_state.get("logged_in"):
         st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
+        
+        # Ambil data pesanan baru di sini (misal dari df_orders hasil load_relevant_orders)
+        df_orders = load_relevant_orders(df_all, st.session_state.get('vendor_id'))
+        
+        if df_orders is None or df_orders.empty:
+            jumlah_baru = 0
+        else:
+            if "status" in df_orders.columns:
+                jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
+            else:
+                jumlah_baru = 0
+        
+        if jumlah_baru > 0:
+            st.sidebar.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
+        else:
+            st.sidebar.info("✅ Tidak ada pesanan baru saat ini.")
+
         logout()
 
     # Khusus guest & klik reset password
