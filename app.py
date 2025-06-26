@@ -512,7 +512,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                         message = (
                             f"Halo {vendor_name}, saya *{customer_name}* ingin konfirmasi pesanan **{order_id}**.\n\n"
                             f"🛒 Pesanan:\n- " + "\n- ".join(items) + f"\n\n"
-                            f"Note: {note}\n\n"
+                            f"Note: {item['note']}\n\n"
                             f"💰 Total: Rp {amount:,}\n"
                             f"📌 {payment_info}"
                         )
