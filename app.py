@@ -717,10 +717,10 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
             df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce')
             # Jika belum ada timezone, tetapkan Jakarta
             def ensure_jakarta_timezone(series):
-            try:
-                return pd.to_datetime(series, errors='coerce').dt.tz_localize(jakarta_tz)
-            except TypeError:
-                return pd.to_datetime(series, errors='coerce').dt.tz_convert(jakarta_tz)
+                try:
+                    return pd.to_datetime(series, errors='coerce').dt.tz_localize(jakarta_tz)
+                except TypeError:
+                    return pd.to_datetime(series, errors='coerce').dt.tz_convert(jakarta_tz)
 
 
 
