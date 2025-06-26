@@ -280,8 +280,8 @@ with st.sidebar:
 
     # Logout tombol ditampilkan jika login
     if st.session_state.get("logged_in"):
-            st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
-        
+        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
+        if st.session_state.get("role") == "vendor":
             vendor_id = st.session_state.get('vendor_id')
         
             # Ambil data dari worksheet hanya jika belum kosong
