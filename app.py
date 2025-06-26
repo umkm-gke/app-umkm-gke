@@ -58,6 +58,7 @@ def upload_to_cloudinary(pil_image: Image.Image, public_id=None, format="PNG"):
         print("Upload error:", e)
         return None
 
+
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
@@ -910,10 +911,17 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                     )
                 
                     # Tampilkan gambar jika ada dan file ada di disk
+                    def cloudinary_resize_url(original_url, width=225, height=225):
+                        parts = original_url.split("/upload/")
+                        if len(parts) != 2:
+                            return original_url  # fallback jika bukan URL Cloudinary
+                        return parts[0] + f"/upload/w_{width},h_{height},c_fit/" + parts[1]
+                    
                     try:
                         if default_image:
                             if default_image.startswith("http"):
-                                st.image(default_image, width=225, caption="Gambar Produk Saat Ini")
+                                resized_image_url = cloudinary_resize_url(default_image)
+                                st.image(resized_image_url, width=225, caption="Gambar Produk Saat Ini")
                             elif os.path.isfile(default_image):
                                 st.image(default_image, width=225, caption="Gambar Produk Saat Ini")
                             else:
@@ -924,6 +932,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                         st.warning("⚠️ Gambar tidak ditemukan. Menampilkan gambar default.")
                         st.image("https://placehold.co/225x225.png?text=No+Image&font=roboto", width=225)
                         st.caption(f"Error: {e}")
+
 
                 
                     uploaded_file = st.file_uploader("Upload Gambar Baru (opsional)", type=["jpg", "jpeg", "png"])
