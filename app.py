@@ -757,12 +757,11 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                         st.markdown("#### 🛒 Produk Dipesan:")
                         total_all = 0
                         for item in order['items']:
-                            st.write(f"- {item['product_name']} x {item['quantity']} @ Rp {item['price']:,} = Rp {item['total_item_price']:,}")
+                            line = f"- {item['product_name']} x {item['quantity']} @ Rp {item['price']:,} = Rp {item['total_item_price']:,}"
+                            if item.get("note"):
+                                line += f" (Catatan: {item['note']})"
+                            st.write(line)
                             total_all += item['total_item_price']
-                            if item.get("note"):  # hanya tampilkan jika ada
-                                st.write(f"Note: {item['note']}")
-
-                
                         st.write(f"💰 **Total Harga yang Dipesan:** Rp {total_all:,}")
                 
                         # Tombol WA
