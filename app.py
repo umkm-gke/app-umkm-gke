@@ -1274,8 +1274,8 @@ elif role == 'admin':
             login_form()
             st.error("Halaman ini hanya dapat diakses oleh admin.")
             #st.stop()
-        else:
-            st.sidebar.success(f"Login sebagai: **Administrator**")
+        #else:
+            $st.sidebar.success(f"Login sebagai: **Administrator**")
             #logout()  # ❗️Panggilan hanya satu kali, aman
     
     with st.expander("🛂 Verifikasi Pendaftar Vendor"):
