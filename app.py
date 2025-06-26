@@ -23,6 +23,17 @@ def get_all_orders():
         except Exception as e:
             st.error(f"❌ Gagal mengambil data dari worksheet: {e}")
             return None, pd.DataFrame()
+
+# Fungsi filter pesanan vendor
+def load_relevant_orders(df_orders_all, vendor_id):
+        # Konversi timestamp dengan pengecekan tz-aware atau tidak
+        def localize_or_convert_tz(series, tz):
+            dt_series = pd.to_datetime(series, errors='coerce')
+            if dt_series.dt.tz is None:
+                return dt_series.dt.tz_localize(tz)
+            else:
+                return dt_series.dt.tz_convert(tz)
+                    
 # Configuration       
 cloudinary.config( 
     cloud_name = "dehimmmo1", 
