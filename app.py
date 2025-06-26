@@ -592,8 +592,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Daftar sebagai Penj
                             vendors_ws.append_row(new_vendor_row)
                             st.success(
                                 f"Pendaftaran berhasil, {vendor_name}! "
-                                "Akun Anda sedang menunggu persetujuan admin. "
-                                "Kami akan menghubungi Anda setelah disetujui."
+                                "Akun Anda sedang menunggu persetujuan admin. Silakan konfirmasi ke WA Admin"
                             )
                             st.balloons()
                             st.cache_data.clear()
@@ -601,7 +600,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Daftar sebagai Penj
                             st.error("Gagal terhubung ke database. Coba lagi nanti.")
     
         # Bantuan vendor
-        st.info("❓ Kesulitan upload QRIS? Kirim saja ke Admin via WhatsApp: 62812XXXXXXX")
+        st.info("❓ Kesulitan upload QRIS? Kirim saja ke Admin via WhatsApp: 6281217026522")
 with st.sidebar:
     if not st.session_state.get("logged_in"):
         st.markdown("### 🔐 Login Vendor / Admin")
