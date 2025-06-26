@@ -655,15 +655,18 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
 
     # Fungsi filter pesanan vendor
     def load_relevant_orders(df_orders_all, vendor_id):
-        df_orders_all['timestamp'] = pd.to_datetime(df_orders_all['timestamp'], errors='coerce')
-        # Jika belum ada timezone, tetapkan Jakarta
-        try:
-            df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce').dt.tz_localize(jakarta_tz)
-        except TypeError:
-            # Jika sudah tz-aware, tinggal dikonversi ke zona Jakarta
-            df_orders['timestamp'] = pd.to_datetime(df_orders['timestamp'], errors='coerce').dt.tz_convert(jakarta_tz)
-
-
+        # Konversi timestamp dengan pengecekan tz-aware atau tidak
+        def localize_or_convert_tz(series, tz):
+            dt_series = pd.to_datetime(series, errors='coerce')
+            if dt_series.dt.tz is None:
+                return dt_series.dt.tz_localize(tz)
+            else:
+                return dt_series.dt.tz_convert(tz)
+    
+        # Terapkan ke kolom timestamp
+        df_orders_all['timestamp'] = localize_or_convert_tz(df_orders_all['timestamp'], jakarta_tz)
+    
+        # Filter pesanan 7 hari terakhir
         today = now_jakarta()
         last_week = today - pd.Timedelta(days=7)
         df_orders_all = df_orders_all[df_orders_all['timestamp'] >= last_week]
@@ -680,7 +683,8 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                             "product_name": item.get('product_name'),
                             "quantity": item.get('quantity'),
                             "price": item.get('price'),
-                            "total_item_price": item.get('quantity') * item.get('price')
+                            "total_item_price": item.get('quantity') * item.get('price'),
+                            "note": item.get("note", "")
                         })
                 if relevant_items:
                     grouped.append({
