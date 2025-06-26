@@ -749,7 +749,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                         for item in order['items']:
                             st.write(f"- {item['product_name']} x {item['quantity']} @ Rp {item['price']:,} = Rp {item['total_item_price']:,}")
                             total_all += item['total_item_price']
-                            st.write(f"Note: {product_note})
+                            st.write(f"Note: {product_note}")
                 
                         st.write(f"💰 **Total Harga yang Dipesan:** Rp {total_all:,}")
                 
