@@ -12,6 +12,17 @@ import cloudinary
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 
+
+def get_all_orders():
+        ws = get_worksheet("Orders")
+        if not ws:
+            return None, pd.DataFrame()
+        try:
+            df = pd.DataFrame(ws.get_all_records())
+            return ws, df
+        except Exception as e:
+            st.error(f"❌ Gagal mengambil data dari worksheet: {e}")
+            return None, pd.DataFrame()
 # Configuration       
 cloudinary.config( 
     cloud_name = "dehimmmo1", 
@@ -251,6 +262,11 @@ with st.sidebar:
             },
         }
     )
+    ws_orders, df_all = get_all_orders()  # fungsi ambil data dari worksheet
+    if df_all.empty:
+        st.warning("Tidak ada data pesanan ditemukan.")
+        df_all = None  # supaya bisa dicek berikutnya
+
     # Logout tombol ditampilkan jika login
     if st.session_state.get("logged_in"):
         st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
