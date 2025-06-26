@@ -280,25 +280,36 @@ with st.sidebar:
 
     # Logout tombol ditampilkan jika login
     if st.session_state.get("logged_in"):
-        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
+            st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
         
-        # Ambil data pesanan baru di sini (misal dari df_orders hasil load_relevant_orders)
-        df_orders = load_relevant_orders(df_all, st.session_state.get('vendor_id'))
+            vendor_id = st.session_state.get('vendor_id')
         
-        if df_orders is None or df_orders.empty:
-            jumlah_baru = 0
-        else:
-            if "status" in df_orders.columns:
-                jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
+            # Ambil data dari worksheet hanya jika belum kosong
+            if df_all is not None and not df_all.empty:
+                # Filter status Baru
+                df_baru = df_all[df_all["order_status"] == "Baru"].copy()
+        
+                # Cek apakah ada produk dari vendor ini
+                jumlah_baru = 0
+                for _, row in df_baru.iterrows():
+                    try:
+                        items = json.loads(row["order_details"])
+                        for item in items:
+                            if item.get("vendor_id") == vendor_id:
+                                jumlah_baru += 1
+                                break
+                    except:
+                        continue
             else:
                 jumlah_baru = 0
         
-        if jumlah_baru > 0:
-            st.sidebar.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
-        else:
-            st.sidebar.info("✅ Tidak ada pesanan baru saat ini.")
-
-        logout()
+            # Tampilkan notifikasi di sidebar
+            if jumlah_baru > 0:
+                st.sidebar.success(f"🚨 Anda memiliki **{jumlah_baru}** pesanan **Baru**!")
+            else:
+                st.sidebar.info("🚨 Belum ada pesanan baru saat ini.")
+        
+            logout()
 
     # Khusus guest & klik reset password
     if menu_selection == "Reset Password" and role == 'guest':
