@@ -40,15 +40,19 @@ def upload_to_cloudinary(pil_image: Image.Image, public_id=None, format="PNG"):
     pil_image.save(buffered, format=format)
     buffered.seek(0)
 
-    response = cloudinary.uploader.upload(
-        buffered,
-        resource_type="image",
-        public_id=public_id,
-        folder="produk",  # folder di cloudinary
-        overwrite=True,
-        format=format.lower()  # untuk URL extension
-    )
-    return response["secure_url"]
+    try:
+        response = cloudinary.uploader.upload(
+            buffered,
+            resource_type="image",
+            public_id=public_id,
+            folder="produk",
+            overwrite=True,
+            format=format.lower()
+        )
+        return response.get("secure_url")  # aman
+    except Exception as e:
+        print("Upload error:", e)
+        return None
 
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -942,12 +946,14 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                                 file_format = "PNG" if file_ext in ["png"] else "JPEG"
                             
                                 public_id = f"{vendor_id}_{uuid.uuid4().hex[:8]}"
-                                image_url = upload_to_cloudinary(resized_image, public_id=public_id, format=file_format)
-                            
-                                if image_url:
+                                uploaded_url = upload_to_cloudinary(resized_image, public_id=public_id, format=file_format)
+                                if uploaded_url:
+                                    image_url = uploaded_url
                                     st.image(image_url, width=225, caption="Gambar Baru (225x225)")
                                 else:
-                                    st.warning("Gagal mengupload gambar ke Cloudinary.")
+                                    st.warning("Gagal mengupload gambar ke Cloudinary. Menggunakan gambar lama.")
+                                    image_url = default_image  # fallback jika upload gagal
+
 
                     
                             product_id = selected_product_id if selected_product_id else f"PROD-{uuid.uuid4().hex[:6].upper()}"
