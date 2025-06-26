@@ -329,110 +329,56 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.markdown("---")
         st.markdown("""
         <style>
-        /* Container grid untuk produk */
-        .products-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            padding: 20px 0;
-        }
-    
-        /* Styling kartu produk */
         .product-card {
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            padding: 16px 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 8px 10px;
+            height: 100%;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            background: #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            height: 100%;
         }
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-        .product-card .stImage {
-            margin-bottom: 12px;
-            border-radius: 8px;
-            object-fit: contain;
-            max-height: 225px;
-            width: 100%;
-        }
-        .product-card .stButton > button {
-            width: 100%;
-            margin-top: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 0;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .product-card .stButton > button:hover {
-            background-color: #0056b3;
-        }
-        .product-card .stCaption,
-        .product-card .stMarkdown {
-            margin-bottom: 8px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #444;
-            line-height: 1.4;
-        }
-        .product-card .product-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 6px;
-            color: #222;
-        }
-        .product-card .product-price {
-            font-weight: 700;
-            color: #28a745;
-            font-size: 1.1rem;
-            margin-bottom: 6px;
-        }
+        .product-card .stImage { margin-bottom: 8px; }
+        .product-card .stButton > button { width: 100%; margin-top: 8px; }
+        .product-card .stCaption, .product-card .stMarkdown { margin-bottom: 4px; }
         </style>
-        <div class="products-container">
         """, unsafe_allow_html=True)
-    
-        for _, product in filtered.iterrows():
-            st.markdown('<div class="product-card">', unsafe_allow_html=True)
-    
-            image_url = product.get('image_url', '')
-            try:
-                if hasattr(image_url, "read"):
-                    st.image(image_url, use_container_width=True)
-                elif isinstance(image_url, str) and image_url.strip():
-                    st.image(image_url.strip(), use_container_width=True)
-                else:
-                    st.image("https://via.placeholder.com/225x225.png?text=No+Image", use_container_width=True)
-            except:
-                st.image("https://via.placeholder.com/225x225.png?text=No+Image", use_container_width=True)
-    
-            st.markdown(f'<div class="product-title">{product["product_name"][:30]}</div>', unsafe_allow_html=True)
-            st.caption(f"Kategori: {product.get('category', '-')}")
-            st.caption(f"🧑 {product.get('vendor_name', '-')}")
-            st.markdown(f'<div class="product-price">💰 Rp {int(product["price"]):,}</div>', unsafe_allow_html=True)
-            st.caption(f"✅ Terjual: {product.get('sold_count', 0):,}")
-    
-            desc = product.get('description', '')
-            st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
-    
-            if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                add_to_cart(product)
-    
-            st.markdown('</div>', unsafe_allow_html=True)
-    
-        st.markdown("</div>", unsafe_allow_html=True)
-    
+
+        rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
+        for row in rows:
+            cols = st.columns(4)
+            for col, (_, product) in zip(cols, row.iterrows()):
+                with col:
+                    with st.container():
+                        st.markdown('<div class="product-card">', unsafe_allow_html=True)
+                        image_url = product.get('image_url', '')
+                        try:
+                            if hasattr(image_url, "read"):
+                                st.image(image_url, use_container_width=True)
+                            elif isinstance(image_url, str) and image_url.strip():
+                                st.image(image_url.strip(), use_container_width=True)
+                            else:
+                                st.image("https://via.placeholder.com/200", use_container_width=True)
+                        except:
+                            st.image("https://via.placeholder.com/200", use_container_width=True)
+
+                        st.markdown(f"**{product['product_name'][:30]}**")
+                        st.caption(f"Kategori: {product.get('category', '-')}")
+                        st.caption(f"🧑 {product['vendor_name']}")
+                        st.markdown(f"💰 Rp {int(product['price']):,}")
+                        st.caption(f"✅ Terjual: {product['sold_count']:,}")
+
+                        desc = product.get('description', '')
+                        st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
+
+                        if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                            add_to_cart(product)
+
+                        st.markdown('</div>', unsafe_allow_html=True)
+
     if 'cart' not in st.session_state:
         st.session_state.cart = []
-
 
 #================================================
 elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
