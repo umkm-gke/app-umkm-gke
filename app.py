@@ -485,7 +485,7 @@ elif st.session_state.role == 'guest' and menu_selection == "Keranjang":
                             if item['vendor_id'] == vendor_id:
                                 item_line = f"{item['quantity']}x {item['product_name']}"
                                 if item.get("note"):
-                                    item_line += f" (Catatan: {item['note']})"
+                                    item_line += f" {item['note']}"
                                 items.append(item_line)
 
                         payment_info = ""
