@@ -468,10 +468,12 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                         except:
                             st.image("https://via.placeholder.com/200", use_container_width=True)
 
-                        last_updated = product.get('last_updated')
-                        is_new = False
-                        if pd.notnull(last_updated) and (datetime.datetime.now() - last_updated).days <= 7:
-                            is_new = True
+                        try:
+                            last_updated = pd.to_datetime(product.get('last_updated'), errors='coerce')
+                            is_new = pd.notnull(last_updated) and (datetime.datetime.now() - last_updated).days <= 7
+                        except Exception:
+                            is_new = False
+
                         
                         new_badge = " <span style='color:green; font-size:0.9em;'>🆕 Produk Baru</span>" if is_new else ""
                         product_title = f"<div class='custom-title'>{product['product_name'][:30]}{new_badge}</div>"
