@@ -81,6 +81,40 @@ def upload_to_cloudinary(pil_image: Image.Image, public_id=None, format="PNG"):
         print("Upload error:", e)
         return None
 
+def show_promo_link(vendor_name: str):
+    """
+    Generate dan tampilkan link katalog untuk vendor tertentu,
+    lengkap dengan tombol salin otomatis dan info.
+
+    Args:
+        vendor_name (str): Nama vendor/toko yang ingin dipromosikan.
+    """
+    if not vendor_name:
+        st.warning("Nama vendor tidak tersedia.")
+        return
+
+    base_url = st.secrets['app_config']['base_url']
+    vendor_encoded = urllib.parse.quote(vendor_name)
+    share_url = f"{base_url}?vendor={vendor_encoded}"
+
+    st.markdown("---")
+    st.info(f"🔗 Link katalog toko *{vendor_name}*:\n`{share_url}`")
+    st.code(share_url, language='markdown')
+    st.caption("Bagikan link ini ke WA Group untuk promosi langsung ke katalog toko.")
+
+    # Tombol salin dengan input yang bisa dipilih/copy manual juga
+    components.html(f"""
+        <input type="text" value="{share_url}" id="copyURL" style="width: 80%; padding: 5px;" readonly>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('copyURL').value)">
+            📋 Salin
+        </button>
+        <script>
+            // Pilih otomatis isi input saat klik
+            document.getElementById('copyURL').onclick = function() {{
+                this.select();
+            }};
+        </script>
+    """, height=50)
 
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -793,7 +827,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
         st.stop()
 
     st.header(f"Dashboard: {st.session_state['vendor_name']}")
-
+    show_promo_link(vendor_name)
     # Fungsi ambil semua data
     @st.cache_data(ttl=300)
     def get_all_orders():
