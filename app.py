@@ -384,8 +384,18 @@ with st.sidebar:
 # ========================
 # --- HALAMAN BELANJA ---
 # ========================
+query_params = st.query_params
+url_vendor = query_params.get("vendor", [None])[0]
+
 if st.session_state.role == 'guest' and menu_selection == "Belanja":
-    st.markdown("### <img src='https://cdn-icons-png.flaticon.com/512/1170/1170678.png' width='25'/> Katalog Produk", unsafe_allow_html=True)
+    if url_vendor:
+        judul = f"Katalog Produk {url_vendor}"
+        subjudul = f"_Temukan produk terbaik dari **{url_vendor}**_"
+    else:
+        judul = "Katalog Produk"
+        subjudul = "_Temukan produk terbaik dari UMKM GKE_"
+    
+    st.markdown(f"### <img src='https://cdn-icons-png.flaticon.com/512/1170/1170678.png' width='25'/> {judul}", unsafe_allow_html=True)
     st.markdown("_Temukan produk terbaik dari UMKM GKE_")
 
     # 1. Ambil data dan validasi
