@@ -430,9 +430,9 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
             font-weight: normal;
         }
         .custom-title {
-            font-size: 1.3em;  /* Ini untuk judul produk */
+            font-size: 1.2em;  /* Ini untuk judul produk */
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         </style>
         """, unsafe_allow_html=True)
