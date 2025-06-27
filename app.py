@@ -403,13 +403,13 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     if search_query:
         filtered = filtered[filtered['product_name'].str.contains(search_query, case=False, na=False)]
     if sort_option == "Terlaris":
-            filtered = filtered.sort_values("sold_count", ascending=False)
-        elif sort_option == "Terbaru":
-            filtered = filtered.sort_values("last_updated", ascending=False)
-        elif sort_option == "Harga Termurah":
-            filtered = filtered.sort_values("price", ascending=True)
-        elif sort_option == "Harga Termahal":
-            filtered = filtered.sort_values("price", ascending=False)
+        filtered = filtered.sort_values("sold_count", ascending=False)
+    elif sort_option == "Terbaru":
+        filtered = filtered.sort_values("last_updated", ascending=False)
+    elif sort_option == "Harga Termurah":
+        filtered = filtered.sort_values("price", ascending=True)
+    elif sort_option == "Harga Termahal":
+        filtered = filtered.sort_values("price", ascending=False)
 
     # 6. Tampilkan hasil produk
     if filtered.empty:
