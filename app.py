@@ -1297,7 +1297,11 @@ elif role == 'admin':
         #else:
             #st.sidebar.success(f"Login sebagai: **Administrator**")
             #logout()  # ❗️Panggilan hanya satu kali, aman
-    
+        
+    if st.button("🔄 Muat Ulang Data"):
+        st.cache_data.clear()
+        st.rerun()
+            
     with st.expander("🛂 Verifikasi Pendaftar Vendor"):
     
         vendors_df = get_data("Vendors")
