@@ -791,7 +791,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
         st.stop()
     
     # 3. Tampilan pesanan masuk
-    with st.expander("📋 Daftar Pesanan Masuk"):
+    with st.expander("📋 Daftar Pesanan Masuk", expanded=True):
         df_orders = load_relevant_orders(df_all, vendor_id)
     
         if df_orders.empty or "status" not in df_orders.columns:
