@@ -380,7 +380,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.stop()
 
     active_products = active_products.sort_values("sold_count", ascending=False)
-    st.markdown("### 🎯 Filter Pencarian")
+    #st.markdown("### 🎯 Filter Pencarian")
     col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
         
     with col1:
