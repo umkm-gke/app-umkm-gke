@@ -313,17 +313,17 @@ with st.sidebar:
                 # Notifikasi verifikasi vendor
                 pending_approval = vendors_df[vendors_df["status"].str.lower() == "pending"]
                 if not pending_approval.empty:
-                    st.sidebar.warning(f"📋 Ada **{len(pending_approval)}** permintaan **verifikasi vendor**.")
+                    st.sidebar.warning(f"🚨 Ada **{len(pending_approval)}** permintaan **verifikasi vendor**.")
                 else:
-                    st.sidebar.info("✅ Tidak ada permintaan verifikasi vendor saat ini.")
+                    st.sidebar.info("🚨 Tidak ada permintaan verifikasi vendor saat ini.")
         
                 # Notifikasi reset password
                 if "reset_status" in vendors_df.columns:
                     pending_reset = vendors_df[vendors_df["reset_status"].str.lower() == "pending"]
                     if not pending_reset.empty:
-                        st.sidebar.warning(f"🔁 Ada **{len(pending_reset)}** permintaan **reset password vendor**.")
+                        st.sidebar.warning(f"🚨 Ada **{len(pending_reset)}** permintaan **reset password vendor**.")
                     else:
-                        st.sidebar.info("✅ Tidak ada permintaan reset password vendor saat ini.")
+                        st.sidebar.info("🚨 Tidak ada permintaan reset password vendor saat ini.")
                 else:
                     st.sidebar.info("📄 Kolom reset_status belum tersedia di data vendor.")
             except Exception as e:
