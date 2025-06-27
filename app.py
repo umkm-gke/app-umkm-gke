@@ -408,9 +408,17 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         
     with col1:
         query_params = st.query_params()  # ← Pakai tanda kurung
+        vendor_list = sorted([str(v) for v in active_products['vendor_name'].dropna().unique()])
+        query_params = st.query_params()
         url_vendor = query_params.get("vendor", [None])[0]
-        vendor_list = sorted(active_products['vendor_name'].dropna().unique().tolist())
-        default_vendor = url_vendor if url_vendor in vendor_list else "Semua"
+        
+        # Cocokkan vendor secara case-insensitive
+        default_vendor = "Semua"
+        if url_vendor:
+            for v in vendor_list:
+                if v.lower() == url_vendor.lower():
+                    default_vendor = v
+                    break
         selected_vendor = st.selectbox("Pilih Penjual", ["Semua"] + vendor_list, index=(["Semua"] + vendor_list).index(default_vendor))
 
         
