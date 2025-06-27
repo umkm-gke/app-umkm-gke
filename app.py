@@ -424,7 +424,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.markdown("""
         <style>
         .custom-caption {
-            line-height: 0.8em;
+            line-height: 1em;
             margin-bottom: 2px;
             font-size: 0.9em;
         }
@@ -459,7 +459,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                         short_desc = desc[:60] + "..." if len(desc) > 60 else desc
                         st.markdown(f"<div class='custom-caption'>{short_desc}</div>", unsafe_allow_html=True)
 
-                        st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
+                        #st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
 
                         if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
                             add_to_cart(product)
