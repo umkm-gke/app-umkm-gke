@@ -1495,7 +1495,7 @@ elif role == 'admin':
                         st.warning(f"Permintaan reset '{row['username']}' ditolak.")
                         st.rerun()
 # Tambahkan di awal halaman admin
-start_time = time.time()
+    start_time = time.time()
 
     with st.expander("📊 Statistik & Profiling"):
         # Hitung waktu baca data
