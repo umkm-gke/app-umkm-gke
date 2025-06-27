@@ -408,7 +408,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         
     with col1:
         query_params = st.query_params
-        url_vendor = query_params.get("vendor", [None])[0]
+        url_vendor = query_params.get("vendor")
 
 
         # Trim spasi vendor_name sebelum buat list
