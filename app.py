@@ -404,23 +404,23 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
     else:
         st.markdown("---")
-        st.markdown("""
-        <style>
-        .product-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 8px 10px;
-            height: 100%;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .product-card .stImage { margin-bottom: 8px; }
-        .product-card .stButton > button { width: 100%; margin-top: 8px; }
-        .product-card .stCaption, .product-card .stMarkdown { margin-bottom: 4px; }
-        </style>
-        """, unsafe_allow_html=True)
+        #st.markdown("""
+        #<style>
+        #.product-card {
+           # border: 1px solid #ddd;
+           # border-radius: 8px;
+           # padding: 8px 10px;
+           # height: 100%;
+           # box-sizing: border-box;
+           # display: flex;
+           # flex-direction: column;
+           # justify-content: space-between;
+       # }
+       # .product-card .stImage { margin-bottom: 8px; }
+       # .product-card .stButton > button { width: 100%; margin-top: 8px; }
+       # .product-card .stCaption, .product-card .stMarkdown { margin-bottom: 4px; }
+       # </style>
+       # """, unsafe_allow_html=True)
 
         rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
         for row in rows:
@@ -452,7 +452,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                         if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
                             add_to_cart(product)
 
-                        st.markdown('</div>', unsafe_allow_html=True)
+                       # st.markdown('</div>', unsafe_allow_html=True)
 
     if 'cart' not in st.session_state:
         st.session_state.cart = []
