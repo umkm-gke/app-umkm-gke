@@ -403,25 +403,31 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.stop()
 
     active_products = active_products.sort_values("sold_count", ascending=False)
-    #st.markdown("### 🎯 Filter Pencarian")
+
     col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
         
     with col1:
-        query_params = st.query_params()  # ← Pakai tanda kurung
-        vendor_list = sorted([str(v) for v in active_products['vendor_name'].dropna().unique()])
+        # Ambil parameter dari URL (pastikan tanda kurung)
         query_params = st.query_params()
         url_vendor = query_params.get("vendor", [None])[0]
         
-        # Cocokkan vendor secara case-insensitive
+        # Daftar vendor
+        vendor_list = sorted([str(v) for v in active_products['vendor_name'].dropna().unique()])
+        
+        # Tentukan vendor default dari URL
         default_vendor = "Semua"
         if url_vendor:
             for v in vendor_list:
                 if v.lower() == url_vendor.lower():
                     default_vendor = v
                     break
-        selected_vendor = st.selectbox("Pilih Penjual", ["Semua"] + vendor_list, index=(["Semua"] + vendor_list).index(default_vendor))
-
         
+        selected_vendor = st.selectbox(
+            "Pilih Penjual",
+            ["Semua"] + vendor_list,
+            index=(["Semua"] + vendor_list).index(default_vendor)
+        )
+
     with col2:
         kategori_list = sorted(active_products['category'].dropna().unique().tolist())
         selected_kategori = st.selectbox("Kategori", ["Semua"] + kategori_list)
@@ -434,32 +440,18 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         "Terlaris", "Terbaru", "Harga Termurah", "Harga Termahal"
         ])
 
-    # 4. Sidebar Filter
-    #st.sidebar.header("🔍 Filter Pencarian")
-    #vendor_list = sorted(active_products['vendor_name'].dropna().unique().tolist())
-    #selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
-
-    #kategori_list = sorted(active_products['category'].dropna().unique().tolist())
-    #selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
-
-    #search_query = st.sidebar.text_input("Cari Nama Produk")
-    #sort_option = st.sidebar.selectbox("Urutkan Berdasarkan", [
-    #"Terlaris", "Terbaru", "Harga Termurah", "Harga Termahal"
-    #])
 
     # 5. Terapkan filter
     filtered = active_products.copy()
     if selected_vendor != "Semua":
         filtered = filtered[filtered['vendor_name'] == selected_vendor]
-        share_url = f"{st.secrets['app_config']['base_url']}?vendor={selected_vendor.replace(' ', '%20')}"
+        encoded_vendor = urllib.parse.quote(selected_vendor)
+        share_url = f"{st.secrets['app_config']['base_url']}?vendor={encoded_vendor}"
         st.markdown("---")
-        st.info(f"🔗 Link katalog untuk *{selected_vendor}*:\n`{share_url}`")
-        st.code(share_url, language='markdown')
+        st.info(f"🔗 Link katalog untuk *{selected_vendor}*:\n")
         st.caption("Bagikan link ini ke WA Group untuk promosi langsung ke katalog toko.")
-        components.html(f"""
-            <input type="text" value="{share_url}" id="copyURL" style="width: 80%; padding: 5px;">
-            <button onclick="navigator.clipboard.writeText(document.getElementById('copyURL').value)">📋 Salin</button>
-        """, height=50)
+        st.code(share_url, language='markdown')
+        
     if selected_kategori != "Semua":
         filtered = filtered[filtered['category'] == selected_kategori]
     if search_query:
@@ -478,23 +470,6 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.warning("🚫 Tidak ada produk yang sesuai dengan filter.")
     else:
         st.markdown("---")
-        #st.markdown("""
-        #<style>
-        #.product-card {
-           # border: 1px solid #ddd;
-           # border-radius: 8px;
-           # padding: 8px 10px;
-           # height: 100%;
-           # box-sizing: border-box;
-           # display: flex;
-           # flex-direction: column;
-           # justify-content: space-between;
-       # }
-       # .product-card .stImage { margin-bottom: 8px; }
-       # .product-card .stButton > button { width: 100%; margin-top: 8px; }
-       # .product-card .stCaption, .product-card .stMarkdown { margin-bottom: 4px; }
-       # </style>
-       # """, unsafe_allow_html=True)
         st.markdown("""
         <style>
         .custom-caption {
