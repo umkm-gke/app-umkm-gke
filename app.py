@@ -400,7 +400,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         ])
 
     # 4. Sidebar Filter
-    #st.sidebar.header("🔍 Filter Pencarian")
+    st.sidebar.header("🔍 Filter Pencarian")
     vendor_list = sorted(active_products['vendor_name'].dropna().unique().tolist())
     selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
 
