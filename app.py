@@ -11,6 +11,7 @@ from PIL import Image
 import cloudinary
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
+import streamlit.components.v1 as components
 
 
 def get_all_orders():
@@ -384,8 +385,11 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
         
     with col1:
+        query_params = st.experimental_get_query_params()
+        url_vendor = query_params.get("vendor", [None])[0]
         vendor_list = sorted(active_products['vendor_name'].dropna().unique().tolist())
-        selected_vendor = st.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
+        default_vendor = url_vendor if url_vendor in vendor_list else "Semua"
+        selected_vendor = st.selectbox("Pilih Penjual", ["Semua"] + vendor_list, index=(["Semua"] + vendor_list).index(default_vendor))
         
     with col2:
         kategori_list = sorted(active_products['category'].dropna().unique().tolist())
@@ -416,6 +420,15 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     filtered = active_products.copy()
     if selected_vendor != "Semua":
         filtered = filtered[filtered['vendor_name'] == selected_vendor]
+        share_url = f"{st.secrets['base_url']}?vendor={selected_vendor.replace(' ', '%20')}"
+        st.markdown("---")
+        st.info(f"🔗 Link katalog untuk *{selected_vendor}*:\n`{share_url}`")
+        st.code(share_url, language='markdown')
+        st.caption("Bagikan link ini ke WA Group untuk promosi langsung ke katalog toko.")
+        components.html(f"""
+            <input type="text" value="{share_url}" id="copyURL" style="width: 80%; padding: 5px;">
+            <button onclick="navigator.clipboard.writeText(document.getElementById('copyURL').value)">📋 Salin</button>
+        """, height=50)
     if selected_kategori != "Semua":
         filtered = filtered[filtered['category'] == selected_kategori]
     if search_query:
