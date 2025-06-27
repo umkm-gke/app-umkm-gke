@@ -13,7 +13,7 @@ import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 import streamlit.components.v1 as components
 
-st.write(st.secrets)
+
 def get_all_orders():
         ws = get_worksheet("Orders")
         if not ws:
