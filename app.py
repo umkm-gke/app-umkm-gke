@@ -388,7 +388,18 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
 
     # Load data produk aktif
     products_df = get_data("Products")
-    active_products = products_df[products_df['is_active'].astype(str).str.lower() == 'true']
+    vendors_df = get_data("Vendors")
+    
+    # Gabungkan untuk ambil vendor_name
+    active_products = products_df.merge(
+        vendors_df[['vendor_id', 'vendor_name']],
+        on='vendor_id',
+        how='left'
+    )
+
+# Pastikan hanya produk aktif
+active_products = active_products[active_products['is_active'].astype(str).str.lower() == "true"]
+
 
     # Siapkan vendor list dan URL parameter
     query_params = st.query_params
