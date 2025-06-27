@@ -429,10 +429,10 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
             index=(["Semua"] + vendor_list).index(default_vendor)
         )
 
-    st.write(f"URL vendor param: {url_vendor}")
-    st.write(f"Vendor list: {vendor_list}")
-    st.write(f"Selected vendor: {selected_vendor}")
-    st.write("DEBUG: semua query params:", query_params)
+    #st.write(f"URL vendor param: {url_vendor}")
+    #st.write(f"Vendor list: {vendor_list}")
+    #st.write(f"Selected vendor: {selected_vendor}")
+    #st.write("DEBUG: semua query params:", query_params)
 
     with col2:
         kategori_list = sorted(active_products['category'].dropna().unique().tolist())
