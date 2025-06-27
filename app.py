@@ -99,23 +99,10 @@ def show_promo_link(vendor_name: str):
     share_url = f"{base_url}?vendor={vendor_encoded}"
 
     st.markdown("---")
-    st.info(f"🔗 Link katalog toko *{vendor_name}*:\n`{share_url}`")
-    st.code(share_url, language='markdown')
+    st.info(f"🔗 Link katalog toko *{vendor_name}*:\n")
     st.caption("Bagikan link ini ke WA Group untuk promosi langsung ke katalog toko.")
-
-    # Tombol salin dengan input yang bisa dipilih/copy manual juga
-    components.html(f"""
-        <input type="text" value="{share_url}" id="copyURL" style="width: 80%; padding: 5px;" readonly>
-        <button onclick="navigator.clipboard.writeText(document.getElementById('copyURL').value)">
-            📋 Salin
-        </button>
-        <script>
-            // Pilih otomatis isi input saat klik
-            document.getElementById('copyURL').onclick = function() {{
-                this.select();
-            }};
-        </script>
-    """, height=50)
+    st.code(share_url, language='markdown')
+    
 
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
