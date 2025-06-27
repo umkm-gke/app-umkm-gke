@@ -825,7 +825,8 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
     if not vendor_id and not st.session_state.get('is_admin', False):
         st.error("Vendor ID tidak ditemukan.")
         st.stop()
-
+        
+    vendor_name = st.session_state.get('vendor_name')
     st.header(f"Dashboard: {st.session_state['vendor_name']}")
     show_promo_link(vendor_name)
     # Fungsi ambil semua data
