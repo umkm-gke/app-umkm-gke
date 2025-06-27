@@ -408,7 +408,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         
     with col1:
         # Ambil parameter dari URL (pastikan tanda kurung)
-        query_params = st.query_params()
+        query_params = st.query_params
         url_vendor = query_params.get("vendor", [None])[0]
         
         # Daftar vendor
