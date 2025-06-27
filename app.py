@@ -1502,6 +1502,26 @@ elif role == 'admin':
         vendors_df = get_data("Vendors")
         orders_df = get_data("Orders")
         load_duration = time.time() - t0
+
+        # Statistik dasar
+        st.write("### 📦 Statistik Data")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Produk", len(products_df))
+        col2.metric("Total Vendor", len(vendors_df))
+        col3.metric("Total Order", len(orders_df))
+    
+        # Estimasi waktu render halaman
+        render_time = time.time() - start_time
+        st.write("### 🕒 Waktu Eksekusi")
+        st.write(f"⏱️ Waktu baca data: `{load_duration:.2f} detik`")
+        st.write(f"⏱️ Total waktu render halaman: `{render_time:.2f} detik`")
+    
+        # Statistik tambahan (opsional)
+        st.write("### 📈 Statistik Tambahan")
+        aktif_vendors = vendors_df[vendors_df['is_active'].astype(str).str.lower() == "true"]
+        col4, col5 = st.columns(2)
+        col4.metric("Vendor Aktif", len(aktif_vendors))
+        col5.metric("Produk Aktif", len(products_df[products_df['is_active'].astype(str).str.lower() == "true"]))
         
         t1 = time.time()
         # any rendering steps...
