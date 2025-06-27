@@ -380,6 +380,24 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.stop()
 
     active_products = active_products.sort_values("sold_count", ascending=False)
+    st.markdown("### 🎯 Filter Pencarian")
+    col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
+        
+    with col1:
+        vendor_list = sorted(active_products['vendor_name'].dropna().unique().tolist())
+        selected_vendor = st.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
+        
+    with col2:
+        kategori_list = sorted(active_products['category'].dropna().unique().tolist())
+        selected_kategori = st.selectbox("Kategori", ["Semua"] + kategori_list)
+        
+    with col3:
+        search_query = st.text_input("Cari Nama Produk")
+        
+    with col4:
+        sort_option = st.selectbox("Urutkan Berdasarkan", [
+        "Terlaris", "Terbaru", "Harga Termurah", "Harga Termahal"
+        ])
 
     # 4. Sidebar Filter
     st.sidebar.header("🔍 Filter Pencarian")
