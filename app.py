@@ -716,7 +716,7 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
     st.header(f"Dashboard: {st.session_state['vendor_name']}")
 
     # Fungsi ambil semua data
-    @st.cache_data(ttl=600)
+    @st.cache_data(ttl=300)
     def get_all_orders():
         ws = get_worksheet("Orders")
         if not ws:
@@ -780,9 +780,9 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
         else:
             st.info("✅ Tidak ada pesanan baru saat ini.")
         
-    if st.button("🔄 Muat Ulang Data"):
-        st.cache_data.clear()
-        st.rerun()
+    #if st.button("🔄 Muat Ulang Data"):
+     #   st.cache_data.clear()
+      #  st.rerun()
 
     # Ambil data
     ws_orders, df_all = get_all_orders()
