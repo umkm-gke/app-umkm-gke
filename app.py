@@ -280,35 +280,54 @@ with st.sidebar:
 
     # Logout tombol ditampilkan jika login
     if st.session_state.get("logged_in"):
-        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
-        if st.session_state.get("role") == "vendor":
-            vendor_id = st.session_state.get('vendor_id')
+            st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
+            
+            role = st.session_state.get("role")
+            
+            if role == "vendor":
+                vendor_id = st.session_state.get('vendor_id')
         
-            # Ambil data dari worksheet hanya jika belum kosong
-            if df_all is not None and not df_all.empty:
-                # Filter status Baru
-                df_baru = df_all[df_all["order_status"] == "Baru"].copy()
-        
-                # Cek apakah ada produk dari vendor ini
+                # --- Notifikasi Pesanan Baru ---
                 jumlah_baru = 0
-                for _, row in df_baru.iterrows():
-                    try:
-                        items = json.loads(row["order_details"])
-                        for item in items:
-                            if item.get("vendor_id") == vendor_id:
-                                jumlah_baru += 1
-                                break
-                    except:
-                        continue
-            else:
-                jumlah_baru = 0
+                if df_all is not None and not df_all.empty:
+                    df_baru = df_all[df_all["order_status"] == "Baru"].copy()
+                    for _, row in df_baru.iterrows():
+                        try:
+                            items = json.loads(row["order_details"])
+                            for item in items:
+                                if item.get("vendor_id") == vendor_id:
+                                    jumlah_baru += 1
+                                    break
+                        except:
+                            continue
         
-            # Tampilkan notifikasi di sidebar
-            if jumlah_baru > 0:
-                st.sidebar.success(f"🚨 Anda memiliki **{jumlah_baru}** pesanan **Baru**!")
-            else:
-                st.sidebar.info("🚨 Belum ada pesanan baru saat ini.")
+                if jumlah_baru > 0:
+                    st.sidebar.success(f"🚨 Anda memiliki **{jumlah_baru}** pesanan **Baru**!")
+                else:
+                    st.sidebar.info("🚨 Belum ada pesanan baru saat ini.")
         
+                # --- Notifikasi Admin: Persetujuan Vendor & Reset Password ---
+                try:
+                    vendors_df = get_data("Vendors")
+                
+                    # 1. Notifikasi persetujuan pendaftar vendor
+                    pending_approval = vendors_df[vendors_df["status"].str.lower() == "pending"]
+                    if not pending_approval.empty:
+                        st.sidebar.warning(f"🚨 Ada **{len(pending_approval)}** permintaan **verifikasi vendor**.")
+                    else:
+                        st.sidebar.info("🚨 Tidak ada permintaan verifikasi vendor saat ini.")
+                
+                    # 2. Notifikasi permintaan reset password
+                    if "reset_status" in vendors_df.columns:
+                        pending_reset = vendors_df[vendors_df["reset_status"].str.lower() == "pending"]
+                        if not pending_reset.empty:
+                            st.sidebar.warning(f"🚨 Ada **{len(pending_reset)}** permintaan **reset password vendor**.")
+                        else:
+                            st.sidebar.info("🚨 Tidak ada permintaan reset password vendor saat ini.")
+                    else:
+                        st.sidebar.info("📄 Kolom reset_status belum tersedia di data vendor.")
+                except Exception as e:
+                    st.sidebar.error("❌ Gagal mengambil data notifikasi admin.")
             logout()
 
     # Khusus guest & klik reset password
