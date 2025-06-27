@@ -384,15 +384,22 @@ with st.sidebar:
 # ========================
 # --- HALAMAN BELANJA ---
 # ========================
-query_params = st.query_params
-url_vendor = query_params.get("vendor")
-# Siapkan vendor list dan default vendor
-active_products['vendor_name'] = active_products['vendor_name'].str.strip()
-vendor_list = sorted([str(v) for v in active_products['vendor_name'].dropna().unique()])
-
-default_vendor = "Semua"
-disable_vendor_select = False
 if st.session_state.role == 'guest' and menu_selection == "Belanja":
+
+    # Load data produk aktif
+    products_df = get_data("Products")
+    active_products = products_df[products_df['is_active'].astype(str).str.lower() == 'true']
+
+    # Siapkan vendor list dan URL parameter
+    query_params = st.query_params
+    url_vendor = query_params.get("vendor")
+
+    active_products['vendor_name'] = active_products['vendor_name'].str.strip()
+    vendor_list = sorted([str(v) for v in active_products['vendor_name'].dropna().unique()])
+
+    default_vendor = "Semua"
+    disable_vendor_select = False
+
     if url_vendor:
         url_vendor = url_vendor.strip()
         for v in vendor_list:
@@ -400,9 +407,11 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                 default_vendor = v
                 disable_vendor_select = True
                 break
-    judul = "Katalog Produk"
-    subjudul = "_Temukan produk terbaik dari UMKM GKE_"
-    
+
+    # Buat judul & subjudul
+    judul = f"Katalog Produk {default_vendor}" if default_vendor != "Semua" else "Katalog Produk"
+    subjudul = f"_Temukan produk terbaik dari **{default_vendor}**_" if default_vendor != "Semua" else "_Temukan produk terbaik dari UMKM GKE_"
+
     st.markdown(f"### <img src='https://cdn-icons-png.flaticon.com/512/1170/1170678.png' width='25'/> {judul}", unsafe_allow_html=True)
     st.markdown("_Temukan produk terbaik dari UMKM GKE_")
 
