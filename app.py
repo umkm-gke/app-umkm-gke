@@ -495,11 +495,11 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                             is_new = False
                         
                         # Debug sementara
-                        st.write({
-                            "product": product['product_name'],
-                            "last_updated": last_updated,
-                            "is_new": is_new
-                        })
+                        #st.write({
+                         #   "product": product['product_name'],
+                          #  "last_updated": last_updated,
+                           # "is_new": is_new
+                        #})
 
                         new_badge = " <span style='color:green; font-size:0.9em;'>🆕 Produk Baru</span>" if is_new else ""
                         product_title = f"<div class='custom-title'>{product['product_name'][:30]}{new_badge}</div>"
