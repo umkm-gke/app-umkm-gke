@@ -407,8 +407,9 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
         
     with col1:
-        query_params = st.query_params
+        query_params = st.experimental_get_query_params()
         url_vendor = query_params.get("vendor", [None])[0]
+
 
         # Trim spasi vendor_name sebelum buat list
         active_products['vendor_name'] = active_products['vendor_name'].str.strip()
