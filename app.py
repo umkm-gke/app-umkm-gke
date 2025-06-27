@@ -15,7 +15,19 @@ import streamlit.components.v1 as components
 import urllib.parse
 import time
 import altair as alt
+components.html(GA_CODE, height=0, width=0)
 
+GA_CODE = """
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NPNXQB3KEJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-NPNXQB3KEJ');
+</script>
+"""
 
 def log_performance(role, load_duration, render_duration):
     logs_ws = get_worksheet("Logs")
