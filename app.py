@@ -492,6 +492,11 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                             if pd.notnull(last_updated):
                                 last_updated = last_updated.to_pydatetime()
                             is_new = pd.notnull(last_updated) and (datetime.datetime.now() - last_updated).days <= 14
+                            st.write({
+                            "product": product['product_name'],
+                            "last_updated": last_updated,
+                            "is_new": is_new
+                            })
                         except Exception:
                             is_new = False
                         
