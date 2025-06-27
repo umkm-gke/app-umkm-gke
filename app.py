@@ -400,17 +400,17 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         ])
 
     # 4. Sidebar Filter
-    st.sidebar.header("🔍 Filter Pencarian")
-    vendor_list = sorted(active_products['vendor_name'].dropna().unique().tolist())
-    selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
+    #st.sidebar.header("🔍 Filter Pencarian")
+    #vendor_list = sorted(active_products['vendor_name'].dropna().unique().tolist())
+    #selected_vendor = st.sidebar.selectbox("Pilih Penjual", ["Semua"] + vendor_list)
 
-    kategori_list = sorted(active_products['category'].dropna().unique().tolist())
-    selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
+    #kategori_list = sorted(active_products['category'].dropna().unique().tolist())
+    #selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
 
-    search_query = st.sidebar.text_input("Cari Nama Produk")
-    sort_option = st.sidebar.selectbox("Urutkan Berdasarkan", [
-    "Terlaris", "Terbaru", "Harga Termurah", "Harga Termahal"
-    ])
+    #search_query = st.sidebar.text_input("Cari Nama Produk")
+    #sort_option = st.sidebar.selectbox("Urutkan Berdasarkan", [
+    #"Terlaris", "Terbaru", "Harga Termurah", "Harga Termahal"
+    #])
 
     # 5. Terapkan filter
     filtered = active_products.copy()
