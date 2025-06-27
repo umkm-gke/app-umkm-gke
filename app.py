@@ -347,6 +347,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         products_df = get_data("Products")
         vendors_df = get_data("Vendors")
         orders_df = get_data("Orders")
+        products_df['last_updated'] = pd.to_datetime(products_df['last_updated'], errors='coerce')
     except Exception as e:
         st.error("❌ Gagal memuat data. Silakan coba beberapa saat lagi.")
         st.stop()
@@ -389,6 +390,9 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     selected_kategori = st.sidebar.selectbox("Kategori", ["Semua"] + kategori_list)
 
     search_query = st.sidebar.text_input("Cari Nama Produk")
+    sort_option = st.sidebar.selectbox("Urutkan Berdasarkan", [
+    "Terlaris", "Terbaru", "Harga Termurah", "Harga Termahal"
+    ])
 
     # 5. Terapkan filter
     filtered = active_products.copy()
@@ -398,6 +402,14 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         filtered = filtered[filtered['category'] == selected_kategori]
     if search_query:
         filtered = filtered[filtered['product_name'].str.contains(search_query, case=False, na=False)]
+    if sort_option == "Terlaris":
+            filtered = filtered.sort_values("sold_count", ascending=False)
+        elif sort_option == "Terbaru":
+            filtered = filtered.sort_values("last_updated", ascending=False)
+        elif sort_option == "Harga Termurah":
+            filtered = filtered.sort_values("price", ascending=True)
+        elif sort_option == "Harga Termahal":
+            filtered = filtered.sort_values("price", ascending=False)
 
     # 6. Tampilkan hasil produk
     if filtered.empty:
@@ -456,7 +468,14 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                         except:
                             st.image("https://via.placeholder.com/200", use_container_width=True)
 
-                        st.markdown(f"<div class='custom-title'>{product['product_name'][:30]}</div>", unsafe_allow_html=True)
+                        last_updated = product.get('last_updated')
+                        is_new = False
+                        if pd.notnull(last_updated) and (datetime.datetime.now() - last_updated).days <= 7:
+                            is_new = True
+                        
+                        new_badge = " <span style='color:green; font-size:0.9em;'>🆕 Produk Baru</span>" if is_new else ""
+                        product_title = f"<div class='custom-title'>{product['product_name'][:30]}{new_badge}</div>"
+                        st.markdown(product_title, unsafe_allow_html=True)
                         st.markdown(f"<div class='custom-caption'>Kategori: {product.get('category', '-')}</div>", unsafe_allow_html=True)
                         st.markdown(f"<div class='custom-caption'>🧑 {product['vendor_name']}</div>", unsafe_allow_html=True)
                         st.markdown(f"<div class='custom-caption'>💰 Rp {int(product['price']):,}</div>", unsafe_allow_html=True)
