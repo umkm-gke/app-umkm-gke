@@ -420,7 +420,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     filtered = active_products.copy()
     if selected_vendor != "Semua":
         filtered = filtered[filtered['vendor_name'] == selected_vendor]
-        share_url = f"{st.secrets['base_url']}?vendor={selected_vendor.replace(' ', '%20')}"
+        share_url = f"{st.secrets['app_config']['base_url']}?vendor={selected_vendor.replace(' ', '%20')}"
         st.markdown("---")
         st.info(f"🔗 Link katalog untuk *{selected_vendor}*:\n`{share_url}`")
         st.code(share_url, language='markdown')
