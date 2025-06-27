@@ -280,11 +280,9 @@ with st.sidebar:
 
     # Logout tombol ditampilkan jika login
     if st.session_state.get("logged_in"):
-            st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
-            
-            role = st.session_state.get("role")
-            
-            if role == "vendor":
+        st.sidebar.success(f"Login sebagai: **{st.session_state.get('vendor_name', 'User')}**")
+        role = st.session_state.get("role")
+        if role == "vendor":
                 vendor_id = st.session_state.get('vendor_id')
         
                 # --- Notifikasi Pesanan Baru ---
@@ -307,28 +305,31 @@ with st.sidebar:
                     st.sidebar.info("🚨 Belum ada pesanan baru saat ini.")
         
                 # --- Notifikasi Admin: Persetujuan Vendor & Reset Password ---
-                try:
-                    vendors_df = get_data("Vendors")
                 
-                    # 1. Notifikasi persetujuan pendaftar vendor
-                    pending_approval = vendors_df[vendors_df["status"].str.lower() == "pending"]
-                    if not pending_approval.empty:
-                        st.sidebar.warning(f"🚨 Ada **{len(pending_approval)}** permintaan **verifikasi vendor**.")
+        elif role == "admin":
+            try:
+                vendors_df = get_data("Vendors")
+        
+                # Notifikasi verifikasi vendor
+                pending_approval = vendors_df[vendors_df["status"].str.lower() == "pending"]
+                if not pending_approval.empty:
+                    st.sidebar.warning(f"📋 Ada **{len(pending_approval)}** permintaan **verifikasi vendor**.")
+                else:
+                    st.sidebar.info("✅ Tidak ada permintaan verifikasi vendor saat ini.")
+        
+                # Notifikasi reset password
+                if "reset_status" in vendors_df.columns:
+                    pending_reset = vendors_df[vendors_df["reset_status"].str.lower() == "pending"]
+                    if not pending_reset.empty:
+                        st.sidebar.warning(f"🔁 Ada **{len(pending_reset)}** permintaan **reset password vendor**.")
                     else:
-                        st.sidebar.info("🚨 Tidak ada permintaan verifikasi vendor saat ini.")
-                
-                    # 2. Notifikasi permintaan reset password
-                    if "reset_status" in vendors_df.columns:
-                        pending_reset = vendors_df[vendors_df["reset_status"].str.lower() == "pending"]
-                        if not pending_reset.empty:
-                            st.sidebar.warning(f"🚨 Ada **{len(pending_reset)}** permintaan **reset password vendor**.")
-                        else:
-                            st.sidebar.info("🚨 Tidak ada permintaan reset password vendor saat ini.")
-                    else:
-                        st.sidebar.info("📄 Kolom reset_status belum tersedia di data vendor.")
-                except Exception as e:
-                    st.sidebar.error("❌ Gagal mengambil data notifikasi admin.")
-            logout()
+                        st.sidebar.info("✅ Tidak ada permintaan reset password vendor saat ini.")
+                else:
+                    st.sidebar.info("📄 Kolom reset_status belum tersedia di data vendor.")
+            except Exception as e:
+                st.sidebar.error("❌ Gagal mengambil data notifikasi admin.")
+
+        logout()
 
     # Khusus guest & klik reset password
     if menu_selection == "Reset Password" and role == 'guest':
