@@ -424,9 +424,9 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         st.markdown("""
         <style>
         .custom-caption {
-            line-height: 1.5em;
+            line-height: 1.4em;
             margin-bottom: 2.5px;
-            font-size: 1em;
+            font-size: 0.9em;
         }
         </style>
         """, unsafe_allow_html=True)
