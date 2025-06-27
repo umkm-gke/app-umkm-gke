@@ -15,19 +15,7 @@ import streamlit.components.v1 as components
 import urllib.parse
 import time
 import altair as alt
-components.html(GA_CODE, height=0, width=0)
 
-GA_CODE = """
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NPNXQB3KEJ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-NPNXQB3KEJ');
-</script>
-"""
 def inject_ga(measurement_id):
     ga_script = f"""
     <!-- Google tag (gtag.js) -->
