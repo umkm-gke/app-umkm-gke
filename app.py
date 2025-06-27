@@ -388,9 +388,9 @@ query_params = st.query_params
 url_vendor = query_params.get("vendor")
 
 if st.session_state.role == 'guest' and menu_selection == "Belanja":
-    if url_vendor:
-        judul = f"Katalog Produk {url_vendor}"
-        subjudul = f"_Temukan produk terbaik dari **{url_vendor}**_"
+    if url_vendor and default_vendor != "Semua":
+        judul = f"Katalog Produk {default_vendor}"
+        subjudul = f"_Temukan produk terbaik dari **{default_vendor}**_"
     else:
         judul = "Katalog Produk"
         subjudul = "_Temukan produk terbaik dari UMKM GKE_"
@@ -440,27 +440,32 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
         
     with col1:
+        # Ambil parameter vendor dari URL
         query_params = st.query_params
         url_vendor = query_params.get("vendor")
-
-
-        # Trim spasi vendor_name sebelum buat list
+    
+        # Trim dan buat daftar vendor unik
         active_products['vendor_name'] = active_products['vendor_name'].str.strip()
         vendor_list = sorted([str(v) for v in active_products['vendor_name'].dropna().unique()])
-
+    
         default_vendor = "Semua"
+        disable_vendor_select = False
+    
         if url_vendor:
             url_vendor = url_vendor.strip()
             for v in vendor_list:
                 if v.lower() == url_vendor.lower():
                     default_vendor = v
+                    disable_vendor_select = True  # 💡 Kunci dropdown jika berasal dari URL
                     break
-
+    
         selected_vendor = st.selectbox(
             "Pilih Penjual",
             ["Semua"] + vendor_list,
-            index=(["Semua"] + vendor_list).index(default_vendor)
+            index=(["Semua"] + vendor_list).index(default_vendor),
+            disabled=disable_vendor_select
         )
+
 
     #st.write(f"URL vendor param: {url_vendor}")
     #st.write(f"Vendor list: {vendor_list}")
