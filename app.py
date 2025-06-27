@@ -426,6 +426,11 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     st.markdown(f"### <img src='https://cdn-icons-png.flaticon.com/512/1170/1170678.png' width='25'/> {judul}", unsafe_allow_html=True)
     st.markdown("_Temukan produk terbaik dari UMKM GKE_")
 
+    if default_vendor != "Semua":
+        if st.button("⬅️ Kembali ke App Utama"):
+            st.experimental_set_query_params()  # Hapus semua query params di URL
+            st.experimental_rerun()
+
     # 1. Ambil data dan validasi
     try:
         products_df = get_data("Products")
