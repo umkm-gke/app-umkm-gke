@@ -385,7 +385,7 @@ with st.sidebar:
 # --- HALAMAN BELANJA ---
 # ========================
 query_params = st.query_params
-url_vendor = query_params.get("vendor", [None])[0]
+url_vendor = query_params.get("vendor")
 
 if st.session_state.role == 'guest' and menu_selection == "Belanja":
     if url_vendor:
