@@ -19,8 +19,8 @@ import altair as alt
 
 def log_performance(role, load_duration, render_duration):
     logs_ws = get_worksheet("Logs")
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    logs_ws.append_row([now, role, f"{load_duration:.4f}", f"{render_duration:.4f}"])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    logs_ws.append_row([now, role, f"{load_duration:.3f}", f"{render_duration:.3f}"])
         
 def get_all_orders():
         ws = get_worksheet("Orders")
@@ -1507,8 +1507,8 @@ elif role == 'admin':
         # any rendering steps...
         render_duration = time.time() - t1
         
-        st.metric("Waktu Load (s)", f"{load_duration:.4f}")
-        st.metric("Waktu Render (s)", f"{render_duration:.4f}")
+        st.metric("Waktu Load (s)", f"{load_duration:.3f}")
+        st.metric("Waktu Render (s)", f"{render_duration:.3f}")
         
         # simpan log
         log_performance(st.session_state.get('role'), load_duration, render_duration)
