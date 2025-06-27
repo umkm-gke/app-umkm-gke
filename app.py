@@ -426,12 +426,18 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     st.markdown(f"### <img src='https://cdn-icons-png.flaticon.com/512/1170/1170678.png' width='25'/> {judul}", unsafe_allow_html=True)
     st.markdown("_Temukan produk terbaik dari UMKM GKE_")
 
-    if st.button("⬅️ Kembali ke App Utama"):
+    if default_vendor != "Semua":
         st.markdown(
             """
-            <script>
-            window.location.href = "https://app-umkm-gke.streamlit.app/";
-            </script>
+            <a href="https://app-umkm-gke.streamlit.app/" style="
+                display:inline-block;
+                background-color:#1f77b4;
+                color:white;
+                padding:8px 16px;
+                text-decoration:none;
+                border-radius:4px;
+                font-weight:bold;
+            ">⬅️ Kembali ke App Utama</a>
             """,
             unsafe_allow_html=True
         )
