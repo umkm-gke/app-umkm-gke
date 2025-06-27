@@ -487,19 +487,20 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                             st.image("https://via.placeholder.com/200", use_container_width=True)
 
                         try:
-                            last_updated_raw = product.get('last_updated')
-                            last_updated = pd.to_datetime(last_updated_raw, errors='coerce')
+                            last_updated = pd.to_datetime(product.get('last_updated'), errors='coerce')
                             if pd.notnull(last_updated):
                                 last_updated = last_updated.to_pydatetime()
                             is_new = pd.notnull(last_updated) and (datetime.datetime.now() - last_updated).days <= 14
-                            
                         except Exception:
                             is_new = False
+                        
+                        # Debug sementara
                         st.write({
                             "product": product['product_name'],
                             "last_updated": last_updated,
                             "is_new": is_new
                         })
+
                         new_badge = " <span style='color:green; font-size:0.9em;'>🆕 Produk Baru</span>" if is_new else ""
                         product_title = f"<div class='custom-title'>{product['product_name'][:30]}{new_badge}</div>"
                         st.markdown(product_title, unsafe_allow_html=True)
