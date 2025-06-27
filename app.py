@@ -440,7 +440,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                         except:
                             st.image("https://via.placeholder.com/200", use_container_width=True)
 
-                        st.markdown(f"**{product['product_name'][:30]}**")
+                        #st.markdown(f"**{product['product_name'][:30]}**")
                         st.caption(f"Kategori: {product.get('category', '-')}")
                         st.caption(f"🧑 {product['vendor_name']}")
                         st.markdown(f"💰 Rp {int(product['price']):,}")
