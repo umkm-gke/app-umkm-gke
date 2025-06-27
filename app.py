@@ -13,6 +13,7 @@ import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 import streamlit.components.v1 as components
 import urllib.parse
+import time
 
 
 def get_all_orders():
