@@ -19,12 +19,13 @@ import altair as alt
 def inject_ga(measurement_id):
     ga_script = f"""
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NPNXQB3KEJ"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){{dataLayer.push(arguments);}}
+      function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', '{measurement_id}');
+    
+      gtag('config', 'G-NPNXQB3KEJ');
     </script>
     """
     components.html(ga_script, height=0, width=0, scrolling=False)
