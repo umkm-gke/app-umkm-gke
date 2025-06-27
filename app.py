@@ -488,7 +488,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
 
                         try:
                             last_updated = pd.to_datetime(product.get('last_updated'), errors='coerce')
-                            is_new = pd.notnull(last_updated) and (datetime.datetime.now() - last_updated).days <= 7
+                            is_new = pd.notnull(last_updated) and (datetime.datetime.now() - last_updated).days <= 14
                         except Exception:
                             is_new = False
 
