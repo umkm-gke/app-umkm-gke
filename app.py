@@ -407,27 +407,30 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
         
     with col1:
-        # Ambil parameter dari URL (pastikan tanda kurung)
         query_params = st.query_params
         url_vendor = query_params.get("vendor", [None])[0]
-        
-        # Daftar vendor
+
+        # Trim spasi vendor_name sebelum buat list
+        active_products['vendor_name'] = active_products['vendor_name'].str.strip()
         vendor_list = sorted([str(v) for v in active_products['vendor_name'].dropna().unique()])
-        
-        # Tentukan vendor default dari URL
+
         default_vendor = "Semua"
         if url_vendor:
+            url_vendor = url_vendor.strip()
             for v in vendor_list:
                 if v.lower() == url_vendor.lower():
                     default_vendor = v
                     break
-        
+
         selected_vendor = st.selectbox(
             "Pilih Penjual",
             ["Semua"] + vendor_list,
             index=(["Semua"] + vendor_list).index(default_vendor)
         )
 
+    st.write(f"URL vendor param: {url_vendor}")
+    st.write(f"Vendor list: {vendor_list}")
+    st.write(f"Selected vendor: {selected_vendor}")
     with col2:
         kategori_list = sorted(active_products['category'].dropna().unique().tolist())
         selected_kategori = st.selectbox("Kategori", ["Semua"] + kategori_list)
@@ -445,12 +448,12 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
     filtered = active_products.copy()
     if selected_vendor != "Semua":
         filtered = filtered[filtered['vendor_name'] == selected_vendor]
-        encoded_vendor = urllib.parse.quote(selected_vendor)
-        share_url = f"{st.secrets['app_config']['base_url']}?vendor={encoded_vendor}"
-        st.markdown("---")
-        st.info(f"🔗 Link katalog untuk *{selected_vendor}*:\n")
-        st.caption("Bagikan link ini ke WA Group untuk promosi langsung ke katalog toko.")
-        st.code(share_url, language='markdown')
+        #encoded_vendor = urllib.parse.quote(selected_vendor)
+        #share_url = f"{st.secrets['app_config']['base_url']}?vendor={encoded_vendor}"
+        #st.markdown("---")
+        #st.info(f"🔗 Link katalog untuk *{selected_vendor}*:\n")
+        #st.caption("Bagikan link ini ke WA Group untuk promosi langsung ke katalog toko.")
+        #st.code(share_url, language='markdown')
         
     if selected_kategori != "Semua":
         filtered = filtered[filtered['category'] == selected_kategori]
