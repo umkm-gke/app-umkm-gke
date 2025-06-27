@@ -19,21 +19,20 @@ import altair as alt
 def inject_ga(measurement_id):
     ga_script = f"""
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NPNXQB3KEJ"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag(){{dataLayer.push(arguments);}}
       gtag('js', new Date());
-    
-      gtag('config', 'G-NPNXQB3KEJ');
+      gtag('config', '{measurement_id}');
     </script>
     """
     components.html(ga_script, height=0, width=0, scrolling=False)
 
 if 'ga_injected' not in st.session_state:
-    inject_ga("G-NPNXQB3KEJ")  # Ganti dengan ID asli
+    inject_ga("G-NPNXQB3KEJ")  # Ganti dengan Measurement ID kamu
     st.session_state['ga_injected'] = True
-
+    
 def log_performance(role, load_duration, render_duration):
     logs_ws = get_worksheet("Logs")
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
