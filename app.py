@@ -421,6 +421,15 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
        # .product-card .stCaption, .product-card .stMarkdown { margin-bottom: 4px; }
        # </style>
        # """, unsafe_allow_html=True)
+        st.markdown("""
+        <style>
+        .custom-caption {
+            line-height: 0.8em;
+            margin-bottom: 2px;
+            font-size: 0.9em;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
         rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
         for row in rows:
@@ -428,7 +437,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
             for col, (_, product) in zip(cols, row.iterrows()):
                 with col:
                     with st.container():
-                        st.markdown('<div class="product-card">', unsafe_allow_html=True)
+                        #st.markdown('<div class="product-card">', unsafe_allow_html=True)
                         image_url = product.get('image_url', '')
                         try:
                             if hasattr(image_url, "read"):
@@ -440,13 +449,16 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                         except:
                             st.image("https://via.placeholder.com/200", use_container_width=True)
 
-                        #st.markdown(f"**{product['product_name'][:30]}**")
-                        st.caption(f"Kategori: {product.get('category', '-')}")
-                        st.caption(f"🧑 {product['vendor_name']}")
-                        st.markdown(f"💰 Rp {int(product['price']):,}")
-                        st.caption(f"✅ Terjual: {product['sold_count']:,}")
-
+                        st.markdown(f"<div class='custom-caption'><strong>{product['product_name'][:30]}</strong></div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='custom-caption'>Kategori: {product.get('category', '-')}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='custom-caption'>🧑 {product['vendor_name']}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='custom-caption'>💰 Rp {int(product['price']):,}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='custom-caption'>✅ Terjual: {product['sold_count']:,}</div>", unsafe_allow_html=True)
+                        
                         desc = product.get('description', '')
+                        short_desc = desc[:60] + "..." if len(desc) > 60 else desc
+                        st.markdown(f"<div class='custom-caption'>{short_desc}</div>", unsafe_allow_html=True)
+
                         st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
 
                         if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
