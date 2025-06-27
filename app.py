@@ -425,11 +425,18 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
         <style>
         .custom-caption {
             line-height: 1.4em;
-            margin-bottom: 2.5px;
-            font-size: 0.9em;
+            margin-bottom: 2px;
+            font-size: 0.9em;  /* Atur ukuran font di sini */
+            font-weight: normal;
+        }
+        .custom-title {
+            font-size: 1.3em;  /* Ini untuk judul produk */
+            font-weight: bold;
+            margin-bottom: 4px;
         }
         </style>
         """, unsafe_allow_html=True)
+
 
         rows = [filtered.iloc[i:i+4] for i in range(0, len(filtered), 4)]
         for row in rows:
@@ -449,7 +456,7 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
                         except:
                             st.image("https://via.placeholder.com/200", use_container_width=True)
 
-                        st.markdown(f"<div class='custom-caption'><strong>{product['product_name'][:30]}</strong></div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='custom-title'>{product['product_name'][:30]}</div>", unsafe_allow_html=True)
                         st.markdown(f"<div class='custom-caption'>Kategori: {product.get('category', '-')}</div>", unsafe_allow_html=True)
                         st.markdown(f"<div class='custom-caption'>🧑 {product['vendor_name']}</div>", unsafe_allow_html=True)
                         st.markdown(f"<div class='custom-caption'>💰 Rp {int(product['price']):,}</div>", unsafe_allow_html=True)
