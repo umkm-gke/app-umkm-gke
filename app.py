@@ -1494,15 +1494,17 @@ elif role == 'admin':
                         vendors_ws.update_cell(cell.row, reset_col, "rejected")
                         st.warning(f"Permintaan reset '{row['username']}' ditolak.")
                         st.rerun()
+# Tambahkan di awal halaman admin
+start_time = time.time()
 
     with st.expander("📊 Statistik & Profiling"):
-        # Hitung waktu
+        # Hitung waktu baca data
         t0 = time.time()
         products_df = get_data("Products")
         vendors_df = get_data("Vendors")
         orders_df = get_data("Orders")
         load_duration = time.time() - t0
-
+    
         # Statistik dasar
         st.write("### 📦 Statistik Data")
         col1, col2, col3 = st.columns(3)
@@ -1510,37 +1512,31 @@ elif role == 'admin':
         col2.metric("Total Vendor", len(vendors_df))
         col3.metric("Total Order", len(orders_df))
     
-        # Estimasi waktu render halaman
-        render_time = time.time() - start_time
-        st.write("### 🕒 Waktu Eksekusi")
-        st.write(f"⏱️ Waktu baca data: `{load_duration:.2f} detik`")
-        st.write(f"⏱️ Total waktu render halaman: `{render_time:.2f} detik`")
-    
-        # Statistik tambahan (opsional)
-        st.write("### 📈 Statistik Tambahan")
+        # Statistik tambahan
         aktif_vendors = vendors_df[vendors_df['is_active'].astype(str).str.lower() == "true"]
         col4, col5 = st.columns(2)
         col4.metric("Vendor Aktif", len(aktif_vendors))
         col5.metric("Produk Aktif", len(products_df[products_df['is_active'].astype(str).str.lower() == "true"]))
-        
-        t1 = time.time()
-        # any rendering steps...
-        render_duration = time.time() - t1
-        
+    
+        # Estimasi waktu render
+        render_time = time.time() - start_time
+        st.write("### 🕒 Waktu Eksekusi")
         st.metric("Waktu Load (s)", f"{load_duration:.3f}")
-        st.metric("Waktu Render (s)", f"{render_duration:.3f}")
-        
-        # simpan log
-        log_performance(st.session_state.get('role'), load_duration, render_duration)
-        
-        # grafik kunjungan bulanan
+        st.metric("Total Render (s)", f"{render_time:.3f}")
+    
+        # Simpan log performa
+        log_performance(st.session_state.get('role'), load_duration, render_time)
+    
+        # Grafik kunjungan bulanan
         logs_df = get_data("Logs")
         logs_df['timestamp'] = pd.to_datetime(logs_df['timestamp'], errors='coerce')
         logs_df['month'] = logs_df['timestamp'].dt.to_period('M').dt.to_timestamp()
         agg = logs_df.groupby('month').size().reset_index(name='visits')
+    
+        st.write("### 📊 Kunjungan Bulanan")
         chart = alt.Chart(agg).mark_line(point=True).encode(
-        alt.X('month:T', title='Bulan'),
-        alt.Y('visits:Q', title='Kunjungan'),
-        tooltip=['month:T', 'visits:Q']
-        ).properties(width=600, title="Kunjungan Bulanan")
+            alt.X('month:T', title='Bulan'),
+            alt.Y('visits:Q', title='Kunjungan'),
+            tooltip=['month:T', 'visits:Q']
+        ).properties(width=600, title="Statistik Kunjungan Pengguna")
         st.altair_chart(chart)
