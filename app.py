@@ -1098,22 +1098,51 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                     try:
                         orders_ws = get_worksheet("Orders")
                         success_count = 0
-        
+            
                         for order_id in selected_orders["order_id"]:
                             try:
                                 df_index = df_all[df_all["order_id"] == order_id].index[0]
                                 row_number = df_index + 2  # +2 karena header
                                 orders_ws.update_cell(row_number, 6, new_status)
                                 success_count += 1
+            
+                                # --- Tambahkan logika pengurangan stok jika selesai ---
+                                if new_status == "Selesai":
+                                    order_row = df_all[df_all["order_id"] == order_id].iloc[0]
+                                    order_details = json.loads(order_row["order_details"])
+            
+                                    for item in order_details:
+                                        if item["vendor_id"] != vendor_id:
+                                            continue
+            
+                                        product_id = item["product_id"]
+                                        jumlah = int(item["quantity"])
+            
+                                        products_df = get_data("Products")
+                                        products_ws = get_worksheet("Products")
+            
+                                        prod_row = products_df[products_df["product_id"] == product_id]
+                                        if prod_row.empty:
+                                            continue
+            
+                                        current_stock = int(prod_row.iloc[0]["stock_quantity"])
+                                        new_stock = max(current_stock - jumlah, 0)
+            
+                                        prod_cell = products_ws.find(product_id)
+                                        if prod_cell:
+                                            products_ws.update_cell(prod_cell.row, 7, new_stock)
+            
                             except Exception as err:
                                 st.warning(f"❌ Gagal update pesanan {order_id}: {err}")
-        
+            
                         st.success(f"✅ Berhasil memperbarui {success_count} pesanan ke status **{new_status}**.")
                         st.cache_data.clear()
                         st.rerun()
+            
                     except Exception as e:
                         st.error("❌ Gagal memperbarui status pesanan.")
                         st.exception(e)
+
         else:
             st.info("Belum ada pesanan 'Baru'")
 
