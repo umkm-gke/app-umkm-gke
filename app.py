@@ -622,8 +622,11 @@ if st.session_state.role == 'guest' and menu_selection == "Belanja":
 
                         #st.caption(desc[:60] + "..." if len(desc) > 60 else desc)
 
-                        if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
-                            add_to_cart(product)
+                        if int(product.get("stock_quantity", 0)) > 0:
+                            if st.button("➕ Tambah ke Keranjang", key=f"add_{product['product_id']}"):
+                                add_to_cart(product)
+                        else:
+                            st.markdown("<div style='color:red; font-weight:bold;'>❌ Stok Habis</div>", unsafe_allow_html=True)
 
                        # st.markdown('</div>', unsafe_allow_html=True)
 
