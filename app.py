@@ -956,7 +956,9 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
             st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
         else:
             st.info("✅ Tidak ada pesanan baru saat ini.")
-        
+        st.caption(f"🕒 Sekarang (WIB): {now_jakarta()}")
+        st.caption(f"📅 Filter sejak: {last_week}")
+
     #if st.button("🔄 Muat Ulang Data"):
      #   st.cache_data.clear()
       #  st.rerun()
@@ -986,9 +988,6 @@ if role == 'vendor' and menu_selection == "Portal Penjual":
                 except TypeError:
                     return pd.to_datetime(series, errors='coerce').dt.tz_convert(jakarta_tz)
 
-
-
-    
             jumlah_baru = df_orders[df_orders["status"] == "Baru"].shape[0]
             if jumlah_baru > 0:
                 st.success(f"🛎️ Anda memiliki **{jumlah_baru}** pesanan **Baru** yang belum diproses.")
